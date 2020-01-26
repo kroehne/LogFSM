@@ -1,0 +1,298 @@
+---
+title: "LogFSM: Transform Raw Log Data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Transform}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+This vignette is aimed at data provides who want to provide log data in the universal log format. LogFSM provides a function to transform raw log data from selected supported platforms. 
+
+## Transform Raw Log Data to Universal Log Format with LogFSM
+
+LogFSM provides support to transform log data to the universal log  format currently for the following assessment platforms (possible values of the argument 'inputformat'):
+
+* CBA ItemBuilder (Version <= 8.12), RAP Generation, Execution Environment (EE): ```eeibraprawv01a```
+* CBA ItemBuilder (Version >= 8.12), REACT Generation, 'ItemBuilder Static Delivery' (IBSD): ```ibsdraw01a```
+* NEPS-TBT-Moduls (Data gathered in the National Educational Panel Study, NEPS): ```nepsrawv01a```
+ 
+### General Workflow: Raw Data to Universal Log Format
+
+Input:
+
+* Folder with raw log data 
+* File name for output zip
+* Input format (of a supported platform)
+* Optional: Concordance table
+* Optional: Codebook dictionary
+
+Output:
+
+* ZIP archiv with log files in the universal log data format
+* Optional: Excel document as codebook
+* Optional: Template of a concordance table
+
+Sipmle Example: 
+
+```{r, eval = FALSE}
+myinfolder <- ""    # Absolute file path to the directory containing ZIP archives 
+                    # or XML files exported from the CBA ItemBuilder Execution Environment 
+mystatazip <- ""    # Absolute file path for a ZIP archive that will be created containing the
+                    # log data in the universal log format
+mycodebook <- ""    # Absolute file path for the XLSX document that will be created containg the
+                    # codebook
+mydictionary <- ""  # Absolute file path for a XLSX document with event-related platform-specific
+                    # documentation that will be used as dictionary while creating the codebook
+
+TransformToUniversalLogFormat(input = myinfolder
+                              stata = mystatazip, 
+                              inputformat = "eeibraprawv01a", 
+                              dictionary = mydictionary, 
+                              codebook = mycodebook)
+```
+
+
+### Specific Comments: NEPS-TBT-Moduls
+
+Input:
+
+* Input folders are expected to contain the extracted zip archives of individual assessments (raw data archives) created with NEPS 'Testanwendung'.
+
+### Specific Comments: IB EE / RAP
+
+Input:
+
+* Input folders are expected to contain xml files (or zip archives with xml files) exported from the Execution Environment.
+
+### Specific Comments: IBSD / REACT
+
+Input:
+
+* Input folders are expected to contain json files exported from the ItemBuilder static delivery environment.
+
+## Documentation (Codebook)
+
+### Generated Codebook
+
+Codebooks contain the following sheets:
+
+* ```MetaData```: General metadata about the log data.
+* ```Head```: Variable labels for columns in all tables.
+* ```Events```: Description of all events present in the log data.
+* ```Attributes```: Description of all attributes (for the occured events).
+
+For all entries in the sheet ```Head``` the column ```Identifies``` is provided. This column indicates which information is identified by the entries in this column. Possible values are: 
+
+* ```line```: The values in this column can be used to identify lines. 
+* ```target-person```: The values in this column identifiy the target-persons. 
+* ```instrument-part```: The values in this column identify the administered part of the assessment instrument. 
+* ```assessment-time```: The values in this column identify the assessment time. 
+* ```event```: The values in this column identify events.
+* ```table```: The values in this column identify tables.
+* (empty or ```-```): This column is not an identifier. 
+
+
+The table ```Attributes``` lists for each table which additional event-specific columns are included. For each column, you can specify whether it can contain anonymization-relevant information (column ``Anonymity``).  Possible values are: 
+
+* ```instrument-part```: Entries in this column can contain information from the items used.
+* ```target-person```: Entries in this column may contain information related to a person identifier. 
+* ```paradata```: Entries in this column can contain paradata. 
+* ```text response```: Entries in this column can contain entered text responses. 
+* (empty or ```-```): The values in this column cannot contain information relevant to anonymization. 
+
+The table ``Attributes``` also allows adding additional comments regarding potential steps necessary to purify the log data in the column ```Purification```. Moreover, ```Conditions``` can be described in the column of the same name, if attributes only under certain circumstances attribute values can contain anonymity-relevant information. 
+
+### Dictionary (Codebook Template)
+
+An XLSX document can be used as a template (dictionary) for creating a codeobk. 
+
+Dictionary files can contain the following sheets:
+
+* ```MetaData```: General metadata about the log data
+* ```Head```: Variable labels for columns in all tables
+* ```Events```: Description of all events
+* ```Attributes```: Description of all event attributes
+
+Language variants can be defined optionally. For this purpose, the selected columns can be defined several times in the following tables (column names with suffix _LANGUAGE, e.g., AttributeValue_ENG and AttributeValue_DE): 
+
+* ```MetaData```: AttributeValue_LANGUAGE
+* ```Head```: VariableLable_LANGUAGE
+* ```Events```: EventDescription_LANGUAGE
+* ```Attributes```: Description_LANGUAGE
+
+
+
+The following example shows how a codebook dictionary can be created with the R package openxlsx 
+
+```{r, eval = FALSE}
+# create data for sheet 'metadata'
+
+m <- rbind(c("StudyName", "Name of the study" ,"Studienname"),
+           c("TestPlatform", "Software version","Version der Software"))
+
+colnames(m) <- c("Attribute","AttributeValue_ENG","AttributeValue_DE")
+```
+
+```{r, eval = FALSE}
+# create data for sheet 'head'
+
+h <- rbind(
+  c("ID", "ID for this line (counter over all cases and events)", 
+          "ID für diese Zeile (Zähler über alle Fälle und Ereignisse)", 
+    "line"),
+  c("PersonIdentifier", "ID of the person which triggered the event data in this row",
+                        "ID der Person, die das Log-Ereignis in dieser Zeile ausgelöst hat", 
+    "target-person"),
+  c("Element", "Item or page name (source of the event data in this row)",
+               "Item oder Seitennahme (Quelle der Eventdaten in dieser Zeile)", 
+    "instrument-part"),
+  c("TimeStamp", "Time stamp for the event data in this line",
+                 "Zeitstempel für die Ereignisdaten in dieser Zeile", 
+    "assessment-time"),
+  c("RelativeTime", "Relative time for the log event (milliseconds relative to the start)",
+                    "Relativzeit für das Log-Ereignis (Millisekunden relativ zum Start)", 
+    "-"),
+  c("EventID", "ID for the current event (starts with 0 within the current 'Path')",
+               "ID für das aktuelle Ereignis (beginnt mit 0 innerhalb des aktuellen 'Path')", 
+    "event"),
+  c("ParentEventID", "ID of the parent event (used for the nested data structures of an event)",
+                     "ID des übergeordneten Ereignisses (wird für die geschachtelten Datenstrukturen eines Ereignisses verwendet)",
+    "event"),
+  c("Path", "Hierarchy of the nested data structure",
+            "Hierarchie der geschachtelten Datenstruktur", 
+    "table"),
+  c("ParentPath", "Hierarchy of the parent element (empty for the elements at the root level)",
+                  "Hierarchie des Elternelements (leer für die Elemente auf der Wurzelebene)", 
+    "table"),
+  c("EventName", "Name of the log event / data in this line",
+                 "Name des Logevents in dieser Zeile", 
+    "-"))
+
+colnames(h) <- c("Column","VariableLable_ENG","VariableLable_DE","Identifies")
+```
+
+```{r, eval = FALSE}
+# create data for sheet 'events'
+
+e <- rbind(
+  c("ButtonLogEntry",
+    "Log.ButtonLogEntry",
+    "Jeder Interaktion eines Testteilnehmers mit einer Schaltfläche führt zum Speichern eines Log-Ereignisses vom Typ ButtonLogEntry. Neben dem Zeitstempel wird im Attribut a_id gespeichert, welche Schaltfläche gedrückt wurde. Die Namen der Schaltflächen sind als so-genannte user-defined ID innerhalb des Items festgelegt. ",
+    "Each interaction of a test participant with a button results in the saving of a log event of the type ButtonLogEntry. In addition to the timestamp, the a_id attribute stores which button was pressed. The names of the buttons are defined as a so-called user-defined ID within the item. ") # ...
+)  
+
+colnames(e) <- c("EventName","Table","EventDescription_DE","EventDescription_ENG")
+```
+
+```{r, eval = FALSE}
+# create data for sheet 'attributes'
+
+a <- rbind(
+  c("Log.CBAItemLogEntry",
+    "a_webClientUserAgent","-",
+    "User Agent String des Browsers.",
+    "User Agent String of the browser.",
+    "paradata ","-"),
+  c("Log.ButtonLogEntry",
+    "a_id","-",
+    "User-Defined ID der Schaltfläche, welche gedrückt wurde. Die Namen der Schaltflächen sind als so-genannte user-defined ID innerhalb des Items festgelegt. ",
+    "User-Defined ID of the button that was pressed. The names of the buttons are defined as a so-called user-defined ID within the item. ",
+    "-","-")# ...
+)
+
+colnames(a)<- c("Table","Column","Condition","Description_DE","Description_ENG", "Anonymity", "Purification")
+
+```
+
+
+```{r, eval = FALSE}
+
+# combine datasets and write as xlsx file
+
+b <- createWorkbook(f)
+
+addWorksheet(b, "MetaData")
+writeData(b, sheet = 1, m)
+
+addWorksheet(b, "Head")
+writeData(b, sheet = 2, h)
+
+addWorksheet(b, "Events")
+writeData(b, sheet = 3, e)
+ 
+addWorksheet(b, "Attributes")
+writeData(b, sheet = 4, a)
+
+saveWorkbook(b, file = "dictionary.xlsx", overwrite = TRUE)
+```
+
+
+## Concordance Table 
+
+If a file name is specified for a concordance table, and the file does not exist, then the TransformToUniversalLogFormat function creates a template file. This file contains all PersonIdentifiers and can be edited / modified for a second call of the function. 
+
+### Change PersonIdentifier
+
+A concordance table in XLSX, CSV or Stata format must have two columns:
+
+* ```PersonIdentifierOld```:  Original ID
+* ```PersonIdentifierNew```:  New ID
+
+When creating log data in Universal Log Format, the original ID is exchanged for the new ID. 
+
+### Filter Test-Takers
+
+If an existing XLSX, CSV or Stata file is transferred as a concordance table, then only those cases are transferred to the Universal Log File for which they are contained in the concordance table. 
+
+Cases that are not included in the concordance table are filtered (that is, ignored). 
+
+## Transform Raw Log Data to Universal Log Format using Commmand Line Tool
+
+In order to be able to carry out a conversion outside of R, a commandLine tool is provided to accompany the conversion. This allows access to the options available via the LogFSM function ```TransformToUniversalLogFormat``` from the command line. 
+
+Arguments (Input): 
+
+* ```-i``` / ```-input```: Input folder to be processed.
+* ```-r``` / ```-rawformat```: Raw format (either ```eeibraprawv01a```, ```ibsdraw01a``` or ```nepsrawv01a```). 
+* ```-l``` / ```-logversion```: Version information about the raw data.
+
+Arguments (Output): 
+
+* ```-s``` / ```-stata```: Output file name for the generated universal log format, type Stata (i.e., absolute path to the zip file containing log data as Stata files, one file for each event type).")
+* ```-z``` / ```-zcsv```: Output file name for the generated universal log format, type zip-compressed CSV (i.e., absolute path to the zip file containing log data as CSV files, one file for each event type).
+* ```-x``` / ```-xslx```: Output file name for the generated universal log format, type XLSX (i.e., absolute path to XLSX file containing log data, one sheet for each event type).
+
+Filter:
+ 
+* ```-m``` / ```-mask```: File filter mask. Only files that match the specified mask will be used (e.g., *.jsonl).
+* ```-e``` / ```-excludedelements```: Element names (i.e., items, units or tasks), that should be ignored.
+* ```-t``` / ```-table```: Concordance table file name. 
+
+Codebook:     
+ 
+* ```-r``` / ```-codebook```: File name for the XLSX file created as codebook. 
+* ```-r``` / ```-dictionary```: Dictionary file for the creation of an integrated codebook.
+
+Misc:
+
+* ```-f``` / ```-flags```: Optional flags as documented for the specific data formats.
+* ```-a``` / ```-arguments```: Additional arguments (URL style, i.e., ?name1=value&name2=value).
+
+* ```-v``` / ```-verbose```: Request verbose output messages.
+
+Example call:
+
+```TransformToUniversalLogFormat.exe --i PATH\in\ -s PATH\out\data_dta.zip```
+
+To request help information, call: 
+
+```TransformToUniversalLogFormat.exe --help```
+
