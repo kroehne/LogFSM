@@ -20,4 +20,4 @@ jobs:
     - name: Publish with dotnet 2/3
       run: dotnet publish vs/LogFSMCore.sln -c release -r ubuntu.16.10-x64 -o bin/dist/linux-64
     - name: Publish with dotnet 3/3
-      run: dotnet publish vs/LogFSMCore.sln -c osx.10.12-x64 -o bin/dist/osx-x64
+      run: dotnet publish vs/LogFSMCore.sln -c release -r osx.10.12-x64 -o bin/dist/osx-x64
