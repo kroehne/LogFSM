@@ -18,11 +18,13 @@ jobs:
       with:
         dotnet-version: '3.1.100' 
         
-    - name: Build Dotnet Worker 1
+    - name: Build Dotnet Worker 
       run: dotnet build vs/LogFSMCore.sln -c Release
-    - name: Build Dotnet Worker  2
+      
+    - name: Prepare Folders 1
       run: mkdir $GITHUB_WORKSPACE/r/inst
-    - name: Build Dotnet Worker 3
+      
+    - name:  Prepare Folders 2
       run: mkdir $GITHUB_WORKSPACE/r/inst/extdata
            
     - name: 'Publish Linux Worker 1'      
@@ -36,8 +38,7 @@ jobs:
       
     - name: 'Publish Windows Worker 2'   
       run: dotnet publish vs/LogFSMCore.sln -c release -r win7-x64 -o "$GITHUB_WORKSPACE/r/inst/extdata/win-x64"
-
-
+ 
     - name: Setup R Environment
       uses: r-lib/actions/setup-r@master
       
