@@ -32,7 +32,7 @@ jobs:
       run: Rscript -e "rcmdcheck::rcmdcheck(path='r/', args = '--no-manual', error_on = 'error')"
   
     - name: Build
-      run: Rscript -e format("pkgbuild::build(path='{0}/r/')", ${{ github.workspace }})
+      run: Rscript -e format("pkgbuild::build(path='{0}/r/')", "${{ github.workspace }}")
   
      - uses: actions/upload-artifact@v1
       with:
