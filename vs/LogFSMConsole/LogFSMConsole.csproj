@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <AssemblyVersion>0.3.0.8</AssemblyVersion>
+    <FileVersion>0.3.0.8</FileVersion>
+    <Version>0.4</Version>
+    <ReleaseVersion>0.2.0.1</ReleaseVersion>
+    <Authors>Ulf Kroehne</Authors>
+    <Company>DIPF | Leibniz Institute for Research and Information in Education</Company>
+    <Product>LogFSM</Product>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.5.0-beta1-final" />
+    <PackageReference Include="NPOI" Version="2.4.1" />
+    <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
+    <PackageReference Include="Stateless" Version="4.3.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="DotNetZip" Version="1.13.5" />
+    <PackageReference Include="System.ComponentModel.Primitives" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="logfsmlastsource.cs" />
+    <Compile Remove="LogFSMShared.cs" />
+    <Compile Remove="generated.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LogFSMShared\LogFSMShared.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="FSMSyntax\" />
+    <Folder Include="Extensions\" />
+    <Folder Include="StataLib\" />
+    <Folder Include="FSMFactory\" />
+  </ItemGroup>
+</Project>
