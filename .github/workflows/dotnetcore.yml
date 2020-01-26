@@ -18,7 +18,7 @@ jobs:
     - name: Publish with dotnet (Win64)
       run:  | 
       mkdir ${{ github.workspace }}/worker/win-x64
-      dotnet publish vs/LogFSMCore.sln -c release -r ${{ github.workspace }}/worker/win-x64
+      dotnet publish vs/LogFSMCore.sln -c release -r "${{ github.workspace }}/worker/win-x64"
     - uses: actions/upload-artifact@v1
       with:
         name: Win64
