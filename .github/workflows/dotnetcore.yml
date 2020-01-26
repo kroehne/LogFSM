@@ -18,10 +18,11 @@ jobs:
       run: dotnet build vs/LogFSMCore.sln -c Release
       run: mkdir ${{ github.workspace }}/r/inst
       run: mkdir ${{ github.workspace }}/r/inst/extdata
-      
+           
     - name: 'Publish Linux Worker'      
-      run: mkdir ${{ github.workspace }}/r/inst/extdata/linux-x64
-      run: dotnet publish vs/LogFSMCore.sln -c release -r ubuntu.16.10-x64 -o "${{ github.workspace }}/r/inst/extdata/linux-x64"
+      run: |
+      mkdir ${{ github.workspace }}/r/inst/extdata/linux-x64
+      dotnet publish vs/LogFSMCore.sln -c release -r ubuntu.16.10-x64 -o "${{ github.workspace }}/r/inst/extdata/linux-x64"
 
     - name: Setup R Environment
       uses: r-lib/actions/setup-r@master
@@ -35,6 +36,10 @@ jobs:
     - name: Build R package
       run: Rscript -e "pkgbuild::build(path='r/')"
 
+    - name: Display the path
+      run: echo ${env:PATH}
+      shell: pwsh
+    
     - uses: actions/upload-artifact@v1
       with:
         name: dotnetcore worker - MacOS
