@@ -9,7 +9,7 @@ jobs:
 
     steps:
 
-    - name: Hello world
+    - name: Startup
       run: echo Hello world $GITHUB_WORKSPACE
 
     - uses: actions/checkout@v1
