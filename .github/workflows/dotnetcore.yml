@@ -39,7 +39,7 @@ jobs:
     - name: 'Publish Windows Worker 2'   
       run: dotnet publish vs/LogFSMCore.sln -c release -r win7-x64 -o "$GITHUB_WORKSPACE/r/inst/extdata/win-x64"
  
-     - name: 'Publish Mac Worker 1'      
+    - name: 'Publish Mac Worker 1'      
       run: mkdir $GITHUB_WORKSPACE/r/inst/extdata/osx-x64
       
     - name: 'Publish Mac Worker 2'   
