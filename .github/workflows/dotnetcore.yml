@@ -1,4 +1,4 @@
-name: .NET Core
+name: .NET Core Build Worker
 
 on: [push]
 
@@ -15,3 +15,5 @@ jobs:
         dotnet-version: '3.1.100' 
     - name: Build with dotnet
       run: dotnet build vs/LogFSMCore.sln --configuration Release
+    - name: Publish with dotnet
+      run: dotnet publish -c release -r win7-x64 -o bin/dist/win-x64
