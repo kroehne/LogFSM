@@ -25,7 +25,7 @@ jobs:
       uses: r-lib/actions/setup-r@master
       
     - name: Install Dependencies
-      run: Rscript -e "install.packages(c('rcmdcheck'))"  
+      run: Rscript -e "install.packages(c('rcmdcheck','knitr'))"  
       
     - name: Check R package
       run: Rscript -e "rcmdcheck::rcmdcheck(path='r/', args = '--no-manual', error_on = 'error')"
