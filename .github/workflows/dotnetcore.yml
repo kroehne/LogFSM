@@ -8,6 +8,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+    - name: Hello world
+      run: echo Hello world $GITHUB_WORKSPACE
+
     - uses: actions/checkout@v1
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
@@ -21,8 +25,8 @@ jobs:
            
     - name: 'Publish Linux Worker'      
       run: |
-      mkdir ${{ github.workspace }}/r/inst/extdata/linux-x64
-      dotnet publish vs/LogFSMCore.sln -c release -r ubuntu.16.10-x64 -o "${{ github.workspace }}/r/inst/extdata/linux-x64"
+      mkdir $GITHUB_WORKSPACE/r/inst/extdata/linux-x64
+      dotnet publish vs/LogFSMCore.sln -c release -r ubuntu.16.10-x64 -o "$GITHUB_WORKSPACE/r/inst/extdata/linux-x64"
 
     - name: Setup R Environment
       uses: r-lib/actions/setup-r@master
