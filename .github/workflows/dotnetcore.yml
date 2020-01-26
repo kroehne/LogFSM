@@ -19,9 +19,10 @@ jobs:
         dotnet-version: '3.1.100' 
         
     - name: Build Dotnet Worker 
-      run: dotnet build vs/LogFSMCore.sln -c Release
-      run: mkdir ${{ github.workspace }}/r/inst
-      run: mkdir ${{ github.workspace }}/r/inst/extdata
+      run: |
+      dotnet build vs/LogFSMCore.sln -c Release
+      mkdir ${{ github.workspace }}/r/inst
+      mkdir ${{ github.workspace }}/r/inst/extdata
            
     - name: 'Publish Linux Worker 1'      
       run: mkdir $GITHUB_WORKSPACE/r/inst/extdata/linux-x64 
