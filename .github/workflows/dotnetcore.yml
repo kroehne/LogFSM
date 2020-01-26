@@ -31,6 +31,13 @@ jobs:
     - name: 'Publish Linux Worker 2'   
       run: dotnet publish vs/LogFSMCore.sln -c release -r ubuntu.16.10-x64 -o "$GITHUB_WORKSPACE/r/inst/extdata/linux-x64"
 
+    - name: 'Publish Windows Worker 1'      
+      run: mkdir $GITHUB_WORKSPACE/r/inst/extdata/win-x64
+      
+    - name: 'Publish Windows Worker 2'   
+      run: dotnet publish vs/LogFSMCore.sln -c release -r win7-x64 -o "$GITHUB_WORKSPACE/r/inst/extdata/win-x64"
+
+
     - name: Setup R Environment
       uses: r-lib/actions/setup-r@master
       
