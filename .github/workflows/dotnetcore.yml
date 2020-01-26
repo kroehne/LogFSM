@@ -13,23 +13,30 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: '3.1.100' 
-    - name: Build with dotnet
+        
+    - name: Build Dotnet Worker 
       run: dotnet build vs/LogFSMCore.sln -c Release
-    - run: mkdir ${{ github.workspace }}/r/inst
-    - run: mkdir ${{ github.workspace }}/r/inst/extdata
-    - run: mkdir ${{ github.workspace }}/r/inst/extdata/win-x64
-    - name: 'Publish with dotnet 1/3'
+      run: mkdir ${{ github.workspace }}/r/inst
+      run: mkdir ${{ github.workspace }}/r/inst/extdata
+      
+    - name: 'Create Windows Worker'      
+      run: mkdir ${{ github.workspace }}/r/inst/extdata/win-x64
       run: dotnet publish vs/LogFSMCore.sln -c release -r win7-x64 -o "${{ github.workspace }}/r/inst/extdata/win-x64"
+
+    - name: 'Create Linux Worker'      
+      run: mkdir ${{ github.workspace }}/r/inst/extdata/linux-x64
+      run: dotnet publish vs/LogFSMCore.sln -c release -r ubuntu.16.10-x64 -o "${{ github.workspace }}/r/inst/extdata/linux-x64"
+
+    - name: 'Create MacOS Worker'      
+      run: mkdir ${{ github.workspace }}/r/inst/extdata/osx-x64
+      run: dotnet publish vs/LogFSMCore.sln -c release -r osx.10.12-x64 -o "${{ github.workspace }}/r/inst/extdata/osx-x64"
 
     - name: Setup R Environment
       uses: r-lib/actions/setup-r@master
       
     - name: Install Dependencies
-      run: Rscript -e "install.packages(c('rcmdcheck','knitr'))"  
-      
-    - name: Check R package
-      run: Rscript -e "rcmdcheck::rcmdcheck(path='r/', args = '--no-manual', error_on = 'error')"
-  
+      run: Rscript -e "install.packages(c('rcmdcheck','knitr','dplyr', 'curl', 'jsonlite', 'XML', 'ggplot2', 'Rmisc', 'TraMineR', 'rmarkdown', 'rappdirs'))"  
+   
     - name: Build R package
       run: Rscript -e "pkgbuild::build(path='r/')"
 
