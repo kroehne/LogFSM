@@ -3,7 +3,6 @@ name: LogFSM Package Build Script
 on: [push]
 
 jobs:
-
   build_r_package:
 
     runs-on: ubuntu-latest
@@ -28,11 +27,11 @@ jobs:
     - name: Install Dependencies
       run: Rscript -e "install.packages(c('rcmdcheck'))"  
       
-    - name: Check
+    - name: Check R package
       run: Rscript -e "rcmdcheck::rcmdcheck(path='r/', args = '--no-manual', error_on = 'error')"
   
-    - name: Build
-      run: Rscript -e format("pkgbuild::build(path='{0}/r/')", "${{ github.workspace }}")
+    - name: Build R package
+      run: Rscript -e "pkgbuild::build(path='r/')"
 
     - uses: actions/upload-artifact@v1
       with:
