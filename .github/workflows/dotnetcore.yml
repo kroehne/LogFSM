@@ -65,10 +65,4 @@ jobs:
       with:
         name: LogFSM_0.3.1.0.tar.gz
         path: ${{ github.workspace }}/LogFSM_0.3.1.0.tar.gz
-      
-     - uses: skx/github-action-publish-binaries@master 
-       env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-       with:
-          args: '${{ github.workspace }}/*.tar.gz'     
-      
+ 
