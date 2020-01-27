@@ -12,7 +12,7 @@ jobs:
     - uses: actions/checkout@v1
 
     - name: Determine Version of R Package
-      run: echo "::set-env name=VERSION::$(grep -Po "(?<=Version: )([0-9]|\.)*(?=\s|$)" r/DESCRIPTION)"
+      run: echo "::set-env name=VERSION::$(grep -Po '(?<=Version: )([0-9]|\.)*(?=\s|$)' r/DESCRIPTION)"
     
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
