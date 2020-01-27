@@ -66,5 +66,7 @@ jobs:
  
     - uses: actions/upload-artifact@v1
       with:
-        name: LogFSM_$VERSION.tar.gz
-        path: ${{ github.workspace }}/LogFSM_$VERSION.tar.gz
+        name: "LogFSM_$VERSION.tar.gz"
+        path: ${{ github.workspace }}/LogFSM_${{ VERSION }}.tar.gz
+        
+ 
