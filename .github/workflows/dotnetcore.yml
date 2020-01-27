@@ -8,12 +8,10 @@ jobs:
     runs-on: macOS-latest
 
     steps:
- 
     - uses: actions/checkout@v1
-
-     - run:   echo ::set-env name=VERSION::$(grep -Po "(?<=Version: )([0-9]|\.)*(?=\s|$)" r/DESCRIPTION)
-       shell: bash
-        
+    - run:   echo ::set-env name=VERSION::$(grep -Po "(?<=Version: )([0-9]|\.)*(?=\s|$)" r/DESCRIPTION)
+      shell: bash
+      
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
