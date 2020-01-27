@@ -643,18 +643,24 @@ namespace LogFSMShared
 
         private List<string> varNames = new List<string>();
          
-        public void SetVariableValue(EventData e, string VarName, string Value)
+        public void SetVariableValue(EventData e, string VarName, string ValueOrAttributeName)
         {
+            string _value = ValueOrAttributeName;
+            if (e.EventValues.ContainsKey(ValueOrAttributeName))
+            {
+                _value = e.EventValues[ValueOrAttributeName];
+            }
+             
             if (e.EventValues.ContainsKey(VarName))
             {
-                e.EventValues[VarName] = Value;
+                e.EventValues[VarName] = _value;
             }
             else
             {
                 if (!varNames.Contains(VarName))
                     varNames.Add(VarName);
 
-                e.AddEventValue(VarName, Value);
+                e.AddEventValue(VarName, ValueOrAttributeName);
             }
         }
 
@@ -673,13 +679,20 @@ namespace LogFSMShared
             }
         }
 
-        public void IncreaseIntValue(List<EventData> Data, int EventIndex, string VarName, string Value)
-        { 
+        public void IncreaseIntValue(List<EventData> Data, int EventIndex, string VarName, string ValueOrAttributeName)
+        {
+            string _value = ValueOrAttributeName;
+            if (Data[EventIndex].EventValues.ContainsKey(ValueOrAttributeName))
+            {
+                _value = Data[EventIndex].EventValues[ValueOrAttributeName];
+            }
+
+
             if (!Data[EventIndex].EventValues.ContainsKey(VarName) && !varNames.Contains(VarName))
                 varNames.Add(VarName);
 
             int _newValue = 0;
-            bool _newValueIsIntValue = int.TryParse(Value, out _newValue);
+            bool _newValueIsIntValue = int.TryParse(_value, out _newValue);
             if (!_newValueIsIntValue)
             {
                 Data[EventIndex].AddEventValue(VarName, "0");
@@ -688,7 +701,7 @@ namespace LogFSMShared
             {
                 if (EventIndex == 0)
                 {
-                    Data[EventIndex].AddEventValue(VarName, Value);
+                    Data[EventIndex].AddEventValue(VarName, _newValue.ToString());
                 }
                 else
                 {
