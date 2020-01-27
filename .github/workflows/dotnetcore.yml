@@ -5,12 +5,12 @@ on: [push]
 jobs:
   build_r_package:
 
-    runs-on: ubuntu-latest
+    runs-on: macOS-latest
 
     steps:
     - uses: actions/checkout@v1
     
-    - run: echo "::set-env name=VERSION::$(grep -Po '(?<=Version: )([0-9]|\.)*(?=\s|$)' r/DESCRIPTION)"
+    - run: echo "::set-env name=VERSION::$(grep -Po '(?<=Version:.)([0-9]|\.)*(?=\s|$)' r/DESCRIPTION)"
       shell: bash
       
     - name: Setup .NET Core
