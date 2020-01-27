@@ -17,7 +17,7 @@ jobs:
       shell: bash
 
     - name: Determine version
-      run: echo "::set-env name=XX::$(git describe --tags --dirty)"      
+      run: echo "::set-env name=XX::$(git log --pretty=format:'%h' -n 1)"      
       
     - run: echo "Building Version $XX"
       shell: bash
