@@ -1,6 +1,7 @@
 ﻿namespace LogFSM_LogX2019
-{ 
+{
     #region usings
+    using CsvHelper;
     using Ionic.Zip;
     using NPOI.SS.UserModel;
     using NPOI.XSSF.UserModel;
@@ -10,10 +11,6 @@
     using System.IO;
     using System.Text;
     using System.Xml.Linq;
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-    using CsvHelper;
     #endregion
 
     public class logXContainer
@@ -1042,9 +1039,8 @@
                     #endregion
                 } 
             } 
-            catch (Exception _ex)
+            catch
             {
-
             }
          }
 
@@ -1087,31 +1083,22 @@
                 {
                     case "ID": 
                         return "ID for this line (counter over all cases and events)";
-                        break;
                     case "PersonIdentifier":
                         return "ID of the person which triggered the event data in this row";
-                        break;
                     case "Element":
                         return "Item or page name (source of the event data in this row)";
-                        break;
                     case "TimeStamp":
                         return "Time stamp for the event data in this line";
-                        break;
                     case "RelativeTime":
                         return "Relative time for the log event (milliseconds relative to the start)";
-                        break;
                     case "ParentEventID":
                         return "ID of the parent event (used for the nested data structures of an event)";
-                        break;
                     case "Path":
                         return "Hierarchy of the nested data structure";
-                        break;
                     case "ParentPath":
                         return "Hierarchy of the parent element (empty for the elements at the root level)";
-                        break;
                     case "EventName":
                         return "ID for this line (counter over all cases and events)";
-                        break;
                 }
             }  
             return Column;
@@ -1131,31 +1118,23 @@
                 {
                     case "ID": 
                         return "line";
-                        break;
                     case "PersonIdentifier": 
                         return "target-person";
-                        break;
                     case "Element": 
                         return "instrument-part";
-                        break;
                     case "TimeStamp": 
                         return "assessment-time";
-                        break;
                     case "RelativeTime":
                         return "-";
-                        break;
                     case "ParentEventID": 
                         return "event";
-                        break;
                     case "Path":
                         return "table";
-                        break;
                     case "ParentPath":
                         return "table"; 
-                        break;
                     case "EventName": 
                         return "-";
-                        break;
+ 
                 }
             }
           

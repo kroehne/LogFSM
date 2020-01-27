@@ -89,6 +89,7 @@ namespace TransformToUniversalLogFormat
             {
                 Console.WriteLine("Error parsing: " + string.Join<string>(" ", args));
                 Console.WriteLine("Call --help");
+                Console.WriteLine("Details: " + _ex.ToString());
             }
         }
 

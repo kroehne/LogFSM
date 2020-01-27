@@ -37,11 +37,13 @@
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("language"))
                     _language = ParsedCommandLineArguments.ParameterDictionary["language"];
 
+                /*
                 EventDataListExtension.ESortType sort = EventDataListExtension.ESortType.Time;
                 if (ParsedCommandLineArguments.Flags.Contains("DONT_ORDER_EVENTS"))
                     sort = EventDataListExtension.ESortType.None;
                 if (ParsedCommandLineArguments.Flags.Contains("ORDER_WITHIN_ELEMENTS"))
                     sort = EventDataListExtension.ESortType.ElementAndTime;
+                */
 
                 DateTime dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, 0);
                 XmlSerializer logSerializer = new XmlSerializer(typeof(log));

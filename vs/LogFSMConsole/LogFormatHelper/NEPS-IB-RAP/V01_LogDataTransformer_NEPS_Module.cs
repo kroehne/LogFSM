@@ -17,9 +17,11 @@
         {
             try
             {
+                /*
                 bool _personIdentifierIsNumber = false;
                 if (ParsedCommandLineArguments.Flags.Contains("NUMERICPERSONIDENTIFIER"))
                     _personIdentifierIsNumber = true;
+                */
 
                 string _personIdentifier = "lfd";
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("personidentifier"))
