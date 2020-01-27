@@ -11,7 +11,8 @@ jobs:
     - uses: actions/checkout@v1
      
     - name: Read Version from R Package
-      run: echo "::set-env name=VERSION::$(grep --only-matching  --perl-regexp -e"(?<=Version:.)([0-9]|\\.)*(?=\\s|$)" -f ${{ github.workspace }}/r/DESCRIPTION)"
+      run: echo "::set-env name=VERSION::$(grep -P -o "(?<=Version:.)([0-9]|\\.)*(?=\\s|$)" r/DESCRIPTION)"
+      shell: bash
  
     - name: Determine Shortened Hash 
       run: echo "::set-env name=HASH::$(git log --pretty=format:'%h' -n 1)"      
