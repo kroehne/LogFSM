@@ -9,15 +9,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    
+     
     - name: Read Version from R Package
-      run: echo "::set-env name=VERSION::$(grep -P -o "(?<=Version:.)([0-9]|\\.)*(?=\\s|$)" r/DESCRIPTION)"
+      run: echo "::set-env name=VERSION::$(grep -Po -e"(?<=Version:.)([0-9]|\\.)*(?=\\s|$)" ${{ github.workspace }}/r/DESCRIPTION)"
  
-    - run: echo "Building Version $VERSION"
+    - name: Determine Shortened Hash 
+      run: echo "::set-env name=HASH::$(git log --pretty=format:'%h' -n 1)"      
+     
+    - run: echo "Building Version $VERSION ($HASH)"
       shell: bash
 
-    - name: Determine version
-      run: echo "::set-env name=XX::$(git log --pretty=format:'%h' -n 1)"      
-      
-    - run: echo "Building Version $XX"
-      shell: bash
+   
