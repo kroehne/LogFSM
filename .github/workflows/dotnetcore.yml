@@ -13,6 +13,6 @@ jobs:
     - run: echo "::set-env name=VERSION::$(grep -Po '(?<=Version:.)([0-9]|\\.)*(?=\\s|$)' r/DESCRIPTION)"
       shell: bash
       
-   - run: echo "Building Version $VERSION)"
+    - run: echo "Building Version $VERSION"
       shell: bash      
       
