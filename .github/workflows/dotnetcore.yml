@@ -8,17 +8,11 @@ jobs:
     runs-on: macOS-latest
 
     steps:
+ 
+    - uses: actions/checkout@v1
 
-    - name: Generate build number
-      uses: einaregilsson/build-number@v1 
-      with: 
-        token: ${{secrets.github_token}}        
-     
-    - name: Print generated build number
-      run: echo Build number is $BUILD_NUMBER for $GITHUB_WORKSPACE
-
-    - name: Checkout 
-      uses: actions/checkout@v1
+    - name: Determine Version of R Package
+      run: echo "::set-env name=VERSION::$(grep -Po "(?<=Version: )([0-9]|\.)*(?=\s|$)" r/DESCRIPTION)"
     
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
@@ -26,7 +20,7 @@ jobs:
         dotnet-version: '3.1.100' 
       
     - name: Build Dotnet Worker 
-      run: dotnet build vs/LogFSMCore.sln -c Release
+      run: dotnet build vs/LogFSMCore.sln -c Release -p:Version=$VERSION
       
     - name: Prepare Folders 1
       run: mkdir $GITHUB_WORKSPACE/r/inst
@@ -63,13 +57,9 @@ jobs:
   
     - name: Build R package
       run: Rscript -e "pkgbuild::build(path='r/')"
-
-    - name: Display the path
-      run: echo ${env:PATH}
-      shell: pwsh
-    
+ 
     - uses: actions/upload-artifact@v1
       with:
-        name: LogFSM_0.3.1.0.tar.gz
-        path: ${{ github.workspace }}/LogFSM_0.3.1.0.tar.gz
+        name: LogFSM_$VERSION.tar.gz
+        path: ${{ github.workspace }}/LogFSM_$VERSION.tar.gz
  
