@@ -61,7 +61,7 @@ jobs:
     - name: Check R package
       run: Rscript -e "rcmdcheck::rcmdcheck(path='r/', args = '--no-manual', error_on = 'error')"
   
-    - name: Build R package
+    - name: Build R package (all worker)
       run: Rscript -e "pkgbuild::build(path='r/')"
  
     - uses: actions/upload-artifact@v1
@@ -82,4 +82,30 @@ jobs:
     - uses: actions/upload-artifact@v1
       with:
         name: ${{format('Win_LogFSM_{0}.tar.gz', env.VERSION)}}
+        path: ${{ github.workspace }}/${{format('LogFSM_{0}.tar.gz', env.VERSION)}}
+        
+    - name: 'Remove Windows Worker '      
+      run: mv $GITHUB_WORKSPACE/r/inst/extdata/win-x64  $GITHUB_WORKSPACE/tmp_worker/win-x64
+    - name: 'Use Mac Worker '      
+      run: mv $GITHUB_WORKSPACE/tmp_worker/osx-x64 $GITHUB_WORKSPACE/r/inst/extdata/osx-x64
+         
+    - name: Build R package (Mac) 
+      run: Rscript -e "pkgbuild::build(path='r/')"
+ 
+    - uses: actions/upload-artifact@v1
+      with:
+        name: ${{format('Mac_LogFSM_{0}.tar.gz', env.VERSION)}}
+        path: ${{ github.workspace }}/${{format('LogFSM_{0}.tar.gz', env.VERSION)}}
+        
+    - name: 'Remove Mac Worker '      
+      run: mv $GITHUB_WORKSPACE/r/inst/extdata/osx-x64 $GITHUB_WORKSPACE/tmp_worker/osx-x64
+    - name: 'Use Linux Worker '      
+      run: mv $GITHUB_WORKSPACE/tmp_worker/linux-x64 $GITHUB_WORKSPACE/r/inst/extdata/linux-x64
+         
+    - name: Build R package (Linux) 
+      run: Rscript -e "pkgbuild::build(path='r/')"
+ 
+    - uses: actions/upload-artifact@v1
+      with:
+        name: ${{format('Linux_LogFSM_{0}.tar.gz', env.VERSION)}}
         path: ${{ github.workspace }}/${{format('LogFSM_{0}.tar.gz', env.VERSION)}}
