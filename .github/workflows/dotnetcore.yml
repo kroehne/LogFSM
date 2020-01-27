@@ -76,7 +76,7 @@ jobs:
     - name: 'Remove Mac Worker '      
       run: mv $GITHUB_WORKSPACE/r/inst/extdata/osx-x64   $GITHUB_WORKSPACE/tmp_worker/osx-x64 
       
-    - name: Build R package
+    - name: Build R package (Windows) 
       run: Rscript -e "pkgbuild::build(path='r/')"
  
     - uses: actions/upload-artifact@v1
