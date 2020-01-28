@@ -1,4 +1,4 @@
-rmarkdown::render_site(encoding = 'UTF-8')
+rmarkdown::render_site(encoding = 'UTF-8', input="www")
 
 install_script <- c("cat('LogFSM - Install\\n\\n')",
                     "list.of.packages <- c('remotes')",
