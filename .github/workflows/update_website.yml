@@ -19,12 +19,16 @@ jobs:
  
     - name: Determine Shortened Hash 
       run: echo "::set-env name=HASH::$(git log --pretty=format:'%h' -n 1)"      
-     
+ 
+    - uses: r-lib/actions/setup-pandoc@v1
+      with:
+        pandoc-version: '2.7.3'  
+    
     - name: Setup R Environment
       uses: r-lib/actions/setup-r@master
-      
+            
     - name: Install Dependencies
-      run: Rscript -e "install.packages(c('rmarkdown','pandoc'))"  
+      run: Rscript -e "install.packages(c('rmarkdown'))"  
             
     - name: Build Website 
       run: Rscript www/update.R
