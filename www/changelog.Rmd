@@ -1,0 +1,7 @@
+---
+title: "Changelog"
+---
+
+```{r, eval=TRUE, echo=F}
+cat(paste0(readLines("../r/NEWS"),"\r\n"))
+```

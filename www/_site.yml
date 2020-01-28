@@ -1,0 +1,26 @@
+name: "logfsm-com"
+navbar:
+  title: "LogFSM"
+  left:
+    - text: "Home"
+      href: index.html
+      icon: fa-home      
+    - text: "Documentation"
+      href: documentation.html     
+      icon: fa-book
+    - text: "Download"
+      href: download.html     
+      icon: fa-download
+    - text: "Changelog"
+      href: changelog.html     
+      icon: fa-download      
+    - text: "About"
+      href: about.html
+      icon: fa-info
+output:
+  html_document:
+    theme: yeti
+    highlight: textmate
+    include:
+      after_body: footer.html
+    css: styles.css

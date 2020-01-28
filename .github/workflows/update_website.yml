@@ -1,0 +1,40 @@
+name: LogFSM Update Website
+
+on:
+  push:
+    branches:    
+      - master         
+
+jobs:
+  build_r_package:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+     
+    - name: Read Version from R Package
+      run: echo "::set-env name=VERSION::$(grep "Version:" ${{ github.workspace }}/r/DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')"
+      shell: bash
+ 
+    - name: Determine Shortened Hash 
+      run: echo "::set-env name=HASH::$(git log --pretty=format:'%h' -n 1)"      
+     
+    - name: Setup R Environment
+      uses: r-lib/actions/setup-r@master
+      
+    - name: Install Dependencies
+      run: Rscript -e "install.packages(c('rmarkdown'))"  
+            
+    - name: Build R package (all worker)
+      run: Rscript www/update.R
+ 
+    - name: Upload To Webserver 
+      uses: sebastianpopp/ftp-action@releases/v1
+      with:
+        host: ${{ secrets.FTP_SERVER }}
+        user: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        localDir: "www/_site"
+        remoteDir: ""  
+  

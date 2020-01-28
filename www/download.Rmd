@@ -1,0 +1,41 @@
+---
+title: "Download"
+---
+
+The software package that is currently under development can be used as R library. 
+
+The package available from [GitHub Releases](https://github.com/kroehne/LogFSM/releases)
+
+## Installation
+
+LogFSM can only be used on 64-bit operating systems. 
+
+### Latest 
+
+To install the package, a R script is provided that can be sourced in the following way: 
+
+```{r, eval=FALSE}
+source("http://logfsm.com/latest")
+```
+
+This will trigger the download of the latest stable release from [github](https://github.com/kroehne/LogFSM/releases) and install the required dependencies using the [remotes](https://cran.r-project.org/package=remotes) package.  
+
+### Previous Packages 
+
+Older versions of LogFSM can be installed using the remote package. Download the R package from the release section of https://github.com/kroehne/LogFSM/releases.
+
+Be sure to either use the appropriate version for your operating system (macOS, Windows or Linux) or use the package version that supports all operating systems (no OS name in the file name).  Unpack the ZIP archive and enter the path to the unpacked file LogFSM_{Version}.tar.zip in the following script: 
+
+```{r, eval=FALSE}
+library(remotes)
+install_local(path="PATH_AND/LogFSM_{Version}.tar.zip")
+```
+
+
+## Workshops
+
+| Date         | Location / Occasion      | Material  |
+|--------------|--------------------------|-----------|
+| 2016-09-08   | FDZ Autumn Academy 2016  |  [link](http://logfsm.com/download/fdz2016/material.zip)  |
+| 2019-08-30   | FDZ Autumn Academy 2019  |  [link](http://logfsm.com/download/fdz2019/material.zip)  |
+ 

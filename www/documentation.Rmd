@@ -1,0 +1,24 @@
+---
+title: "Documentation"
+---
+
+### Step 1: Prepare Data 
+
+LogFSM can analyze log data from different sources. Different input formats are supported: 
+
+- CSV file with one line for each event (PersonIdentifier, TimeStamp or RelativeTime, EventName, and Element are required, any key-value pair of event-specific data is possible)
+- XML data generated with the Execution Environment of the CBA ItemBuilder
+- CSV data exported from the PIAAC LogFileAnalyzer
+- Other formats are under development
+
+### Step 2: Define FSM
+
+LogFSM requires to specify finite-state machine in a simple syntax. 
+ 
+### Step 3: Reconstruct Sequence of States
+
+Using the finite-state machine syntax defined in step 2, the log data are analyzed, and the sequence of states is reconstructed.
+
+### Step 4: Read Output Tables
+
+From the reconstructed sequence of states, LogFSM creates various output tables and graphs that can be used to extract indicators. 
