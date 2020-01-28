@@ -5,3 +5,9 @@ title: "Changelog"
 ```{r, eval=TRUE, echo=F}
 cat(paste0(readLines("../r/NEWS"),"\r\n"))
 ```
+
+
+
+```{r, eval=TRUE, echo=F}
+cat(paste0("Last update of this page: ",date()))
+```

@@ -6,7 +6,7 @@ on:
       - master         
 
 jobs:
-  build_r_package:
+  build_website:
 
     runs-on: ubuntu-latest
 
@@ -20,7 +20,8 @@ jobs:
     - name: Determine Shortened Hash 
       run: echo "::set-env name=HASH::$(git log --pretty=format:'%h' -n 1)"      
  
-    - uses: r-lib/actions/setup-pandoc@v1
+    - name: Install Pandoc
+      uses: r-lib/actions/setup-pandoc@v1
       with:
         pandoc-version: '2.7.3'  
     

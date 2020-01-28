@@ -18,4 +18,4 @@ install_script <- c("cat('LogFSM - Install\\n\\n')",
                     "  cat('Done.\\nType library(LogFSM) to start. For more information type ??LogFSM or ?vignette(package=\"LogFSM\").')",
                     "}")
 
-write(install_script, file = "_site/latest")
+write(install_script, file = "www/_site/latest")
