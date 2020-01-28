@@ -1,6 +1,9 @@
-name: LogFSM Package Build Script 
+name: LogFSM Build Source Package (Master) 
 
-on: [push]
+on:
+  push:
+    branches:    
+      - master         
 
 jobs:
   build_r_package:
@@ -76,7 +79,7 @@ jobs:
     - name: 'Remove Mac Worker '      
       run: mv $GITHUB_WORKSPACE/r/inst/extdata/osx-x64   $GITHUB_WORKSPACE/tmp_worker/osx-x64 
       
-    - name: Build R package (Windows) 
+    - name: Build R Source Package (Windows) 
       run: Rscript -e "pkgbuild::build(path='r/')"
  
     - uses: actions/upload-artifact@v1
@@ -89,7 +92,7 @@ jobs:
     - name: 'Use Mac Worker '      
       run: mv $GITHUB_WORKSPACE/tmp_worker/osx-x64 $GITHUB_WORKSPACE/r/inst/extdata/osx-x64
          
-    - name: Build R package (Mac) 
+    - name: Build R Source Package (Mac) 
       run: Rscript -e "pkgbuild::build(path='r/')"
  
     - uses: actions/upload-artifact@v1
@@ -102,7 +105,7 @@ jobs:
     - name: 'Use Linux Worker '      
       run: mv $GITHUB_WORKSPACE/tmp_worker/linux-x64 $GITHUB_WORKSPACE/r/inst/extdata/linux-x64
          
-    - name: Build R package (Linux) 
+    - name: Build R Source Package (Linux) 
       run: Rscript -e "pkgbuild::build(path='r/')"
  
     - uses: actions/upload-artifact@v1

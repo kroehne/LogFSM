@@ -1,0 +1,59 @@
+name: LogFSM Build Source Package (Develop) 
+
+on:
+  push:
+    branches:    
+      - develop         
+
+jobs:
+  build_r_package:
+
+    runs-on: macOS-latest
+
+    steps:
+    - uses: actions/checkout@v1
+     
+    - name: Read Version from R Package
+      run: echo "::set-env name=VERSION::$(grep "Version:" ${{ github.workspace }}/r/DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')"
+      shell: bash
+ 
+    - name: Determine Shortened Hash 
+      run: echo "::set-env name=HASH::$(git log --pretty=format:'%h' -n 1)"      
+     
+    - run: echo "Building Version $VERSION ($HASH)"
+      shell: bash
+ 
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '3.1.100' 
+      
+    - name: Build Dotnet Worker 
+      run: dotnet build vs/LogFSMCore.sln -c Release -p:Version=$VERSION
+      
+    - name: Prepare Folders 1
+      run: mkdir $GITHUB_WORKSPACE/r/inst
+      
+    - name:  Prepare Folders 2
+      run: mkdir $GITHUB_WORKSPACE/r/inst/extdata
+           
+    - name: 'Publish Windows Worker 1'      
+      run: mkdir $GITHUB_WORKSPACE/r/inst/extdata/win-x64
+      
+    - name: 'Publish Windows Worker 2'   
+      run: dotnet publish vs/LogFSMCore.sln -c release -r win7-x64 -o "$GITHUB_WORKSPACE/r/inst/extdata/win-x64"
+  
+    - name: Setup R Environment
+      uses: r-lib/actions/setup-r@master
+      
+    - name: Install Dependencies
+      run: Rscript -e "install.packages(c('rcmdcheck','knitr','dplyr', 'curl', 'jsonlite', 'XML', 'ggplot2', 'Rmisc', 'TraMineR', 'rmarkdown', 'rappdirs'))"  
+            
+    - name: Build R package (all worker)
+      run: Rscript -e "pkgbuild::build(path='r/')"
+ 
+    - uses: actions/upload-artifact@v1
+      with:
+        name: ${{format('LogFSM_{0}.tar.gz', env.VERSION)}}
+        path: ${{ github.workspace }}/dev_${{format('LogFSM_{0}_{1}.tar.gz', env.VERSION, env.HASH)}}
+  
