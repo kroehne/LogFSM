@@ -17,7 +17,7 @@ jobs:
     - run: echo "::set-env name=GITHUB_WORKSPACE_Win::${{ github.workspace }}"
       shell: bash  
      
-    - run: echo "::set-env name=GITHUB_WORKSPACE_Bash::${$GITHUB_WORKSPACE_Wi | sed 's/\\/\//g' | sed 's/://'}"
+    - run: echo "::set-env name=GITHUB_WORKSPACE_Bash::$( $GITHUB_WORKSPACE_Wi | sed 's/\\/\//g' | sed 's/://')"
       shell: bash        
       
       
