@@ -20,19 +20,19 @@ jobs:
     - name: Determine Shortened Hash 
       run: echo "::set-env name=HASH::$(git log --pretty=format:'%h' -n 1)"      
  
-  #  - name: Install Pandoc
-  #    uses: r-lib/actions/setup-pandoc@v1
-  #    with:
-  #      pandoc-version: '2.7.3'  
+    - name: Install Pandoc
+      uses: r-lib/actions/setup-pandoc@v1
+      with:
+        pandoc-version: '2.7.3'  
     
-  #  - name: Setup R Environment
-  #    uses: r-lib/actions/setup-r@master
+    - name: Setup R Environment
+      uses: r-lib/actions/setup-r@master
             
-  #  - name: Install Dependencies
-  #    run: Rscript -e "install.packages(c('rmarkdown'))"  
+    - name: Install Dependencies
+      run: Rscript -e "install.packages(c('rmarkdown'))"  
             
-  #  - name: Build Website 
-  #    run: Rscript www/update.R
+    - name: Build Website 
+      run: Rscript www/update.R
   
     - name: Upload Website
       uses: SamKirkland/FTP-Deploy-Action@2.0.0
@@ -41,9 +41,6 @@ jobs:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         PORT: 22
-        LOCAL_DIR: "www/"
-        REMOTE_DIR: "test"  
-
-     #   LOCAL_DIR: "www/_site"
-     #   REMOTE_DIR: ""  
-  
+        LOCAL_DIR: "www/_site"
+        REMOTE_DIR: ""  
+ 
