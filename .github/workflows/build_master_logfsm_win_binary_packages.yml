@@ -13,13 +13,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
  
-
-    - run: echo "::set-env name=GITHUB_WORKSPACE_Win::${{ github.workspace }}"
-      shell: bash  
-     
-    - run: echo "::set-env name=GITHUB_WORKSPACE_Bash::$( $GITHUB_WORKSPACE_Wi | sed 's/\\/\//g' | sed 's/://')"
-      shell: bash        
-      
-      
-    - run: echo "Building Version $GITHUB_WORKSPACE_Win ($GITHUB_WORKSPACE_Bash)"
-      shell: bash
+  - name: Test2
+    run: echo "::set-env name=VERSION::$(grep "Version:" ./r/DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')"
+      shell: bash      
