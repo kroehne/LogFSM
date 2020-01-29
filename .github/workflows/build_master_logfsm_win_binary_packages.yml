@@ -13,6 +13,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
  
-  - name: Test2
-    run: echo "::set-env name=VERSION::$(grep "Version:" ./r/DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')"
+    - name: Test2
+      run: echo "::set-env name=VERSION::$(grep "Version:" /r/DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')"
       shell: bash      
