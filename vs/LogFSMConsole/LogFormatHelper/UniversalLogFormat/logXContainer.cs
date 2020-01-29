@@ -8,6 +8,7 @@
     using StataLib;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.IO;
     using System.Text;
     using System.Xml.Linq;
@@ -704,7 +705,7 @@
                 // CSV
 
                 using (var reader = new StreamReader(filename))
-                using (var csv = new CsvReader(reader))
+                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                 {
                     csv.Read();
                     csv.ReadHeader();
@@ -768,7 +769,7 @@
                 // CSV
 
                 using (var writer = new StreamWriter(filename))
-                using (var csv = new CsvWriter(writer))
+                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
                     for (int _i = 0; _i < uniqueValues["PersonIdentifier"].Count; _i++)
                     {

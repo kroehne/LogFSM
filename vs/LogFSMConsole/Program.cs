@@ -34,7 +34,7 @@ namespace LogFSMConsole
 
 #if DEBUG
                 args = new string[1];
-                args[0] = "ob=fsm&datafilename=C:/work/tba_svn/dfg-kikako-log/ex01a.json&fsmfilename=C:%5CUsers%5Ckroehne%5CAppData%5CLocal/title.fsm&outfilename=C:%5CUsers%5Ckroehne%5CAppData%5CLocal/title.json&datafiletype=jsonlite&fsmfiletype=custom01&datafilefilter=&flags=&maxnumberofcases=-1&verbose=TRUE&";
+                args[0] = "";
 
 #endif
 

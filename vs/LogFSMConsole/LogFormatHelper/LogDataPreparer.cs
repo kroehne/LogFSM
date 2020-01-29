@@ -95,7 +95,7 @@ namespace LogFSMConsole
                     using (var reader = new StreamReader(zippedStream))
                     {
                         int _lineCounter = 0;
-                        using (var csv = new CsvReader(reader))
+                        using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                         {
                             csv.Configuration.Delimiter = _columnDelimiter;
                             csv.Configuration.BadDataFound = x =>
@@ -240,7 +240,7 @@ namespace LogFSMConsole
                 {
                     using (var reader = new StreamReader(zippedStream))
                     {
-                        using (var csv = new CsvReader(reader))
+                        using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                         {
                             csv.Configuration.Delimiter = ColumnDelimiter;
                             var _data_rows = csv.GetRecords<dynamic>();

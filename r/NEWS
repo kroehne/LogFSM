@@ -1,7 +1,7 @@
 CHANGE-LOG
 ==========
 
-2020-01-30 0.4.0.0
+2020-01-30 0.4.4.0
 
 * Upgraded runtime to dotnet core 3.1.
 

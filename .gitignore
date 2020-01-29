@@ -352,3 +352,6 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 .Rproj.user
+linux-x64
+osx-x64
+win-x64
