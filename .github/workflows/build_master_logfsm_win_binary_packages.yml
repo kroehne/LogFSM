@@ -16,11 +16,14 @@ jobs:
     - run: echo "::set-env name=GITHUB_WORKSPACE_A::${{ github.workspace }}"
       shell: bash  
  
-    - run: echo "my $GITHUB_WORKSPACE_A"
+    - run: echo "::set-env name=GITHUB_WORKSPACE_B::${GITHUB_WORKSPACE_A//\\/\/}"
+      shell: bash  
+      
+    - run: echo "my $GITHUB_WORKSPACE_A  $GITHUB_WORKSPACE_B"
       shell: bash  
       
     - name: Read Version from R Package
-      run: echo "::set-env name=VERSION::$(grep -o 'Version:[[:blank:]]\{0,\}[[:digit:]\.]*' ${GITHUB_WORKSPACE_A//\\//}/r/DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')"
+      run: echo "::set-env name=VERSION::$(grep -o 'Version:[[:blank:]]\{0,\}[[:digit:]\.]*' ${GITHUB_WORKSPACE_B//\\//}/r/DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')"
       
     - name: Test2
       run: echo "::set-env name=VERSION::$(grep "Version:" ${{ github.workspace }}\r\DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')"
