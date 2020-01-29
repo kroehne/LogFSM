@@ -17,7 +17,7 @@ jobs:
       shell: bash  
  
     - name: Read Version from R Package
-      run: echo "::set-env name=VERSION::$(grep -o 'Version:[[:blank:]]\{0,}\[[:digit:]\.]*' \"$GITHUB_WORKSPACE/r/DESCRIPTION\" | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')"
+      run: echo "::set-env name=VERSION::$(grep -o 'Version:[[:blank:]]\{0,\}[[:digit:]\.]*' '${{ github.workspace }}/r/DESCRIPTION' | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')"
  
     - name: Determine Shortened Hash 
       run: echo "::set-env name=HASH::$(git log --pretty=format:'%h' -n 1)"      
