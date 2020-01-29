@@ -105,8 +105,8 @@ jobs:
  
     - uses: actions/upload-artifact@v1
       with:
-        name: ${{format('Mac_Binary_LogFSM_{0}.tar.gz', env.VERSION)}}
-        path: ${{ github.workspace }}/${{format('LogFSM_{0}.zip', env.VERSION)}}
+        name: ${{format('Mac_Binary_LogFSM_{0}.tgz', env.VERSION)}}
+        path: ${{ github.workspace }}/${{format('LogFSM_{0}.tgz', env.VERSION)}}
                 
     - name: 'Remove Mac Worker '      
       run: mv $GITHUB_WORKSPACE/r/inst/extdata/osx-x64 $GITHUB_WORKSPACE/tmp_worker/osx-x64
