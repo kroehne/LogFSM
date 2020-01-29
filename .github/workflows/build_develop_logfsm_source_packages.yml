@@ -47,14 +47,14 @@ jobs:
       uses: r-lib/actions/setup-r@master
       
     - name: Install Dependencies
-      run: Rscript -e "install.packages(c('rcmdcheck','knitr','dplyr', 'curl', 'jsonlite', 'XML', 'ggplot2', 'Rmisc', 'TraMineR', 'rmarkdown', 'rappdirs'))"  
+      run: Rscript -e "install.packages(c('rcmdcheck','knitr','dplyr', 'curl', 'jsonlite', 'XML', 'ggplot2', 'Rmisc', 'TraMineR', 'rmarkdown', 'rappdirs', 'testthat'))"  
             
     - name: Build R package (all worker)
       run: Rscript -e "pkgbuild::build(path='r/')"
  
     - uses: actions/upload-artifact@v1
       with:
-        name: ${{format('Develop_Win_LogFSM_{0}_{}.tar.gz', env.VERSION, env.HASH)}}
+        name: ${{format('Develop_Win_LogFSM_{0}_{1}.tar.gz', env.VERSION, env.HASH)}}
         path: ${{ github.workspace }}/${{format('LogFSM_{0}.tar.gz', env.VERSION)}}
         
    
