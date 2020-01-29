@@ -29,7 +29,8 @@ jobs:
         dotnet-version: '3.1.100' 
       
     - name: Build Dotnet Worker 
-      run: dotnet build vs/LogFSMCore.sln -c Release -p:Version=$VERSION
+      run: echo "dotnet build vs/LogFSMCore.sln -c Release -p:Version=$VERSION"
+      shell: bash
       
     - name: Prepare Folders 1
       run: mkdir r/inst
