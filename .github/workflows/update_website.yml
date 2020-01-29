@@ -34,7 +34,7 @@ jobs:
   #  - name: Build Website 
   #    run: Rscript www/update.R
   
-  # - name: Upload Website
+    - name: Upload Website
       uses: SamKirkland/FTP-Deploy-Action@2.0.0
       env:
         FTP_SERVER: ${{ secrets.FTP_SERVER }}
