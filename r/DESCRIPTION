@@ -24,7 +24,8 @@ Imports:
     TraMineR,
     rmarkdown, 
     rappdirs,
-    utils
+    utils, 
+    testthat
 RoxygenNote: 6.1.1
 VignetteBuilder: knitr
 BinaryFiles: 
