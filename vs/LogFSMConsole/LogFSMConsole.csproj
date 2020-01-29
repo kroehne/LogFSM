@@ -4,11 +4,11 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
-    <AssemblyVersion>0.4.0.0</AssemblyVersion>
-    <FileVersion>0.4.0.0</FileVersion>
-    <Version>0.4</Version>
-    <ReleaseVersion>0.4.0.0</ReleaseVersion>
-    <PublishTrimmed>true</PublishTrimmed>
+    <AssemblyVersion>0.0.0.0</AssemblyVersion>
+    <FileVersion>0.0.0.0</FileVersion>
+    <Version>0.0.0.0</Version>
+    <ReleaseVersion>0.0.0.0</ReleaseVersion>
+    <PublishTrimmed>false</PublishTrimmed>
     <Authors>Ulf Kroehne</Authors>
     <Company>DIPF | Leibniz Institute for Research and Information in Education</Company>
     <Product>LogFSM</Product>

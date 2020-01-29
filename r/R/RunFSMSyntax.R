@@ -18,8 +18,9 @@
 #' * ```pisabqzip01a```, ```pisacazip01a```,  ```nepszip01a```
 #
 #' This function supports the following flags:
-#' * ```RELATIVETIME```The flag "RELATIVETIME" can be used to prepare log data provided with relative timestamps.
-#'
+#' * ```RELATIVETIME``` The "RELATIVETIME" flag can be used to process log data that is provided with relative time stamps.
+#' * ```DONT_ORDER_EVENTS``` The flag "DONT_ORDER_EVENTS" can be used to prevent the log events from being sorted by timestamp.
+#' * ```ORDER_WITHIN_ELEMENTS```
 #'
 #' @param fsmsyntax String variable containing the FSM syntax to be processed. The syntax string must contain a valid LogFSM syntax in each line.
 #' @param datafilename File name of a single data file (input).
@@ -41,6 +42,7 @@
 #'   * For each state machine $i$ the following tables are provided in the list
 #'   ** \code{SequenceTable_i}
 #'   ** \code{SequenceTable_i}
+#'   ** ...
 #'
 #' @export
 #' @md

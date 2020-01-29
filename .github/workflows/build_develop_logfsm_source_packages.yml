@@ -1,22 +1,22 @@
-name: LogFSM Build Windows Binary Package (Master) 
+name: LogFSM Build Source Package (Develop) 
 
 on:
   push:
     branches:    
-      - master         
+      - develop         
 
 jobs:
   build_r_package:
 
-    runs-on: windows-latest
+    runs-on: macOS-latest
 
     steps:
     - uses: actions/checkout@v1
- 
+     
     - name: Read Version from R Package
-      run: echo "::set-env name=VERSION::$(grep "Version:" r/DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')"
-      shell: bash      
-
+      run: echo "::set-env name=VERSION::$(grep "Version:" ${{ github.workspace }}/r/DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')"
+      shell: bash
+ 
     - name: Determine Shortened Hash 
       run: echo "::set-env name=HASH::$(git log --pretty=format:'%h' -n 1)"      
      
@@ -29,35 +29,32 @@ jobs:
         dotnet-version: '3.1.100' 
       
     - name: Build Dotnet Worker 
-      run: echo "dotnet build vs/LogFSMCore.sln -c Release -p:Version=$VERSION"
-      shell: bash
+      run: dotnet build vs/LogFSMCore.sln -c Release -p:Version=$VERSION
       
     - name: Prepare Folders 1
-      run: mkdir r/inst
+      run: mkdir $GITHUB_WORKSPACE/r/inst
       
     - name:  Prepare Folders 2
-      run: mkdir r/inst/extdata
- 
+      run: mkdir $GITHUB_WORKSPACE/r/inst/extdata
+           
     - name: 'Publish Windows Worker 1'      
-      run: mkdir r/inst/extdata/win-x64
+      run: mkdir $GITHUB_WORKSPACE/r/inst/extdata/win-x64
       
     - name: 'Publish Windows Worker 2'   
-      run: dotnet publish vs/LogFSMCore.sln -c release -r win7-x64 -o "r/inst/extdata/win-x64"
- 
+      run: dotnet publish vs/LogFSMCore.sln -c release -r win7-x64 -o "$GITHUB_WORKSPACE/r/inst/extdata/win-x64"
+  
     - name: Setup R Environment
       uses: r-lib/actions/setup-r@master
       
     - name: Install Dependencies
       run: Rscript -e "install.packages(c('rcmdcheck','knitr','dplyr', 'curl', 'jsonlite', 'XML', 'ggplot2', 'Rmisc', 'TraMineR', 'rmarkdown', 'rappdirs'))"  
             
-#    - name: Check R package
-#      run: Rscript -e "rcmdcheck::rcmdcheck(path='r/', args = '--no-manual', error_on = 'error')"
-            
-    - name: Build R Binary Package (Windows) 
-      run: Rscript -e "pkgbuild::build(path=\"r/\", binary = TRUE)"
-       
+    - name: Build R package (all worker)
+      run: Rscript -e "pkgbuild::build(path='r/')"
+ 
     - uses: actions/upload-artifact@v1
       with:
-        name: ${{format('Win_Binary_LogFSM_{0}.zip', env.VERSION)}}
-        path: ${{format('LogFSM_{0}.zip', env.VERSION)}}
- 
+        name: ${{format('Develop_Win_LogFSM_{0}_{}.tar.gz', env.VERSION, env.HASH)}}
+        path: ${{ github.workspace }}/${{format('LogFSM_{0}.tar.gz', env.VERSION)}}
+        
+   
