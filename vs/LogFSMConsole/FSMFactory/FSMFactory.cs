@@ -3,22 +3,16 @@ namespace LogFSM
     #region usings
     using System;
     using System.Collections.Generic;
-    using System.Linq;
+    using System.Data;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
-    using LogFSM;
-    using LogFSMShared;
     using System.Runtime.Loader;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
-    using Microsoft.CodeAnalysis.Emit;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
-    using Stateless;
-    using Stateless.Graph;
-    using System.Diagnostics;
-    using System.Data;
-    using Ionic.Zip;
-    using Newtonsoft.Json;
+    using Microsoft.CodeAnalysis.Emit;
+    using LogFSMShared;
     #endregion
 
     public class FSMFactory : IFSMProvider
@@ -423,11 +417,8 @@ namespace LogFSM
                 foreach (string l in CompileErrors)
                     File.AppendAllText(Path.Combine(parsedCommandLineArguments.OutputPath, "logfsmlasterror.txt"), l);
             }
-
-
+             
             return createdAssembly;
-
-         
         }
 
     }
