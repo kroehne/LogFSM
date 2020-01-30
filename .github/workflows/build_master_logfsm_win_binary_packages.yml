@@ -23,12 +23,35 @@ jobs:
     - run: echo "Building Version $VERSION ($HASH)"
       shell: bash
  
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '3.1.100' 
+      
+    - name: Build Dotnet Worker 
+      run: echo "dotnet build vs/LogFSMCore.sln -c Release -p:Version=$VERSION"
+      shell: bash
+      
+    - name: Prepare Folders 1
+      run: mkdir r/inst
+      
+    - name:  Prepare Folders 2
+      run: mkdir r/inst/extdata
+ 
+    - name: 'Publish Windows Worker 1'      
+      run: mkdir r/inst/extdata/win-x64
+      
+    - name: 'Publish Windows Worker 2'   
+      run: dotnet publish vs/LogFSMCore.sln -c release -r win7-x64 -o "r/inst/extdata/win-x64"
+ 
     - name: Setup R Environment
       uses: r-lib/actions/setup-r@master
-   
-    - name: Build R Binary Package (Windows) 
-      run: Rscript -e "getwd()"
-      shell: bash            
+      
+    - name: Install Dependencies
+      run: Rscript -e "install.packages(c('rcmdcheck','knitr','dplyr', 'curl', 'jsonlite', 'XML', 'ggplot2', 'Rmisc', 'TraMineR', 'rmarkdown', 'rappdirs'))"  
+            
+    - name: Check R package
+      run: Rscript -e "rcmdcheck::rcmdcheck(path='r/', args = '--no-manual', error_on = 'error')"
             
     - name: Build R Binary Package (Windows) 
       run: Rscript -e "pkgbuild::build(path='D://a//LogFSM//LogFSM//r//', binary = TRUE)"
