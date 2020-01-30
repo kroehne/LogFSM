@@ -31,7 +31,7 @@ jobs:
       shell: bash            
             
     - name: Build R Binary Package (Windows) 
-      run: Rscript -e "pkgbuild::build(path='/r/', binary = TRUE)"
+      run: Rscript -e "pkgbuild::build(path='D://a//LogFSM//LogFSM//r//', binary = TRUE)"
       shell: bash
       
     - uses: actions/upload-artifact@v1
