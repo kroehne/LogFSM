@@ -1,0 +1,122 @@
+name: LogFSM Build Source Package and Mac Binary Package (Master) 
+
+on:
+  push:
+    branches:    
+      - master         
+
+jobs:
+  build_r_package:
+
+    runs-on: macOS-latest
+
+    steps:
+    - uses: actions/checkout@v1
+     
+    - name: Read Version from R Package
+      run: echo "::set-env name=VERSION::$(grep "Version:" ${{ github.workspace }}/r/DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')"
+      shell: bash
+ 
+    - name: Determine Shortened Hash 
+      run: echo "::set-env name=HASH::$(git log --pretty=format:'%h' -n 1)"      
+     
+    - run: echo "Building Version $VERSION ($HASH)"
+      shell: bash
+ 
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '3.1.100' 
+      
+    - name: Build Dotnet Worker 
+      run: dotnet build vs/LogFSMCore.sln -c Release -p:Version=$VERSION
+      
+    - name: Prepare Folders 1
+      run: mkdir $GITHUB_WORKSPACE/r/inst
+      
+    - name:  Prepare Folders 2
+      run: mkdir $GITHUB_WORKSPACE/r/inst/extdata
+           
+    - name: 'Publish Linux Worker 1'      
+      run: mkdir $GITHUB_WORKSPACE/r/inst/extdata/linux-x64 
+      
+    - name: 'Publish Linux Worker 2'   
+      run: dotnet publish vs/LogFSMCore.sln -c release -r ubuntu.16.10-x64 -o "$GITHUB_WORKSPACE/r/inst/extdata/linux-x64"
+
+    - name: 'Publish Windows Worker 1'      
+      run: mkdir $GITHUB_WORKSPACE/r/inst/extdata/win-x64
+      
+    - name: 'Publish Windows Worker 2'   
+      run: dotnet publish vs/LogFSMCore.sln -c release -r win7-x64 -o "$GITHUB_WORKSPACE/r/inst/extdata/win-x64"
+ 
+    - name: 'Publish Mac Worker 1'      
+      run: mkdir $GITHUB_WORKSPACE/r/inst/extdata/osx-x64
+      
+    - name: 'Publish Mac Worker 2'   
+      run: dotnet publish vs/LogFSMCore.sln -c release -r osx.10.12-x64 -o "$GITHUB_WORKSPACE/r/inst/extdata/osx-x64"
+ 
+    - name: Setup R Environment
+      uses: r-lib/actions/setup-r@master
+      
+    - name: Install Dependencies
+      run: Rscript -e "install.packages(c('rcmdcheck','knitr','dplyr', 'curl', 'jsonlite', 'XML', 'ggplot2', 'Rmisc', 'TraMineR', 'rmarkdown', 'rappdirs' , 'testthat'))"  
+            
+    - name: Check R package
+      run: Rscript -e "rcmdcheck::rcmdcheck(path='r/', args = '--no-manual', error_on = 'error')"
+  
+    - name: Build R package (all worker)
+      run: Rscript -e "pkgbuild::build(path='r/')"
+ 
+    - uses: actions/upload-artifact@v1
+      with:
+        name: ${{format('LogFSM_{0}.tar.gz', env.VERSION)}}
+        path: ${{ github.workspace }}/${{format('LogFSM_{0}.tar.gz', env.VERSION)}}
+     
+    - name: 'Create Temp Folder'      
+      run: mkdir $GITHUB_WORKSPACE/tmp_worker
+    - name: 'Remove Linux Worker'      
+      run: mv $GITHUB_WORKSPACE/r/inst/extdata/linux-x64   $GITHUB_WORKSPACE/tmp_worker/linux-x64    
+    - name: 'Remove Mac Worker '      
+      run: mv $GITHUB_WORKSPACE/r/inst/extdata/osx-x64   $GITHUB_WORKSPACE/tmp_worker/osx-x64 
+      
+    - name: Build R Source Package (Windows) 
+      run: Rscript -e "pkgbuild::build(path='r/')"
+ 
+    - uses: actions/upload-artifact@v1
+      with:
+        name: ${{format('Win_LogFSM_{0}.tar.gz', env.VERSION)}}
+        path: ${{ github.workspace }}/${{format('LogFSM_{0}.tar.gz', env.VERSION)}}
+        
+    - name: 'Remove Windows Worker '      
+      run: mv $GITHUB_WORKSPACE/r/inst/extdata/win-x64  $GITHUB_WORKSPACE/tmp_worker/win-x64
+    - name: 'Use Mac Worker '      
+      run: mv $GITHUB_WORKSPACE/tmp_worker/osx-x64 $GITHUB_WORKSPACE/r/inst/extdata/osx-x64
+         
+    - name: Build R Source Package (Mac) 
+      run: Rscript -e "pkgbuild::build(path='r/')"
+
+    - uses: actions/upload-artifact@v1
+      with:
+        name: ${{format('Mac_Source_LogFSM_{0}.tar.gz', env.VERSION)}}
+        path: ${{ github.workspace }}/${{format('LogFSM_{0}.tar.gz', env.VERSION)}}
+        
+    - name: Build R Binary Package (Mac) 
+      run: Rscript -e "pkgbuild::build(path='r/', binary = TRUE)"
+ 
+    - uses: actions/upload-artifact@v1
+      with:
+        name: ${{format('Mac_Binary_LogFSM_{0}.tgz', env.VERSION)}}
+        path: ${{ github.workspace }}/${{format('LogFSM_{0}.tgz', env.VERSION)}}
+                
+    - name: 'Remove Mac Worker '      
+      run: mv $GITHUB_WORKSPACE/r/inst/extdata/osx-x64 $GITHUB_WORKSPACE/tmp_worker/osx-x64
+    - name: 'Use Linux Worker '      
+      run: mv $GITHUB_WORKSPACE/tmp_worker/linux-x64 $GITHUB_WORKSPACE/r/inst/extdata/linux-x64
+         
+    - name: Build R Source Package (Linux) 
+      run: Rscript -e "pkgbuild::build(path='r/')"
+ 
+    - uses: actions/upload-artifact@v1
+      with:
+        name: ${{format('Linux_LogFSM_{0}.tar.gz', env.VERSION)}}
+        path: ${{ github.workspace }}/${{format('LogFSM_{0}.tar.gz', env.VERSION)}}

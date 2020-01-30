@@ -1,0 +1,47 @@
+name: LogFSM Update Website
+
+on:
+  push:
+    branches:    
+      - master         
+
+jobs:
+  build_website:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+     
+    - name: Read Version from R Package
+      run: echo "::set-env name=VERSION::$(grep "Version:" ${{ github.workspace }}/r/DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')"
+      shell: bash
+ 
+    - name: Determine Shortened Hash 
+      run: echo "::set-env name=HASH::$(git log --pretty=format:'%h' -n 1)"      
+ 
+    - name: Install Pandoc
+      uses: r-lib/actions/setup-pandoc@v1
+      with:
+        pandoc-version: '2.7.3'  
+    
+    - name: Setup R Environment
+      uses: r-lib/actions/setup-r@master
+            
+    - name: Install Dependencies
+      run: Rscript -e "install.packages(c('rmarkdown'))"  
+            
+    - name: Build Website 
+      run: Rscript www/update.R
+  
+    - name: Upload Website
+      uses: SamKirkland/FTP-Deploy-Action@2.0.0
+      env:
+        FTP_SERVER: ${{ secrets.FTP_SERVER }}
+        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        METHOD: sftp
+        PORT: 22
+        LOCAL_DIR: "www/_site"
+        REMOTE_DIR: "."  
+ 
