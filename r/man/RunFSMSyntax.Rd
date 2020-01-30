@@ -45,6 +45,7 @@ The function returns a list with the following components:
 \item For each state machine $i$ the following tables are provided in the list
 ** \code{SequenceTable_i}
 ** \code{SequenceTable_i}
+** ...
 }
 }
 \description{
@@ -69,6 +70,8 @@ Additional formats (under development)
 \itemize{
 \item \code{pisabqzip01a}, \code{pisacazip01a},  \code{nepszip01a}
 This function supports the following flags:
-\item \code{RELATIVETIME}The flag "RELATIVETIME" can be used to prepare log data provided with relative timestamps.
+\item \code{RELATIVETIME} The "RELATIVETIME" flag can be used to process log data that is provided with relative time stamps.
+\item \code{DONT_ORDER_EVENTS} The flag "DONT_ORDER_EVENTS" can be used to prevent the log events from being sorted by timestamp.
+\item \code{ORDER_WITHIN_ELEMENTS}
 }
 }

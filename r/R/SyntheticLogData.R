@@ -16,15 +16,11 @@
 #' @md
 SyntheticLogData <- function(example="ex01a") {
 
-  require(dplyr)
-
-
   if (!example %in% c("ex01a","ex01b","ex02a")){
     stop(paste0("Example '", example,"' not found."))
 
   }
 
-  require(dplyr)
   set.seed(555)
 
   startLog <- function(){

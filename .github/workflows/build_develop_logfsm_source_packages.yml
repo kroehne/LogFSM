@@ -48,6 +48,9 @@ jobs:
       
     - name: Install Dependencies
       run: Rscript -e "install.packages(c('rcmdcheck','knitr','dplyr', 'curl', 'jsonlite', 'XML', 'ggplot2', 'Rmisc', 'TraMineR', 'rmarkdown', 'rappdirs', 'testthat'))"  
+
+    - name: Check R package
+      run: Rscript -e "rcmdcheck::rcmdcheck(path='r/', args = '--no-manual', error_on = 'error')"            
             
     - name: Build R package (all worker)
       run: Rscript -e "pkgbuild::build(path='r/')"
