@@ -356,3 +356,4 @@ linux-x64
 osx-x64
 win-x64
 /r/.Rhistory
+/www/.Rhistory

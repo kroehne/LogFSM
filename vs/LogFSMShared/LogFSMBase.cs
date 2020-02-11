@@ -143,7 +143,7 @@ namespace LogFSMShared
         }
 
         public List<Tuple<string, string>> GetActiveTriggerNames(List<EventData> Data, int EventIndex, List<FSMTrigger> Trigger, int MachineIndex)
-        {
+        { 
             List<Tuple<string, string>> _return = new List<Tuple<string, string>>();
 
             EventData e = Data[EventIndex];
@@ -260,7 +260,7 @@ namespace LogFSMShared
                                             }
                                             else
                                             {
-                                                _offset = _targetEventIndex + _offset;
+                                                _targetEventIndex = _targetEventIndex + _offset;
                                             }
                                         };
                                     }
@@ -635,7 +635,7 @@ namespace LogFSMShared
                     //_return.Add(new Tuple<string, string>(_activeTriggersForGuardGroup[_keys[i]].Item2.GetTriggerName, _activeTriggersForGuardGroup[_keys[i]].Item2.OperatorString));
                 }
             }
-              
+             
             return _return;
         }
 
