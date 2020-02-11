@@ -8,7 +8,7 @@ on:
 jobs:
   build_r_package:
 
-    runs-on: macOS-latest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v1
