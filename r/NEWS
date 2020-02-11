@@ -1,6 +1,10 @@
 CHANGE-LOG
 ==========
 
+2020-02-11 0.4.5.0
+
+* Fixed bug processing 'CompareAttribute' and for reading 'dataflatv01a'
+
 2020-01-30 0.4.4.0
 
 * Upgraded runtime to dotnet core 3.1.

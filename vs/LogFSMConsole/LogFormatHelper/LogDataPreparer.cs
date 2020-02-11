@@ -235,26 +235,23 @@ namespace LogFSMConsole
         {
             try
             {
-                using (Stream fileStream = File.OpenRead(ZipFileName),
-                     zippedStream = new GZipStream(fileStream, CompressionMode.Decompress))
+                using (Stream fileStream = File.OpenRead(ZipFileName))
                 {
-                    using (var reader = new StreamReader(zippedStream))
+                    using (var zippedStream = new GZipStream(fileStream, CompressionMode.Decompress))
                     {
-                        using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                        using (var reader = new StreamReader(zippedStream))
                         {
-                            csv.Configuration.Delimiter = ColumnDelimiter;
-                            var _data_rows = csv.GetRecords<dynamic>();
-                            foreach (IDictionary<string, object> row in _data_rows)
+                            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                             {
-                                break;
+                                csv.Configuration.Delimiter = ColumnDelimiter;
+                                var _data_rows = csv.GetRecords<dynamic>();
+                                return _data_rows.Count() > 0;
                             }
-                            return true;
                         }
                     }
-
                 }
             }
-            catch
+            catch  
             { 
                 return false;
             }
