@@ -5,7 +5,12 @@
 
 ## R Package 'LogFSM'
 
-<tbd>Description how to install the package. 
+In this repository the software developed to implement the method described in the following paper is provided:
+
+Kroehne, U., & Goldhammer, F. (2018). How to conceptualize, represent, and analyze log data from technology-based assessments? A generic framework and an application to questionnaire items. Behaviormetrika, 45 (2), 527–563.
+https://doi.org/10.1007/s41237-018-0063-y
+
+To install the package, type `source("http://logfsm.com/latest")` in R.
 
 ## Details about the Build
 
