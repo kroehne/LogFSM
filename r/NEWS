@@ -1,6 +1,10 @@
 CHANGE-LOG
 ==========
 
+2020-03-20 0.4.5.1
+
+* Fixed bug reading absolute time stamps from log data in 'nepszip01a' format
+
 2020-02-11 0.4.5.0
 
 * Fixed bug processing 'CompareAttribute' and for reading 'dataflatv01a'

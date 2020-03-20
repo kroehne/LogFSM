@@ -288,8 +288,8 @@ namespace LogFSMConsole
 
         public void PrintWelcomeMessage()
         { 
-            Console.WriteLine(Application + " " + Version);
-            Console.WriteLine(new string('=', (Application + " " + Version).Length));
+            Console.WriteLine(Application);
+            Console.WriteLine(new string('=', (Application).Length));
 
             if (Verbose)
             {  

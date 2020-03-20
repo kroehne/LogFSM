@@ -444,7 +444,7 @@ namespace LogFSMConsole
                                         _element = _elementValueLabelDict[int.Parse(_element)];
 
                                     DateTime _timeStamp = DateTime.MinValue;
-                                    if (_absolute)
+                                    if (!_absolute)
                                     {
                                         DateTime.TryParse(_line[_timeStampColumnIndex].ToString(), out _timeStamp);
                                     }
