@@ -81,6 +81,11 @@ namespace LogFSMConsole
         public const string _CMDA_JOB_TRANSFORM_output_stata = "stataoutput";
 
         /// <summary>
+        /// Transform to SPSS format.
+        /// </summary>
+        public const string _CMDA_JOB_TRANSFORM_output_spss = "spssoutput";
+          
+        /// <summary>
         /// Transform to xlsx format.
         /// </summary>
         public const string _CMDA_JOB_TRANSFORM_output_xlsx = "xlsxoutput";
@@ -109,6 +114,26 @@ namespace LogFSMConsole
         /// Concordance
         /// </summary>
         public const string _CMDA_JOB_TRANSFORM_concordance_table = "table";
+         
+        /// <summary>
+        /// Web
+        /// </summary>
+        public const string _CMDA_JOB_TRANSFORM_web = "web";
+
+        /// <summary>
+        /// User
+        /// </summary>
+        public const string _CMDA_JOB_TRANSFORM_user = "user";
+
+        /// <summary>
+        /// Password
+        /// </summary>
+        public const string _CMDA_JOB_TRANSFORM_password = "password";
+
+        /// <summary>
+        /// Key
+        /// </summary>
+        public const string _CMDA_JOB_TRANSFORM_key = "key";
 
         /// <summary>
         /// Input format constants
@@ -127,10 +152,15 @@ namespace LogFSMConsole
         public const string _CMDA_JOB_TRANSFORM_input_ibsdraw01a = "ibsdraw01a";
 
         /// <summary>
-        /// NEPS Testanwendung (prior to 202x?)
+        /// NEPS Testanwendung (prior to 2020)
         /// </summary>
         public const string _CMDA_JOB_TRANSFORM_input_nepsrawv01a = "nepsrawv01a";
 
+        /// <summary>
+        /// IRTlib (after 2020)
+        /// </summary>
+        public const string _CMDA_JOB_TRANSFORM_input_irtlib01a = "irtlibv01a";
+         
         /// <summary>
         /// RAP EE
         /// </summary>
@@ -223,7 +253,12 @@ namespace LogFSMConsole
         /// Create universal log format, format zipped stata files
         /// </summary>
         public string Transform_OutputStata = "";
-         
+
+        /// <summary>
+        /// Create universal log format, format zipped SPSS files
+        /// </summary>
+        public string Transform_OutputSPSS = "";
+          
         /// <summary>
         /// Create universal log format, format xlsx
         /// </summary>
@@ -448,12 +483,13 @@ namespace LogFSMConsole
                     _return = false;
                 }
                  
-                if (this.Transform_OutputStata.Trim() == ""  && this.Transform_OutputXLSX.Trim() == "" && this.Transform_OutputZCSV.Trim() ==  "" )
+                if (this.Transform_OutputStata.Trim() == ""  && this.Transform_OutputXLSX.Trim() == "" && this.Transform_OutputZCSV.Trim() ==  "" && this.Transform_OutputSPSS.Trim() == "")
                 {
                     Console.WriteLine("No output format specified. Create output files in current directory as default.");
                     this.Transform_OutputStata = Path.Combine("out_stata.zip");
                     this.Transform_OutputXLSX  = Path.Combine("out_excel.xlsx");
-                    this.Transform_OutputZCSV = Path.Combine("out_csv.zip");
+                    this.Transform_OutputZCSV = Path.Combine("out_csv.zip"); 
+                    this.Transform_OutputSPSS = Path.Combine("out_spss.zip");
                 }
                 #endregion
             }
@@ -766,6 +802,7 @@ namespace LogFSMConsole
             this.Transform_OutputStata = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_output_stata, "");
             this.Transform_OutputXLSX = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_output_xlsx, "");
             this.Transform_OutputZCSV = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_output_zcsv, "");
+            this.Transform_OutputSPSS = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_output_spss, "");
 
             this.Transform_LogVersion = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_logversion, "");
             this.Transform_Dictionary = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_dictionary, "");

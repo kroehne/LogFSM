@@ -207,17 +207,17 @@ namespace LogFSMShared
 
                         foreach (string _g in _guards)
                         {
-                            // VariableIs / CompareAttribute
-                            // 1 = AttributeName
-                            // 2 = TargetValue
-
-                            if (_g.ToLower().Trim().StartsWith("variableis") || _g.ToLower().Trim().StartsWith("compareattribute"))
+                            if (_g.ToLower().Trim().StartsWith("variablesare") || _g.ToLower().Trim().StartsWith("compareattributes"))
                             {
+                                // VariablesAre / CompareAttributes
+                                // 1 = AttributeName1
+                                // 2 = AttributeName2
+
                                 #region GUARD: "VariableIs" / "CompareAttribute" 
 
                                 string[] _guardParameters = _g.Split('(', ')')[1].Split(',');
-                                string _targetValue = _guardParameters[1];
-                                string _targetAttributeName = _guardParameters[0];
+                                string _targetAttributeName = _guardParameters[1];
+                                string _sourceAttributeName = _guardParameters[0];
                                 string _operator = "id";
                                 int _targetEventIndex = EventIndex;
 
@@ -266,7 +266,8 @@ namespace LogFSMShared
                                     }
                                 }
 
-                                string _sourceValue = Data[_targetEventIndex].GetEventValue(_targetAttributeName);
+                                string _sourceValue = Data[EventIndex].GetEventValue(_sourceAttributeName);
+                                string _targetValue = Data[_targetEventIndex].GetEventValue(_targetAttributeName);
                                 if (_guardParameters.Length > 1 && _guardParameters.Length <= 4)
                                 {
                                     if (!guardVariableIs(_sourceValue, _targetValue, _operator))
@@ -275,6 +276,74 @@ namespace LogFSMShared
 
                                 #endregion
                             }
+                            else if (_g.ToLower().Trim().StartsWith("variableis") || _g.ToLower().Trim().StartsWith("compareattribute"))
+                            { 
+                                // VariableIs / CompareAttribute
+                                // 1 = AttributeName
+                                // 2 = TargetValue
+
+                                #region GUARD: "VariableIs" / "CompareAttribute" 
+
+                                string[] _guardParameters = _g.Split('(', ')')[1].Split(',');
+                                string _targetValue = _guardParameters[1];
+                                string _sourceAttributeName = _guardParameters[0];
+                                string _operator = "id";
+                                int _targetEventIndex = EventIndex;
+
+                                if (_guardParameters.Length >= 3)
+                                {
+                                    if (_guardParameters[2].Trim().ToLower() == "le") // <=
+                                        _operator = "le";
+                                    else if (_guardParameters[2].Trim().ToLower() == "lt") // <
+                                        _operator = "lt";
+                                    else if (_guardParameters[2].Trim().ToLower() == "ge") // >=
+                                        _operator = "ge";
+                                    else if (_guardParameters[2].Trim().ToLower() == "gt") // >
+                                        _operator = "gt";
+                                    else if (_guardParameters[2].Trim().ToLower() == "eq") // =
+                                        _operator = "eq";
+                                    else if (_guardParameters[2].Trim().ToLower() == "neq") // != (numbers)
+                                        _operator = "neq";
+                                    else if (_guardParameters[2].Trim().ToLower() == "not") // != (strings)
+                                        _operator = "not";
+                                }
+
+                                if (_guardParameters.Length >= 4)
+                                {
+                                    if (_guardParameters[3].Trim().ToLower() == "first")
+                                    {
+                                        _targetEventIndex = 0;
+                                    }
+                                    else if (_guardParameters[3].Trim().ToLower() == "last")
+                                    {
+                                        _targetEventIndex = Data.Count - 1;
+                                    }
+                                    else
+                                    {
+                                        int _offset = 0;
+                                        if (int.TryParse(_guardParameters[3], out _offset))
+                                        {
+                                            if (_targetEventIndex + _offset < 0 || _targetEventIndex + _offset > Data.Count - 1)
+                                            {
+                                                _guardIsTrue = false;
+                                            }
+                                            else
+                                            {
+                                                _targetEventIndex = _targetEventIndex + _offset;
+                                            }
+                                        };
+                                    }
+                                }
+
+                                string _sourceValue = Data[_targetEventIndex].GetEventValue(_sourceAttributeName);
+                                if (_guardParameters.Length > 1 && _guardParameters.Length <= 4)
+                                {
+                                    if (!guardVariableIs(_sourceValue, _targetValue, _operator))
+                                        _guardIsTrue = false;
+                                }
+
+                                #endregion
+                            } 
                             else if (_g.ToLower().Trim().StartsWith("islasttrigger"))
                             { 
                                 #region GUARD: "IsLastTrigger"

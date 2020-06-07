@@ -3,6 +3,8 @@
     #region usings
     using CsvHelper;
     using Ionic.Zip;
+    using NPOI.OpenXmlFormats.Dml;
+    using NPOI.SS.Formula.Functions;
     using NPOI.SS.UserModel;
     using NPOI.XSSF.UserModel;
     using StataLib;
@@ -10,19 +12,36 @@
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
+    using System.Linq;
     using System.Text;
     using System.Xml.Linq;
     #endregion
 
     public class logXContainer
     {
-
-        public const string rootName = "Log";
+         
         public bool PersonIdentifierIsNumber { get; set; }
-
         public string PersonIdentifierName { get; set; }
 
-        public Dictionary<string, List<logxDataRow>> logDataTables { get; set; }
+        #region Result Data
+
+        public bool ContainsResultData { get; set; }
+        public Dictionary<string,logxResultDataRow> resultDataTable { get; set; }
+        public Dictionary<string, string> resultDataTableColnames { get; set; }
+
+        #endregion
+
+        #region Concordance Table 
+
+        public Dictionary<string, string> CondordanceTable { get; set; }
+
+        #endregion
+
+        #region Log Data 
+
+        public const string rootLogName = "Log";
+
+        public Dictionary<string, List<logxLogDataRow>> logDataTables { get; set; }
         public Dictionary<string, List<string>> logDataTableColnames { get; set; }
 
         public Dictionary<string, List<string>> uniqueValues = new Dictionary<string, List<string>>();
@@ -30,20 +49,26 @@
         public List<string> ExportErrors = new List<string>();
 
         public logxCodebookDictionary CodebookDictionary { get; set; }
-
-        public Dictionary<string,string> CondordanceTable { get; set; }
-
+         
         private Dictionary<string, int> maxEventIDByPerson = new Dictionary<string, int>();
+
+
+        #endregion
+
+
 
         public logXContainer()
         {
             PersonIdentifierIsNumber = true;
 
-            logDataTables = new Dictionary<string, List<logxDataRow>>();
-            logDataTables.Add(rootName, new List<logxDataRow>());
+            resultDataTable = new Dictionary<string, logxResultDataRow>();
+            resultDataTableColnames = new Dictionary<string, string>();
+
+            logDataTables = new Dictionary<string, List<logxLogDataRow>>();
+            logDataTables.Add(rootLogName, new List<logxLogDataRow>());
 
             logDataTableColnames = new Dictionary<string, List<string>>();
-            logDataTableColnames.Add(rootName, new List<string>());
+            logDataTableColnames.Add(rootLogName, new List<string>());
 
             PersonIdentifierName = "PersonIdentifier";
 
@@ -61,6 +86,88 @@
             CondordanceTable = new Dictionary<string, string>();
         }
 
+        public void AddResults(logxGenericResultElement element)
+        { 
+            ContainsResultData = true;
+
+            if (CondordanceTable.Count != 0)
+            {
+                if (!CondordanceTable.ContainsKey(element.PersonIdentifier))
+                    return;
+                else
+                    element.PersonIdentifier = CondordanceTable[element.PersonIdentifier];
+            }
+
+            long _personIdentifier = -1;
+            if (!PersonIdentifierIsNumber)
+            {
+                if (!uniqueValues["PersonIdentifier"].Contains(element.PersonIdentifier))
+                    uniqueValues["PersonIdentifier"].Add(element.PersonIdentifier);
+
+                _personIdentifier = uniqueValues["PersonIdentifier"].IndexOf(element.PersonIdentifier);
+            }
+            else
+            {
+                long.TryParse(element.PersonIdentifier, out _personIdentifier);
+                if (_personIdentifier == -1)
+                {
+                    throw new Exception("Personidentifier was expected do be a number");
+                }
+            }
+
+            if (!resultDataTable.ContainsKey(element.PersonIdentifier))
+                resultDataTable.Add(element.PersonIdentifier, new logxResultDataRow() { AttributValues = new List<Tuple<int, int>>(), PersonIdentifier = _personIdentifier });
+              
+            foreach (var _name in element.Results.Keys)
+            {
+                if (!resultDataTableColnames.ContainsKey(_name))
+                {
+                    List<string> _shortnames = resultDataTableColnames.Values.ToList<string>();                    
+                    if (_name.Length > 25)
+                    {
+                        string _shortname = _name.Substring(0, 25);
+                        int _i = 1;
+                        while (_shortnames.Contains(_shortname + "_" + _i))
+                            _i++;
+
+                        resultDataTableColnames.Add(_name, _shortname + "_" + _i);
+                    }
+                    else
+                    {
+                        resultDataTableColnames.Add(_name, _name);  
+                    }
+                    
+                  
+                }
+                   
+
+                string _value = element.Results[_name].ToString();
+                AddValueToResultDataTable(_name, _value, resultDataTable[element.PersonIdentifier]);
+            }
+ 
+
+        }
+
+        private void AddValueToResultDataTable(string name, string value, logxResultDataRow row)
+        {
+            string path = "Results";
+            if (!uniqueValues.ContainsKey(name))
+                uniqueValues.Add(name, new List<string>());
+
+            if (!uniqueValues[name].Contains(value))
+                uniqueValues[name].Add(value);
+
+            if (!logDataTableColnames.ContainsKey(path))
+                logDataTableColnames.Add(path, new List<string>());
+
+            if (!logDataTableColnames[path].Contains(name)) 
+                logDataTableColnames[path].Add(name);
+
+            row.AttributValues.Add(new Tuple<int, int>(logDataTableColnames[path].IndexOf(name), uniqueValues[name].IndexOf(value)));
+
+        }
+
+
         public void AddEvent(logxGenericLogElement element)
         {
             if (CondordanceTable.Count != 0)
@@ -74,8 +181,8 @@
             if (!uniqueValues["Element"].Contains(element.Item))
                 uniqueValues["Element"].Add(element.Item);
 
-            if (!uniqueValues["Path"].Contains(rootName))
-                uniqueValues["Path"].Add(rootName);
+            if (!uniqueValues["Path"].Contains(rootLogName))
+                uniqueValues["Path"].Add(rootLogName);
 
             if (!uniqueValues["ParentPath"].Contains("(no parent)"))
                 uniqueValues["ParentPath"].Add("(no parent)");
@@ -107,14 +214,14 @@
             if (element.EventID > maxEventIDByPerson[element.PersonIdentifier])
                 maxEventIDByPerson[element.PersonIdentifier] = element.EventID;
 
-            logxDataRow rootParentLine = new logxDataRow()
+            logxLogDataRow rootParentLine = new logxLogDataRow()
             {
                 PersonIdentifier = _personIdentifier,
                 Element = uniqueValues["Element"].IndexOf(element.Item),
                 TimeStamp = element.TimeStamp,
                 RelativeTime = element.RelativeTime,
                 ParentEventID = -1,
-                Path = uniqueValues["Path"].IndexOf(rootName),
+                Path = uniqueValues["Path"].IndexOf(rootLogName),
                 ParentPath = uniqueValues["ParentPath"].IndexOf("(no parent)"),
                 EventID = element.EventID,
                 EventName = uniqueValues["EventName"].IndexOf(element.EventName),
@@ -123,24 +230,24 @@
 
             };
 
-            logDataTables[rootName].Add(rootParentLine);
+            logDataTables[rootLogName].Add(rootParentLine);
 
             if (element.EventDataXML != "")
             {
                 using (TextReader tr = new StringReader(element.EventDataXML))
                 {
                     XDocument doc = XDocument.Load(tr);
-                    ProcessXMLData(doc.Root, rootName, element.PersonIdentifier, rootParentLine, 0);
+                    ProcessXMLData(doc.Root, rootLogName, element.PersonIdentifier, rootParentLine, 0);
                     doc = null;
                 }
             } 
 
         }
 
-        private void ProcessXMLData(XElement xmlelement, string path, string PersonIdentifier, logxDataRow parentLine, int id)
+        private void ProcessXMLData(XElement xmlelement, string path, string PersonIdentifier, logxLogDataRow parentLine, int id)
         {
-            if (path == rootName)
-                path = rootName + "." + xmlelement.Name.LocalName;
+            if (path == rootLogName)
+                path = rootLogName + "." + xmlelement.Name.LocalName;
 
             int split = path.LastIndexOf(".");
             string parentPath = "(no parent)";
@@ -153,7 +260,7 @@
             if (!uniqueValues["ParentPath"].Contains(parentPath))
                 uniqueValues["ParentPath"].Add(parentPath);
 
-            logxDataRow newChildLine = new logxDataRow()
+            logxLogDataRow newChildLine = new logxLogDataRow()
             {
                 PersonIdentifier = parentLine.PersonIdentifier,
                 Element = parentLine.Element,
@@ -170,16 +277,16 @@
 
             if (!logDataTables.ContainsKey(path))
             {
-                logDataTables.Add(path, new List<logxDataRow>());
+                logDataTables.Add(path, new List<logxLogDataRow>());
             }
 
             logDataTables[path].Add(newChildLine);
 
             if (!xmlelement.HasElements && xmlelement.Value.Trim() != "")
-                AddValueToTable(path, xmlelement.Name.LocalName, xmlelement.Value, newChildLine);
+                AddValueToLogDataTable(path, xmlelement.Name.LocalName, xmlelement.Value, newChildLine);
              
             foreach (var a in xmlelement.Attributes())
-                AddValueToTable(path, a.Name.LocalName, a.Value, newChildLine);
+                AddValueToLogDataTable(path, a.Name.LocalName, a.Value, newChildLine);
 
             int i = 0;
             foreach (XElement x in xmlelement.Elements())
@@ -190,7 +297,7 @@
 
         }
 
-        private void AddValueToTable(string path, string name, string value, logxDataRow row)
+        private void AddValueToLogDataTable(string path, string name, string value, logxLogDataRow row)
         {
             string _localPath = name;
             if (path.Trim() != "")
@@ -251,12 +358,34 @@
 
             DateTime dt1960 = new DateTime(1960, 1, 1, 0, 0, 0, 0);
 
+            // Add attribute variables as string, if number of characters exceeds 32000 characters
+            Dictionary<string, string> listOfLabelContainers = new Dictionary<string, string>();
+            foreach (var k in uniqueValues.Keys)
+            {
+                if (!listOfLabelContainers.ContainsKey(k))
+                    listOfLabelContainers.Add(k, "l_" + listOfLabelContainers.Count);
+
+                foreach (var c in uniqueValues[k])
+                {
+                    if (c == null)
+                        continue;
+
+                    if (c.Length >= 3200)
+                    {
+                        listOfLabelContainers.Remove(k);
+                        break;
+                    }
+                }
+            }
+
             using (ZipFile zip = new ZipFile())
             {
+                #region Log Data
+
                 foreach (string _id in logDataTables.Keys)
                 {
                     var _varlist = new List<StataVariable>();
-                    _varlist.Add(new StataVariable() { Name = "ID", VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%12.0g", Description = CodebookDictionary.GetColumnNameDescription("ID", language) });
+                    _varlist.Add(new StataVariable() { Name = "Line", VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%12.0g", Description = CodebookDictionary.GetColumnNameDescription("Line", language) });
 
                     if (PersonIdentifierIsNumber)
                         _varlist.Add(new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", language) });
@@ -272,36 +401,18 @@
                     _varlist.Add(new StataVariable() { Name = "Path", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%40.0g", Description = CodebookDictionary.GetColumnNameDescription("Path", language), ValueLabelName = "l_" + "Path" });
                     _varlist.Add(new StataVariable() { Name = "ParentPath", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%40.0g", Description = CodebookDictionary.GetColumnNameDescription("ParentPath", language), ValueLabelName = "l_" + "ParentPath" });
                     _varlist.Add(new StataVariable() { Name = "EventName", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("EventName", language), ValueLabelName = "l_" + "EventName" });
-                  
-                    // Add attribute variables as string, if number of characters exceeds 32000 characters 
-
-                    List<string> listOfLongStringVariableNames = new List<string>();
-                    foreach (var k in uniqueValues.Keys)
-                    {
-                       foreach (var c in uniqueValues[k])
-                        {
-                            if (c == null)
-                                continue;
-
-                            if (c.Length >= 3200)
-                            {
-                                listOfLongStringVariableNames.Add(k);
-                                break;
-                            }                             
-                        }                        
-                    }
-                       
+                    
                     if (logDataTableColnames.ContainsKey(_id))
                     {
                         foreach (var _colname in logDataTableColnames[_id])
                         {
-                            if (listOfLongStringVariableNames.Contains(_colname))
+                            if (!listOfLabelContainers.ContainsKey(_colname))
                             {  
                                 _varlist.Add(new StataVariable() { Name = "a_" + _colname, VarType = StataVariable.StataVarType.String, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetAttributeDescrition(_id, "a_" + _colname, language, 64)});
                             }
                             else
                             {
-                                _varlist.Add(new StataVariable() { Name = "a_" + _colname, VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetAttributeDescrition(_id, "a_" + _colname, language, 64), ValueLabelName = "l_" + _colname });
+                                _varlist.Add(new StataVariable() { Name = "a_" + _colname, VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetAttributeDescrition(_id, "a_" + _colname, language, 64), ValueLabelName = listOfLabelContainers [_colname] });
                             }
 
                         }
@@ -311,6 +422,12 @@
                     string _dataSetName = CodebookDictionary.GetMetaData("StudyName", "", language);
                     
                     var _dtaFile = new StataFileWriter(_tmpfile, _varlist, _dataSetName, true);
+                     
+                    if (!PersonIdentifierIsNumber)
+                    {
+                        for (int _i = 0; _i < uniqueValues["PersonIdentifier"].Count; _i++)
+                            _dtaFile.AddValueLabel("l_" + "PersonIdentifier", _i, uniqueValues["PersonIdentifier"][_i]);
+                    }
 
                     int id = 0;
                     foreach (var v in logDataTables[_id])
@@ -341,7 +458,8 @@
                         {
                             for (int _i = 0; _i < logDataTableColnames[_id].Count; _i++)
                             {
-                                if (listOfLongStringVariableNames.Contains(logDataTableColnames[_id][_i]))
+            
+                                if (!listOfLabelContainers.ContainsKey(logDataTableColnames[_id][_i]))
                                  { 
                                     string _value = "";
                                     foreach (var p in v.AttributValues)
@@ -374,11 +492,6 @@
                         id++;
                     }
 
-                    if (!PersonIdentifierIsNumber)
-                    {
-                        for (int _i = 0; _i < uniqueValues["PersonIdentifier"].Count; _i++)
-                            _dtaFile.AddValueLabel("l_" + "PersonIdentifier", _i, uniqueValues["PersonIdentifier"][_i]);
-                    }
 
                     _dtaFile.AddValueLabel("l_" + "ParentEventID", -1, "(no parent)");
                     _dtaFile.AddValueLabel("l_" + "Timestamp", -1, "(missing)");
@@ -393,10 +506,10 @@
                     {
                         foreach (var _colname in logDataTableColnames[_id])
                         {
-                            if (!listOfLongStringVariableNames.Contains(_colname))
+                            if (listOfLabelContainers.ContainsKey(_colname))
                             { 
                                 for (int _i = 0; _i < uniqueValues[_colname].Count; _i++)
-                                    _dtaFile.AddValueLabel("l_" + _colname, _i, uniqueValues[_colname][_i]);
+                                    _dtaFile.AddValueLabel(listOfLabelContainers[_colname], _i, uniqueValues[_colname][_i]);
 
                                 _dtaFile.AddValueLabel("l_" + _colname, -1, "(attribute not defined)");
                             }                           
@@ -407,26 +520,373 @@
                     zip.AddFile(_tmpfile).FileName = _id + ".dta";
 
                 }
-                
+
+                #endregion
+
+                #region Result Data
+
+                if (ContainsResultData)
+                {
+
+                    var _varlist = new Dictionary<string,StataVariable>();
+                    _varlist.Add("Line", new StataVariable() { Name = "Line", VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%12.0g", Description = CodebookDictionary.GetColumnNameDescription("Line", language) });
+
+                    if (PersonIdentifierIsNumber)
+                        _varlist.Add("PersonIdentifier",new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Long, DisplayFormat = @" % 20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", language) });
+                    else
+                        _varlist.Add("PersonIdentifier", new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", language), ValueLabelName = "l_" + "PersonIdentifier" });
+                     
+                    string _id = "Results";
+
+                    // Head
+                    for (int _i = 0; _i < resultDataTableColnames.Count; _i++)
+                    {
+                        string _key = resultDataTableColnames.Keys.ToArray<string>()[_i];
+
+                        if (!CodebookDictionary.IgnoreResultVariable(_key))
+                        {
+                            string _colname = resultDataTableColnames.Values.ToArray<string>()[_i];
+                            if (!listOfLabelContainers.ContainsKey(_key))
+                            {
+                                _varlist.Add(_key, new StataVariable() { Name = CodebookDictionary.GetResultVariableName(_key), VarType = StataVariable.StataVarType.String, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetResultVariableLabel(_key, language, 64) });
+                            }
+                            else
+                            {
+                                _varlist.Add(_key, new StataVariable() { Name = CodebookDictionary.GetResultVariableName(_key), VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetResultVariableLabel(_key, language, 64), ValueLabelName = listOfLabelContainers[_key] });
+                            }
+                        } 
+                    }
+
+                    string _tmpfile = GetTempFileName("dta");
+                    string _dataSetName = CodebookDictionary.GetMetaData("StudyName", "", language);
+                    var _dtaFile = new StataFileWriter(_tmpfile, _varlist.Values.ToList<StataVariable>(), _dataSetName, true);
+                    
+                    if (!PersonIdentifierIsNumber)
+                    {
+                        for (int _i = 0; _i < uniqueValues["PersonIdentifier"].Count; _i++)
+                            _dtaFile.AddValueLabel("l_" + "PersonIdentifier", _i, uniqueValues["PersonIdentifier"][_i]);
+                    }
+
+                    // Data 
+                    int id = 0;
+                    foreach (var v in resultDataTable.Keys)
+                    {
+                        object[] _line = new object[_varlist.Count];
+                        _line[0] = id;
+                        _line[1] = resultDataTable[v].PersonIdentifier;
+
+                        int j = 0;
+                        for (int _i = 0; _i < resultDataTableColnames.Count; _i++)
+                        { 
+                            string _key = resultDataTableColnames.Keys.ToList<string>()[_i];
+                            if (!CodebookDictionary.IgnoreResultVariable(_key))
+                            {
+                                if (!listOfLabelContainers.ContainsKey(_key))
+                                {
+                                    string _value = "";
+                                    foreach (var p in resultDataTable[v].AttributValues)
+                                    {
+                                        if (p.Item1 == _i)
+                                        {
+                                            _value = uniqueValues[logDataTableColnames[_id][_i]][p.Item2];
+                                            break;
+                                        }
+                                    }
+                                    _line[2 + j++] = _value;
+                                }
+                                else
+                                {
+                                    int _value = -1;
+                                    foreach (var p in resultDataTable[v].AttributValues)
+                                    {
+                                        if (p.Item1 == _i)
+                                        {
+                                            _value = p.Item2;
+                                            break;
+                                        }
+                                    }
+                                    _line[2 + j++] = _value;
+                                }
+                            }
+                        }
+
+                        _dtaFile.AppendDataLine(_line);
+                        id++;
+                    }
+
+                    
+                    for (int _j = 0; _j < resultDataTableColnames.Count; _j++)
+                    {
+                        string _key = resultDataTableColnames.Keys.ToList<string>()[_j];
+                        if (!CodebookDictionary.IgnoreResultVariable(_key))
+                        {
+                            if (listOfLabelContainers.ContainsKey(_key))
+                            {
+                                for (int _i = 0; _i < uniqueValues[_key].Count; _i++)
+                                    _dtaFile.AddValueLabel(listOfLabelContainers[_key], _i, uniqueValues[_key][_i]);
+
+                                _dtaFile.AddValueLabel(listOfLabelContainers[_key], -1, "(attribute not defined)");
+                            }
+                        }
+                    } 
+
+                    _dtaFile.Close();
+                    zip.AddFile(_tmpfile).FileName = _id + ".dta";
+                }
+
+                #endregion
+
                 zip.UseZip64WhenSaving = Zip64Option.Always;
                 zip.Save(filename);
             }
         }
 
+        public void ExportSPSS(string filename, string language)
+        {
+         
+            DateTime dt1960 = new DateTime(1960, 1, 1, 0, 0, 0, 0);
+ 
+            Dictionary<string, Dictionary<double, string>> labelContainers = new Dictionary<string, Dictionary<double, string>>();
+            foreach (var k in uniqueValues.Keys)
+            {
+                if (!labelContainers.ContainsKey(k))
+                    labelContainers.Add(k, new Dictionary<double, string>()); ;
+
+                for (int i = 0; i < uniqueValues[k].Count; i++)
+                    labelContainers[k].Add((double)i, uniqueValues[k][i]);
+
+                labelContainers[k].Add((double)(-1), "(attribute not defined)");
+            }
+
+            using (ZipFile zip = new ZipFile())
+            {
+                #region Log Data
+
+                foreach (string _id in logDataTables.Keys)
+                {
+                    var _varlist = new List<SpssLib.SpssDataset.Variable>();
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("Line") { Label = CodebookDictionary.GetColumnNameDescription("Line", language) });
+
+                    if (PersonIdentifierIsNumber || !labelContainers.ContainsKey("PersonIdentifier"))
+                        _varlist.Add(new SpssLib.SpssDataset.Variable("PersonIdentifierName") { Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", language, 64) });
+                    else
+                        _varlist.Add(new SpssLib.SpssDataset.Variable("PersonIdentifierName") { ValueLabels = labelContainers["PersonIdentifier"], Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", language, 64) });
+
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("Element") { ValueLabels = labelContainers["Element"], Label = CodebookDictionary.GetResultVariableLabel("Element", language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("TimeStamp") { /*ValueLabels = labelContainers["TimeStamp"],*/ Label = CodebookDictionary.GetResultVariableLabel("TimeStamp", language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("RelativeTime") { /*ValueLabels = labelContainers["RelativeTime"], */Label = CodebookDictionary.GetResultVariableLabel("RelativeTime", language, 64) });
+
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("EventID") { /*ValueLabels = labelContainers["EventID"],*/ Label = CodebookDictionary.GetResultVariableLabel("EventID", language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("ParentEventID") { Label = CodebookDictionary.GetResultVariableLabel("ParentEventID", language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("Path") { ValueLabels = labelContainers["Path"], Label = CodebookDictionary.GetResultVariableLabel("Path", language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("ParentPath") { ValueLabels = labelContainers["ParentPath"], Label = CodebookDictionary.GetResultVariableLabel("ParentPath", language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("EventName") { ValueLabels = labelContainers["EventName"], Label = CodebookDictionary.GetResultVariableLabel("EventName", language, 64) });
+
+
+                    if (logDataTableColnames.ContainsKey(_id))
+                    {
+                        foreach (var _colname in logDataTableColnames[_id])
+                        { 
+                            if (!labelContainers.ContainsKey(_colname))
+                                _varlist.Add(new SpssLib.SpssDataset.Variable("a_" + _colname) { Label = CodebookDictionary.GetResultVariableLabel(_colname, language, 64) });
+                            else
+                                _varlist.Add(new SpssLib.SpssDataset.Variable("a_" + _colname) { ValueLabels = labelContainers[_colname], Label = CodebookDictionary.GetResultVariableLabel(_colname, language, 64) });
+                        }
+                    }
+
+
+                    string _tmpfile = GetTempFileName("sav");
+                    string _dataSetName = CodebookDictionary.GetMetaData("StudyName", "", language);
+
+                    var options = new SpssLib.DataReader.SpssOptions();
+
+                    int id = 0;
+                    using (FileStream fileStream = new FileStream(_tmpfile, FileMode.Create, FileAccess.Write))
+                    {
+                        using (var writer = new SpssLib.DataReader.SpssWriter(fileStream, _varlist, options))
+                        {
+                            foreach (var v in logDataTables[_id])
+                            {
+
+                                var _line = writer.CreateRecord();
+                                _line[0] = (double)id;
+                                _line[1] = (double)v.PersonIdentifier;
+
+                                _line[2] = (double)v.Element;
+                                if (v.TimeStamp.Year == 1)
+                                {
+                                    _line[3] = (double)-1;
+                                }
+                                else
+                                {
+                                    _line[3] = (double)Math.Round((v.TimeStamp - dt1960).TotalMilliseconds, 0);
+                                }
+                                _line[4] = (double)v.RelativeTime;
+                                _line[5] = (double)v.EventID;
+                                _line[6] = (double)v.ParentEventID;
+                                _line[7] = (double)v.Path;
+                                _line[8] = (double)v.ParentPath;
+                                _line[9] = (double)v.EventName;
+
+                                if (logDataTableColnames.ContainsKey(_id))
+                                {
+                                    for (int _i = 0; _i < logDataTableColnames[_id].Count; _i++)
+                                    {
+
+                                        if (!labelContainers.ContainsKey(logDataTableColnames[_id][_i]))
+                                        {
+                                            double _value = -1;
+                                            foreach (var p in v.AttributValues)
+                                            {
+                                                if (p.Item1 == _i)
+                                                {
+                                                    _value = double.Parse(uniqueValues[logDataTableColnames[_id][_i]][p.Item2]);
+                                                    break;
+                                                }
+                                            }
+                                            _line[10 + _i] = _value;
+                                        }
+                                        else
+                                        {
+                                            double _value = -1;
+                                            foreach (var p in v.AttributValues)
+                                            {
+                                                if (p.Item1 == _i)
+                                                {
+                                                    _value = (double)p.Item2;
+                                                    break;
+                                                }
+                                            }
+                                            _line[10 + _i] = _value;
+                                        }
+
+                                    }
+                                }
+
+                                writer.WriteRecord(_line);
+                                id++;
+                            }
+                        }
+                        zip.AddFile(_tmpfile).FileName = _id + ".sav";
+
+                    }
+                }
+
+                #endregion
+
+                #region Result Data
+
+                if (ContainsResultData)
+                {
+                    string _id = "Results";
+                    var _varlist = new List<SpssLib.SpssDataset.Variable>();
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("Line") { Label = CodebookDictionary.GetColumnNameDescription("Line", language) });
+
+                    if (PersonIdentifierIsNumber || !labelContainers.ContainsKey("PersonIdentifier"))
+                        _varlist.Add(new SpssLib.SpssDataset.Variable("PersonIdentifierName") { Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", language, 64)}); 
+                    else
+                        _varlist.Add(new SpssLib.SpssDataset.Variable("PersonIdentifierName") { ValueLabels = labelContainers["PersonIdentifier"],  Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", language, 64)}); 
+                       
+                    // Head
+                    for (int _i = 0; _i < resultDataTableColnames.Count; _i++)
+                    {
+                        string _key = resultDataTableColnames.Keys.ToArray<string>()[_i];
+
+                        if (!CodebookDictionary.IgnoreResultVariable(_key))
+                        {
+                            string _colname = resultDataTableColnames.Values.ToArray<string>()[_i];
+                            if (!labelContainers.ContainsKey(_key))
+                            {
+                                _varlist.Add(new SpssLib.SpssDataset.Variable(CodebookDictionary.GetResultVariableName(_key)) { Label = CodebookDictionary.GetResultVariableLabel(_key, language, 64) }); 
+                            }
+                            else
+                            {
+                                _varlist.Add(new SpssLib.SpssDataset.Variable(CodebookDictionary.GetResultVariableName(_key)) { ValueLabels = labelContainers[_key], Label = CodebookDictionary.GetResultVariableLabel(_key, language, 64) });
+                            }
+                        }
+                    }
+
+                    string _tmpfile = GetTempFileName("sav");
+                    string _dataSetName = CodebookDictionary.GetMetaData("StudyName", "", language);
+                    var options = new SpssLib.DataReader.SpssOptions();
+
+                    using (FileStream fileStream = new FileStream(_tmpfile, FileMode.Create, FileAccess.Write))
+                    {
+                        using (var writer = new SpssLib.DataReader.SpssWriter(fileStream, _varlist, options))
+                        { 
+                            int id = 0;
+                            foreach (var v in resultDataTable.Keys)
+                            {
+                                var _line = writer.CreateRecord();
+                                _line[0] = (double)id;
+                                _line[1] = (double)resultDataTable[v].PersonIdentifier;
+
+                                int j = 0;
+                                for (int _i = 0; _i < resultDataTableColnames.Count; _i++)
+                                {
+                                    string _key = resultDataTableColnames.Keys.ToList<string>()[_i];
+                                    if (!CodebookDictionary.IgnoreResultVariable(_key))
+                                    {
+                                        if (!labelContainers.ContainsKey(_key))
+                                        {
+                                            double _value = -1;
+                                            foreach (var p in resultDataTable[v].AttributValues)
+                                            {
+                                                if (p.Item1 == _i)
+                                                {
+                                                    _value = double.Parse(uniqueValues[logDataTableColnames[_id][_i]][p.Item2]);
+                                                    break;
+                                                }
+                                            }
+                                            _line[2 + j++] = _value;
+                                        }
+                                        else
+                                        {
+                                            double _value = -1;
+                                            foreach (var p in resultDataTable[v].AttributValues)
+                                            {
+                                                if (p.Item1 == _i)
+                                                {
+                                                    _value = p.Item2;
+                                                    break;
+                                                }
+                                            }
+                                            _line[2 + j++] = _value;
+                                        }
+                                    }
+                                }
+
+                                writer.WriteRecord(_line);
+                                id++;
+                            }
+                        }
+                    }
+                     
+                    zip.AddFile(_tmpfile).FileName = _id + ".sav";
+                }
+
+                #endregion
+
+                zip.UseZip64WhenSaving = Zip64Option.Always;
+                zip.Save(filename);
+            } 
+        }
+ 
         public void ExportCSV(string filename)
         {
             DateTime dt1960 = new DateTime(1960, 1, 1, 0, 0, 0, 0);
             string _sep = ";";
 
             using (ZipFile zip = new ZipFile())
-            {
+            { 
+                #region Log Data
 
                 foreach (string _id in logDataTables.Keys)
                 {
                     string _tmpfile = GetTempFileName("csv");
                     using (StreamWriter sw = new StreamWriter(_tmpfile))
                     {
-                        sw.Write("ID" + _sep + "PersonIdentifier" + _sep + "Element" + _sep + "TimeStamp" + _sep + "RelativeTime" + _sep + "EventID" + _sep + "ParentEventID" + _sep + "Path" + _sep + "ParentPath" + _sep + "EventName");
+                        sw.Write("Line" + _sep + "PersonIdentifier" + _sep + "Element" + _sep + "TimeStamp" + _sep + "RelativeTime" + _sep + "EventID" + _sep + "ParentEventID" + _sep + "Path" + _sep + "ParentPath" + _sep + "EventName");
                         if (logDataTableColnames.ContainsKey(_id))
                         {
                             foreach (var _colname in logDataTableColnames[_id])
@@ -480,6 +940,75 @@
                     zip.AddFile(_tmpfile).FileName = _id + ".csv";
 
                 }
+
+                #endregion
+
+                #region Result Data
+
+                if (ContainsResultData)
+                {
+                    string _id = "Results";
+                    string _tmpfile = GetTempFileName("csv");
+                    using (StreamWriter sw = new StreamWriter(_tmpfile))
+                    {
+                        // Head
+                        sw.Write("LINE" + _sep + "PersonIdentifier");
+                        if (logDataTableColnames.ContainsKey(_id))
+                        {
+                            for (int _i = 0; _i < resultDataTableColnames.Count; _i++)
+                            {
+                                string _key = resultDataTableColnames.Keys.ToArray<string>()[_i];
+                                if (!CodebookDictionary.IgnoreResultVariable(_key))
+                                    sw.Write(_sep + CodebookDictionary.GetResultVariableName(_key)); 
+                            }
+                             
+                        }
+                        sw.WriteLine();
+
+                        // Data 
+                        int id = 0;
+                        foreach (var v in resultDataTable.Keys)
+                        { 
+                            if (PersonIdentifierIsNumber)
+                                sw.Write(id + _sep + resultDataTable[v].PersonIdentifier);
+                            else
+                                sw.Write(id + _sep + uniqueValues["PersonIdentifier"][(int)resultDataTable[v].PersonIdentifier]);
+  
+                            for (int _i = 0; _i < resultDataTableColnames.Count; _i++)
+                            {
+                                string _key = resultDataTableColnames.Keys.ToArray<string>()[_i];
+                                if (!CodebookDictionary.IgnoreResultVariable(_key))
+                                {
+                                    int _value = -1;
+                                    foreach (var p in resultDataTable[v].AttributValues)
+                                    {
+                                        if (p.Item1 == _i)
+                                        {
+                                            _value = p.Item2;
+                                            break;
+                                        }
+                                    }
+                                    if (_value == -1)
+                                    {
+                                        sw.Write(_sep + StringToCSVCell("(attribute not defined)"));
+                                    }
+                                    else
+                                    {
+                                        sw.Write(_sep + StringToCSVCell(uniqueValues[logDataTableColnames[_id][_i]][_value]));
+                                    }
+                                }  
+                            }
+                            sw.WriteLine();
+
+                            id++;
+                        }
+
+                    }
+                    zip.AddFile(_tmpfile).FileName = _id + ".csv";
+                }
+
+                #endregion
+
                 zip.UseZip64WhenSaving = Zip64Option.Always;
                 zip.Save(filename);
             }
@@ -490,8 +1019,10 @@
             using (var fs = new FileStream(filename, FileMode.Create, FileAccess.Write))
             {
                 Dictionary<string, string> _sheetIndex = new Dictionary<string, string>();
-
                 IWorkbook workbook = new XSSFWorkbook();
+
+                #region Log Data
+
                 foreach (string _id in logDataTables.Keys)
                 {
                     _sheetIndex.Add(_id, _id);
@@ -511,7 +1042,7 @@
 
                     var rowIndex = 0;
                     IRow firstrow = sheet.CreateRow(rowIndex++);
-                    firstrow.CreateCell(0).SetCellValue("ID");
+                    firstrow.CreateCell(0).SetCellValue("Line");
                     firstrow.CreateCell(1).SetCellValue("PersonIdentifier");
                     firstrow.CreateCell(2).SetCellValue("Element");
                     firstrow.CreateCell(3).SetCellValue("TimeStamp");
@@ -600,6 +1131,97 @@
                     }
 
                 }
+
+                #endregion
+
+                #region Result Data
+
+                if (ContainsResultData)
+                {
+                    string _id = "Results";
+
+                    _sheetIndex.Add(_id, _id);
+                    ISheet sheet = workbook.CreateSheet(_sheetIndex[_id]);
+
+                    // Head
+
+                    var rowIndex = 0;
+                    IRow firstrow = sheet.CreateRow(rowIndex++);
+                    firstrow.CreateCell(0).SetCellValue("Line");
+                    firstrow.CreateCell(1).SetCellValue("PersonIdentifier");
+                    int _colIndex = 2;
+                    for (int _i = 0; _i < resultDataTableColnames.Count; _i++)
+                    {
+                        string _key = resultDataTableColnames.Keys.ToArray<string>()[_i];
+                        if (!CodebookDictionary.IgnoreResultVariable(_key))
+                            firstrow.CreateCell(_colIndex++).SetCellValue(CodebookDictionary.GetResultVariableName(_key));
+                    }
+                       
+                    // Data 
+                    int id = 0;
+                    foreach (var v in resultDataTable.Keys)
+                    {
+
+                        IRow row = sheet.CreateRow(rowIndex++);
+                        row.CreateCell(0).SetCellValue(id);
+                        if (PersonIdentifierIsNumber)
+                        {
+                            row.CreateCell(1).SetCellValue(resultDataTable[v].PersonIdentifier);
+                        }
+                        else
+                        {
+                            row.CreateCell(1).SetCellValue(uniqueValues["PersonIdentifier"][(int)resultDataTable[v].PersonIdentifier]);
+                        }
+
+                        _colIndex = 2;
+                        for (int _i = 0; _i < resultDataTableColnames.Count; _i++)
+                        {
+                            string _key = resultDataTableColnames.Keys.ToArray<string>()[_i];
+                            if (!CodebookDictionary.IgnoreResultVariable(_key))
+                            {
+                                int _value = -1;
+                                foreach (var p in resultDataTable[v].AttributValues)
+                                {
+                                    if (p.Item1 == _i)
+                                    {
+                                        _value = p.Item2;
+                                        break;
+                                    }
+                                }
+                                if (_value == -1)
+                                {
+                                    row.CreateCell(_colIndex++).SetCellValue("(attribute not defined)");
+                                }
+                                else
+                                {
+                                    string _stringValue = uniqueValues[logDataTableColnames[_id][_i]][_value];
+                                    if (_stringValue.Length > 32766)
+                                    {
+
+                                        if (PersonIdentifierIsNumber)
+                                        {
+                                            ExportErrors.Add("- XLSX: Shortened string of length " + _stringValue.Length + " for person identifier '" + resultDataTable[v].PersonIdentifier + "', in table  '" + _id + "', for column '" + logDataTableColnames[_id][_i] + "'");
+                                        }
+                                        else
+                                        {
+                                            ExportErrors.Add("- XLSX: Shortened string of length " + _stringValue.Length + " for person identifier '" + uniqueValues["PersonIdentifier"][(int)resultDataTable[v].PersonIdentifier] + "', in table  '" + _id + "', for column '" + logDataTableColnames[_id][_i] + "'");
+                                        }
+
+                                        _stringValue = _stringValue.Substring(0, 32766);
+                                    }
+
+                                    row.CreateCell(_colIndex++).SetCellValue(_stringValue);
+                                }
+                            } 
+                        }
+
+                        id++;
+                    }
+                     
+                }
+
+                #endregion
+
                 workbook.Write(fs);
             }
         }
@@ -672,8 +1294,23 @@
                 foreach (var _line in _stataLogFileReader)
                 {
                     if (!CondordanceTable.ContainsKey(_line[0].ToString()))
-                        CondordanceTable.Add(_line[0].ToString(), _line[1].ToString());
+                        CondordanceTable.Add(_line[0].ToString().Trim(), _line[1].ToString().Trim());
                 }
+            }
+            else if (filename.ToLower().EndsWith(".sav"))
+            {
+                // SPSS 
+
+                using (FileStream fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read, 2048 * 10, FileOptions.SequentialScan))
+                {
+                    SpssLib.DataReader.SpssReader spssDataset = new SpssLib.DataReader.SpssReader(fileStream);
+                    foreach (var _line in spssDataset.Records)
+                    {
+                        if (_line[0].ToString().Trim() != "" && _line[1].ToString().Trim() != "")
+                            if (!CondordanceTable.ContainsKey(_line[0].ToString().Trim()))
+                            CondordanceTable.Add(_line[0].ToString(), _line[1].ToString().Trim());
+                    }
+                } 
             }
             else if (filename.ToLower().EndsWith(".xlsx"))
             {
@@ -692,7 +1329,7 @@
                             if (row.Cells.Count > 1)
                             {
                                 if (!CondordanceTable.ContainsKey(row.Cells[0].StringCellValue))
-                                    CondordanceTable.Add(row.Cells[0].StringCellValue, row.Cells[1].StringCellValue);
+                                    CondordanceTable.Add(row.Cells[0].StringCellValue.Trim(), row.Cells[1].StringCellValue.Trim());
                             } 
                         }
                     }
@@ -712,7 +1349,7 @@
                     while (csv.Read())
                     {
                         if (!CondordanceTable.ContainsKey(csv.GetField(0)))
-                            CondordanceTable.Add(csv.GetField(0), csv.GetField(1));
+                            CondordanceTable.Add(csv.GetField(0).Trim(), csv.GetField(1).Trim());
                     }
                 }
             }
@@ -792,40 +1429,42 @@
             if (filename.Trim() != "")
                 CodebookDictionary.LoadDictionaryExcelSheet(filename);
         }
+
         public void CreateCodebook(string filename, string language)
         { 
             using (var fs = new FileStream(filename, FileMode.Create, FileAccess.Write))
             { 
                 IWorkbook workbook = new XSSFWorkbook();
+                string[] _lng = new string[] { "ENG", "DE" };
 
                 #region MetaData
                 ISheet sheet_metadata = workbook.CreateSheet("MetaData");
 
-                int sheet_metadata_index = addRowValues(sheet_metadata, 0, new string[] { "Attribute", "AttributeValue" });
-                sheet_metadata_index = addRowValues(sheet_metadata, sheet_metadata_index, CodebookDictionary.GetMetaDataLine("StudyName", "StudyName", language));
-                sheet_metadata_index = addRowValues(sheet_metadata, sheet_metadata_index, CodebookDictionary.GetMetaDataLine("TestPlatform", "TestPlatform", language));
+                int sheet_metadata_index = addRowValues(sheet_metadata, 0, new string[] { "Attribute", "AttributeValue_ENG", "AttributeValue_DE" });
+                sheet_metadata_index = addRowValues(sheet_metadata, sheet_metadata_index, CodebookDictionary.GetMetaDataLine("StudyName", "StudyName", _lng));
+                sheet_metadata_index = addRowValues(sheet_metadata, sheet_metadata_index, CodebookDictionary.GetMetaDataLine("TestPlatform", "TestPlatform", _lng));
 
                 #endregion
  
                 #region Head
                 ISheet sheet_head = workbook.CreateSheet("Head");
                   
-                int sheet_head_index = addRowValues(sheet_head, 0, new string[] { "Column", "Description", "Identifier" });
-                sheet_head_index = addRowValues(sheet_head, sheet_head_index, CodebookDictionary.GetHeadLine("ID", language) );
-                sheet_head_index = addRowValues(sheet_head, sheet_head_index, CodebookDictionary.GetHeadLine("PersonIdentifier", language));
-                sheet_head_index = addRowValues(sheet_head, sheet_head_index, CodebookDictionary.GetHeadLine("Element", language));
-                sheet_head_index = addRowValues(sheet_head, sheet_head_index, CodebookDictionary.GetHeadLine("TimeStamp",  language));
-                sheet_head_index = addRowValues(sheet_head, sheet_head_index, CodebookDictionary.GetHeadLine("RelativeTime",  language));
-                sheet_head_index = addRowValues(sheet_head, sheet_head_index, CodebookDictionary.GetHeadLine("ParentEventID",  language));
-                sheet_head_index = addRowValues(sheet_head, sheet_head_index, CodebookDictionary.GetHeadLine("Path", language));
-                sheet_head_index = addRowValues(sheet_head, sheet_head_index, CodebookDictionary.GetHeadLine("ParentPath",  language));
-                sheet_head_index = addRowValues(sheet_head, sheet_head_index, CodebookDictionary.GetHeadLine("EventName", language));
+                int sheet_head_index = addRowValues(sheet_head, 0, new string[] { "Column", "VariableLabel_ENG", "VariableLabel_DE", "Identifier" });
+                sheet_head_index = addRowValues(sheet_head, sheet_head_index, CodebookDictionary.GetHeadLine("Line", _lng) );
+                sheet_head_index = addRowValues(sheet_head, sheet_head_index, CodebookDictionary.GetHeadLine("PersonIdentifier", _lng));
+                sheet_head_index = addRowValues(sheet_head, sheet_head_index, CodebookDictionary.GetHeadLine("Element", _lng));
+                sheet_head_index = addRowValues(sheet_head, sheet_head_index, CodebookDictionary.GetHeadLine("TimeStamp", _lng));
+                sheet_head_index = addRowValues(sheet_head, sheet_head_index, CodebookDictionary.GetHeadLine("RelativeTime", _lng));
+                sheet_head_index = addRowValues(sheet_head, sheet_head_index, CodebookDictionary.GetHeadLine("ParentEventID", _lng));
+                sheet_head_index = addRowValues(sheet_head, sheet_head_index, CodebookDictionary.GetHeadLine("Path", _lng));
+                sheet_head_index = addRowValues(sheet_head, sheet_head_index, CodebookDictionary.GetHeadLine("ParentPath", _lng));
+                sheet_head_index = addRowValues(sheet_head, sheet_head_index, CodebookDictionary.GetHeadLine("EventName", _lng));
 
                 #endregion
 
                 #region Attributes
                 ISheet sheet_data = workbook.CreateSheet("Attributes");
-                int sheet_data_index = addRowValues(sheet_data, 0, new string[] { "Table", "Column", "Condition", "Description", "Anonymity", "Purification" });
+                int sheet_data_index = addRowValues(sheet_data, 0, new string[] { "Table", "Column", "Condition", "Description_DE", "Description_ENG", "Anonymity", "Purification" });
 
                 foreach (string _id in logDataTables.Keys)
                 {
@@ -833,7 +1472,7 @@
                     {
                         foreach (var _colname in logDataTableColnames[_id])
                         { 
-                            List<string[]> _conditions = CodebookDictionary.GetConditions(_id, "a_" + _colname, language);
+                            List<string[]> _conditions = CodebookDictionary.GetConditions(_id, "a_" + _colname, _lng);
                             foreach (var _c in _conditions)
                             {
                                 sheet_data_index = addRowValues(sheet_data, sheet_data_index, _c);
@@ -846,18 +1485,35 @@
                 #region Events
                 ISheet sheet_events = workbook.CreateSheet("Events");
 
-                int sheet_events_index = addRowValues(sheet_events, 0, new string[] { "EventName", "Table", "EventDescription" });
+                int sheet_events_index = addRowValues(sheet_events, 0, new string[] { "EventName", "Table", "EventDescription_ENG", "EventDescription_DE" });
 
                 foreach (string tab in logDataTables.Keys)
                 {
-                    var _res = CodebookDictionary.GetEvent(tab, language);
+                    var _res = CodebookDictionary.GetEvent(tab, _lng);
                     foreach (var _r in _res)
                         sheet_events_index = addRowValues(sheet_events, sheet_events_index, _r );
                 }
-              
 
-             
-                
+                #endregion
+
+                #region Result Variables 
+
+                ISheet sheet_resultvariables = workbook.CreateSheet("Results Variables");
+
+                int sheet_resultvariables_index = addRowValues(sheet_resultvariables, 0, new string[] { "Key", "Variable", "Label_DE", "Label_ENG", "Ignore"});
+                foreach (var v in resultDataTableColnames.Keys)
+                {
+                    if (CodebookDictionary.ResultVariables.ContainsKey(v))
+                    {
+                        var _old = CodebookDictionary.ResultVariables[v];
+                        sheet_resultvariables_index = addRowValues(sheet_resultvariables, sheet_resultvariables_index, new string[] { v, _old.Name, _old.ValuesByLanguage["DE"], _old.ValuesByLanguage["ENG"], _old.Ignored.ToString() });
+                    }
+                    else
+                    {
+                        sheet_resultvariables_index = addRowValues(sheet_resultvariables, sheet_resultvariables_index, new string[] { v, resultDataTableColnames[v], "Beschreibung für '" + resultDataTableColnames[v] + "'", "Label for '" + resultDataTableColnames[v] + "'", "false" });
+                    }
+                }
+
                 #endregion
 
                 workbook.Write(fs);
@@ -873,7 +1529,14 @@
         }
     }
 
-    public class logxDataRow
+    public class logxResultDataRow
+    {
+        public long PersonIdentifier { get; set; }
+
+        public List<Tuple<int, int>> AttributValues { get; set; }
+    }
+
+    public class logxLogDataRow
     {
         public long PersonIdentifier { get; set; }
         public int Element { get; set; }
@@ -885,6 +1548,19 @@
         public int ParentPath { get; set; }
         public int EventName { get; set; }
         public List<Tuple<int, int>> AttributValues { get; set; }
+    }
+
+    public class logxGenericResultElement
+    {
+        public string PersonIdentifier { get; set; }
+
+        public Dictionary<string, object>  Results { get; set; }
+
+        public logxGenericResultElement()
+        {
+            Results = new Dictionary<string, object>();
+        }
+
     }
 
     public class logxGenericLogElement
@@ -911,12 +1587,16 @@
         public Dictionary<string, logxCodebookHead> Heads { get; set; }
         public Dictionary<string, logxCodebookEvent> Events { get; set; }
         public Dictionary<string, logxCodebookAttribute> Attributes { get; set; }
+
+        public Dictionary<string, logxCodebookResultVariable> ResultVariables { get; set; }
+
         public logxCodebookDictionary()
         {
             MetaData = new Dictionary<string, logxCodebookMetaData>();
             Heads = new Dictionary<string, logxCodebookHead>();
             Events = new Dictionary<string, logxCodebookEvent>();
             Attributes = new Dictionary<string, logxCodebookAttribute>();
+            ResultVariables = new Dictionary<string, logxCodebookResultVariable>();
         }
 
         public void LoadDictionaryExcelSheet(string CodebookDictionaryFile)
@@ -971,7 +1651,7 @@
                                     Column = column,
                                     Identifies = cn.GetValue(row, "Identifies"),
                                     Table = cn.GetValue(row, "Table"),
-                                    VariableLableByLanguage = cn.GetValueByLanguage(row, "VariableLable")
+                                    VariableLabelByLanguage = cn.GetValueByLanguage(row, "VariableLabel")
                                 });
                         }
                         }
@@ -1038,10 +1718,38 @@
                         }
                     }
                     #endregion
-                } 
+
+                    #region Read Variables
+
+                    int _resultVariablesSheetIndex = workbook.GetSheetIndex("Results Variables");
+                    if (_resultVariablesSheetIndex != -1)
+                    {
+                        var _sheet = workbook.GetSheetAt(_resultVariablesSheetIndex);
+                        logxCodebookColumnNames cn = new logxCodebookColumnNames(_sheet.GetRow(0));
+
+                        if (_sheet.LastRowNum >= 1)
+                        {
+                            for (int rowIndex = 1; rowIndex <= _sheet.LastRowNum; rowIndex++)
+                            {
+                                IRow row = _sheet.GetRow(rowIndex);
+                                string key = cn.GetValue(row, "Key");
+                                string name = cn.GetValue(row, "Variable");
+                                var label = cn.GetValueByLanguage(row, "Label");
+                                bool ignored  = bool.Parse(cn.GetValue(row, "Ignore"));
+                                 
+                                ResultVariables.Add(key, new logxCodebookResultVariable() { VariableKey = key, Name = name, ValuesByLanguage = label, Ignored = ignored });
+                            }
+                        }
+                    }
+
+                        //ResultVariables
+
+                        #endregion
+                    }
             } 
-            catch
+            catch (Exception _ex)
             {
+                Console.WriteLine("Error reading codebook dictionary:  " + _ex.ToString());
             }
          }
 
@@ -1057,17 +1765,24 @@
             return Default;
         }
 
-        public string[] GetMetaDataLine(string Attribute, string AttributeValue, string Language)
+        public string[] GetMetaDataLine(string Attribute, string AttributeValue, string[] Language)
         {
-            string[] _ret = new string[2] { Attribute, AttributeValue };
-
-            if (MetaData.ContainsKey(Attribute))
+            string[] _ret = new string[1+Language.Length];
+            _ret[0] = Attribute;
+            for (int i=0; i< Language.Length; i++)
             {
-                if (MetaData[Attribute].ValuesByLanguage.ContainsKey(Language))
+                _ret[1 + i] = AttributeValue;
+
+                if (MetaData.ContainsKey(Attribute))
                 {
-                    _ret[1] = MetaData[Attribute].ValuesByLanguage[Language];
+                    if (MetaData[Attribute].ValuesByLanguage.ContainsKey(Language[i]))
+                    {
+                        _ret[1+i] = MetaData[Attribute].ValuesByLanguage[Language[i]];
+                    }
                 }
             }
+
+       
             return _ret;
         }
         
@@ -1075,15 +1790,15 @@
         { 
             if (Heads.ContainsKey(Column))
             {
-                if (Heads[Column].VariableLableByLanguage.ContainsKey(Language))
-                    return Heads[Column].VariableLableByLanguage[Language];
+                if (Heads[Column].VariableLabelByLanguage.ContainsKey(Language))
+                    return Heads[Column].VariableLabelByLanguage[Language];
             }
             else
             {
                 switch (Column)
                 {
-                    case "ID": 
-                        return "ID for this line (counter over all cases and events)";
+                    case "Line": 
+                        return "Line counter (counter over all cases and events)";
                     case "PersonIdentifier":
                         return "ID of the person which triggered the event data in this row";
                     case "Element":
@@ -1106,7 +1821,7 @@
            
         }
 
-        public string GetColumnNameIdentifies(string Column, string Language)
+        public string GetColumnNameIdentifies(string Column)
         {
             
             if (Heads.ContainsKey(Column))
@@ -1117,7 +1832,7 @@
             {
                 switch (Column)
                 {
-                    case "ID": 
+                    case "Line": 
                         return "line";
                     case "PersonIdentifier": 
                         return "target-person";
@@ -1141,9 +1856,17 @@
           
             return Column;
         }
-        public string[] GetHeadLine(string Column, string Language)
+
+        public string[] GetHeadLine(string Column, string[] Language)
         {
-            return new string[3] { Column, GetColumnNameDescription(Column, Language), GetColumnNameIdentifies(Column, Language) };
+            string[] _ret = new string[2 + Language.Length];
+            _ret[0] = Column;
+            for (int i = 0; i < Language.Length; i++)
+            {
+                _ret[1 + i] = GetColumnNameDescription(Column, Language[i]);
+            }
+            _ret[1 + Language.Length] = GetColumnNameIdentifies(Column);
+            return _ret;
         }
 
         public string GetAttributeDescrition(string Table, string Column, string Language, int MaxLength)
@@ -1154,6 +1877,49 @@
 
             return _ret;
         }
+
+        public string GetResultVariableLabel(string Key, string Language, int MaxLength)
+        {
+            if (ResultVariables.ContainsKey(Key))
+            {
+                if (ResultVariables[Key].ValuesByLanguage.ContainsKey(Language))
+                {
+                    string _val = ResultVariables[Key].ValuesByLanguage[Language];
+                    if (_val.Length > MaxLength)
+                    {
+                        return _val.Substring(0, MaxLength);
+                    }
+                    else
+                    {
+                        return _val;
+                    }
+
+                }
+            }
+            return Key;
+        }
+
+        public string GetResultVariableName(string Key)
+        {
+            if (ResultVariables.ContainsKey(Key))
+            {
+                return ResultVariables[Key].Name;
+            }
+
+            return Key;
+        }
+
+        public bool IgnoreResultVariable(string Key)
+        {
+            if (ResultVariables.ContainsKey(Key))
+            {  
+                return ResultVariables[Key].Ignored;
+            }
+
+            return false;
+
+        }
+        
         public string GetAttributeDescrition(string Table, string Column, string Language)
         {
             // Hack: Use first condition
@@ -1170,19 +1936,28 @@
             return Column;
         }
 
-        public List<string[]> GetConditions(string Table, string Column, string Language)
+        public List<string[]> GetConditions(string Table, string Column, string[] Language)
         {
             List<string[]> _ret = new List<string[]>();
             if (Attributes.ContainsKey(Table + Column))
             { 
                 foreach (var l in Attributes[Table + Column].Conditions)
                 {
-                    string _description = "";
-                    if (l.AttributeDescriptionByLanguage.ContainsKey(Language))
+                    string[] _line = new string[5 + Language.Length];
+                    _line[0] = Table;
+                    _line[1] = Column;
+                    _line[2] = l.Condition;
+                    for (int i=0;i<Language.Length; i++)
                     {
-                        _description = l.AttributeDescriptionByLanguage[Language];
+                        if (l.AttributeDescriptionByLanguage.ContainsKey(Language[i]))
+                            _line[3+i] = l.AttributeDescriptionByLanguage[Language[i]];
+                        else
+                            _line[3 + i] = "";
                     }
-                    _ret.Add(new string[] { Table, Column, l.Condition, _description , l.Anonymity, l.Purification});
+                    _line[3 + Language.Length] = l.Anonymity;
+                    _line[4 + Language.Length] = l.Purification;
+
+                    _ret.Add(_line);
                 }
             }
             if (_ret.Count == 0)
@@ -1191,20 +1966,22 @@
             return _ret;            
         }
 
-        public List<string[]> GetEvent(string TableName, string Language)
+        public List<string[]> GetEvent(string TableName, string[] Language)
         {
             List<string[]> _ret = new List<string[]>();
              
             if (Events.ContainsKey(TableName))
-            { 
-                if (Events[TableName].EventDescriptionByLanguage.ContainsKey(Language))
+            {
+                string[] _l = new string[2 + Language.Length];
+                _l[0] = Events[TableName].EventName;
+                _l[1] = TableName;
+                
+                for (int i=0; i<Language.Length; i++)
                 {
-                    _ret.Add(new string[] { Events[TableName].EventName, TableName, Events[TableName].EventDescriptionByLanguage[Language] });
-                } 
-                else
-                {
-                    _ret.Add(new string[] { "", TableName, "" });
-                } 
+                    if (Events[TableName].EventDescriptionByLanguage.ContainsKey(Language[i]))
+                        _l[2 + i] = Events[TableName].EventDescriptionByLanguage[Language[i]];
+                }
+                _ret.Add(_l);
             }
             return _ret;
         }
@@ -1217,12 +1994,20 @@
         public Dictionary<string,string> ValuesByLanguage { get; set; }
     }
 
+    public class logxCodebookResultVariable
+    {
+        public string VariableKey { get; set; }
+        public bool Ignored { get; set; }
+        public string Name { get; set; }
+        public Dictionary<string, string> ValuesByLanguage { get; set; }
+    }
+
     public class logxCodebookHead
     {
         public string Table{ get; set; }
         public string Column { get; set; }
         public string Identifies { get; set; }
-        public Dictionary<string, string> VariableLableByLanguage { get; set; }
+        public Dictionary<string, string> VariableLabelByLanguage { get; set; }
     }
 
     public class logxCodebookEvent
@@ -1273,12 +2058,12 @@
             if (colNameDict.ContainsKey(ColumnName))
             {
                 int _index = colNameDict[ColumnName];
-                if (_index != -1 && Row.Cells.Count >= _index)
+                if (_index != -1 && Row.Cells.Count > _index)
                 {
                     return Row.Cells[_index].StringCellValue;
                 }
             }
-        
+
             return ColumnName;
         }
 
@@ -1288,14 +2073,14 @@
             foreach (string colName in colNameDict.Keys)
             {
                 string[] colNameSplit = colName.Split("_".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                if (colNameSplit[0] == ColumnName && colNameSplit.Length > 0)
+                if (colNameSplit[0] == ColumnName && colNameSplit.Length > 1)
                 {
                     int _index = colNameDict[colName];
                     if (_index != -1 && Row.Cells.Count >= _index)
                     {
                         _ret.Add(colNameSplit[1], Row.Cells[_index].StringCellValue);
                     }
-                }
+                } 
             }
             return _ret;
         }

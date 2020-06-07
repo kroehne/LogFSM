@@ -34,8 +34,7 @@ namespace LogFSMConsole
 
 #if DEBUG
                 args = new string[1];
-                args[0] = "";
-
+            args[0] = "job=fsm&fsmfilename=C:%5CUsers%5Ckroehne%5CAppData%5CLocal/Test%20miniaml%20FSM%20for%20the%20first%202%20cases.fsm&outfilename=C:%5CUsers%5Ckroehne%5CAppData%5CLocal/Test%20miniaml%20FSM%20for%20the%20first%202%20cases.json&zipfilename=C:/Users/kroehne/Dropbox/@LogFSM/BeyondResults2020/TIMSS/fldt_13629.zip&datafiletype=jsonlite&fsmfiletype=custom01&datafilefilter=*.*&flags=&maxnumberofcases=1&verbose=TRUE&";
 #endif
 
             Stopwatch _watch = new Stopwatch();
@@ -210,9 +209,10 @@ namespace LogFSMConsole
             List<EventData> _logData = new List<EventData>();
 
             EventDataListExtension.ESortType sort = EventDataListExtension.ESortType.Time;
+
             if (ParsedCommandLineArguments.Flags.Contains("DONT_ORDER_EVENTS"))
                 sort = EventDataListExtension.ESortType.None;
-            if (ParsedCommandLineArguments.Flags.Contains("ORDER_WITHIN_ELEMENTS"))
+            else if (ParsedCommandLineArguments.Flags.Contains("ORDER_WITHIN_ELEMENTS"))
                 sort = EventDataListExtension.ESortType.ElementAndTime;
 
             if (ParsedCommandLineArguments.DataFileTypeIsEE || ParsedCommandLineArguments.DataFileTypeIsLogFSMJson || ParsedCommandLineArguments.DataFileTypeIsJsonLite)

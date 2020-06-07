@@ -131,9 +131,12 @@ namespace LogFSMConsole
                                     !row.Keys.Contains(_elementColumnName) ||
                                     !row.Keys.Contains(_eventNameColumnName) ||
                                     !row.Keys.Contains(_timeStampColumnName))
-                                    {
-                                        Console.WriteLine("Required columns (" + _personIdentifierColumnName + ", " + _elementColumnName + ", " + _eventNameColumnName + ", " + _timeStampColumnName + ") not found (Line " + _lineCounter + ")");
-                                        continue;
+                                    { 
+                                        Console.WriteLine("Required columns (" + _personIdentifierColumnName + ": " + row.Keys.Contains(_personIdentifierColumnName).ToString() + ", " +
+                                                                                 _elementColumnName + ": " + row.Keys.Contains(_elementColumnName).ToString() +  ", " + 
+                                                                                 _eventNameColumnName + ": " + row.Keys.Contains(_eventNameColumnName).ToString() + ", " +
+                                                                                 _timeStampColumnName + ": " + row.Keys.Contains(_timeStampColumnName).ToString() + ") not found (Line " + _lineCounter + ")");
+                                        return;
                                     };
                                 }
 
@@ -154,7 +157,7 @@ namespace LogFSMConsole
 
                                 _personIdentifier = row[_personIdentifierColumnName].ToString();
 
-                                // Preprocess event values
+                                // Pre-process event values
 
                                 EventData e = new EventData()
                                 {
@@ -163,7 +166,7 @@ namespace LogFSMConsole
                                     Element = row[_elementColumnName].ToString()
                                 };
 
-                                // try to parse datetime string 
+                                // Try to parse datetime string 
 
                                 DateTime _timeStamp = DateTime.MinValue;
                                 TimeSpan _relativeTime = TimeSpan.MinValue;

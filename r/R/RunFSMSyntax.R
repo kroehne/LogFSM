@@ -1,7 +1,7 @@
 #' Anylze Log Data with LogFSM
 #'
 #' Function for reconstructing the list of states using LogFSM. The syntax to be used is passed via the variable ```fsmsyntax```, the data to be used must be stored in the file
-#' system and must be readable via the file name ```datafilename`` (single file) or ```zipfilename``` (ZIP archive).
+#' system and must be readable via the file name ```datafilename``` (single file) or ```zipfilename``` (ZIP archive with multiple files).
 #'
 #' The following data formats that can be used directly (see parameter @datafiletype) either as single case or as zip archive with multiple files for multiple cases:
 #'
@@ -12,15 +12,16 @@
 #' the ```logfsmjson```-format:
 #'
 #' * ```dataflatv01a```: Flat table with log data
+#' * ```nepszip01a```: Universal log format based on stata files
 #' * ```piaacr1ldazip01a```  (r1 = round 1, 2012; lda = Log Data Analyzer)
 #'
 #' Additional formats (under development)
-#' * ```pisabqzip01a```, ```pisacazip01a```,  ```nepszip01a```
+#' * ```pisabqzip01a```, ```pisacazip01a```
 #
 #' This function supports the following flags:
-#' * ```RELATIVETIME``` The "RELATIVETIME" flag can be used to process log data that is provided with relative time stamps.
-#' * ```DONT_ORDER_EVENTS``` The flag "DONT_ORDER_EVENTS" can be used to prevent the log events from being sorted by timestamp.
-#' * ```ORDER_WITHIN_ELEMENTS```
+#' * ```RELATIVETIME```: The "RELATIVETIME" flag can be used to process log data that is provided with relative time stamps.
+#' * ```DONT_ORDER_EVENTS```: The flag "DONT_ORDER_EVENTS" can be used to prevent the log events from being sorted by timestamp.
+#' * ```ORDER_WITHIN_ELEMENTS```: The flag "ORDER_WITHIN_ELEMENTS" can be used to request sorting events by timestamp within elements.
 #'
 #' @param fsmsyntax String variable containing the FSM syntax to be processed. The syntax string must contain a valid LogFSM syntax in each line.
 #' @param datafilename File name of a single data file (input).
@@ -38,7 +39,7 @@
 #' @param ... (Further arguments will be passed on if necessary)
 #'
 #' @return The function returns a list with the following components:
-#'   * \code{AugmentedLogDataTable}
+#'   * \code{AugmentedLogDataTable}:
 #'   * For each state machine $i$ the following tables are provided in the list
 #'   ** \code{SequenceTable_i}
 #'   ** \code{SequenceTable_i}

@@ -10,6 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{5D9110A3
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransformToUniversalLogFormat", "Tools\TransformToUniversalLogFormat\TransformToUniversalLogFormat.csproj", "{E2687B37-3B85-41E6-8473-81BAE315DB90}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpssLib", "External\SpssLib\SpssLib.csproj", "{B5A59CAB-5341-46E5-AE12-CBF820106553}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,6 +30,10 @@ Global
 		{E2687B37-3B85-41E6-8473-81BAE315DB90}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2687B37-3B85-41E6-8473-81BAE315DB90}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2687B37-3B85-41E6-8473-81BAE315DB90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5A59CAB-5341-46E5-AE12-CBF820106553}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5A59CAB-5341-46E5-AE12-CBF820106553}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5A59CAB-5341-46E5-AE12-CBF820106553}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5A59CAB-5341-46E5-AE12-CBF820106553}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

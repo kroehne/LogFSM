@@ -26,6 +26,12 @@
 
                 LogDataTransformer_IBSD_V01.LogDataTransformer_IBSD_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
             }
+            else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_irtlib01a)
+            {
+                Console.WriteLine("Module: Transform 'IRTlib' log data to universal log format V01.");
+
+                LogDataTransformer_IRTlibPlayer_V01.LogDataTransformer_IRTLIB_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
+            }
             else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_nepsrawv01a)
             { 
                 Console.WriteLine("Module: Transform 'NEPS' log data to universal log format V01.");
@@ -57,6 +63,7 @@
                 Console.WriteLine("No input format specified. Specify either '" + 
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_ibsdraw01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_nepsrawv01a + "', '" +
+                    CommandLineArguments._CMDA_JOB_TRANSFORM_input_irtlib01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01b + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01c + "' or '" + 

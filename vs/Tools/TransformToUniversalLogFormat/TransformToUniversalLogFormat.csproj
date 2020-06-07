@@ -3,10 +3,19 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <PublishTrimmed>true</PublishTrimmed>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishSingleFile>true</PublishSingleFile>
+    <StartupObject>TransformToUniversalLogFormat.Program</StartupObject>
+    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+    <Authors>Ulf Kroehne</Authors>
+    <Company>DIPF | Leibniz Institute for Research and Information in Education</Company>
+    <Product>LogFSM</Product>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.7.82" />
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.1" />
   </ItemGroup>
 
   <ItemGroup>

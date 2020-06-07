@@ -73,7 +73,25 @@
                         {
                             if (ParsedCommandLineArguments.Transform_LogVersion == "default")
                             {
-                                LogDataTransformer_IBSD_Module_V0.JSON_IB_8_12_beta3_helper.AddProcessedLogDataToContainer(_ret, line);
+
+                                List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log =
+                                                        LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(line);
+
+                                foreach (var _l in _log)
+                                {
+                                    var g = new logxGenericLogElement()
+                                    {
+                                        Item = _l.Element,
+                                        EventID = _l.EventID,
+                                        EventName = _l.EventName,
+                                        PersonIdentifier = _l.PersonIdentifier,
+                                        TimeStamp = _l.TimeStamp
+                                    };
+
+                                    g.EventDataXML = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.XmlSerializeToString(_l);
+                                    _ret.AddEvent(g);
+                                }
+                                 
                             }
                             else
                             {
@@ -108,6 +126,15 @@
 
                     _ret.ExportXLSX(ParsedCommandLineArguments.Transform_OutputXLSX);
 
+                }
+
+
+                if (ParsedCommandLineArguments.Transform_OutputSPSS.Trim() != "")
+                {
+                    if (ParsedCommandLineArguments.Verbose)
+                        Console.WriteLine("Create ZIP archive with SPSS / PSPP file(s).");
+
+                    _ret.ExportCSV(ParsedCommandLineArguments.Transform_OutputSPSS);
                 }
 
                 if (ParsedCommandLineArguments.Transform_OutputZCSV.Trim() != "")
