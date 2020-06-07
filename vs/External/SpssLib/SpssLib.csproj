@@ -2,8 +2,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>SpssLib</AssemblyName>
+    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <RootNamespace>SpssLib</RootNamespace>
   </PropertyGroup>
 
