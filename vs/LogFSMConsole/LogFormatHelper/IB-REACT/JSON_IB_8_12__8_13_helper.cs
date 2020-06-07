@@ -1971,7 +1971,7 @@
         [XmlIgnore] public string Element { get; set; }
         [XmlIgnore] public string EventName { get; set; }
          
-        public virtual string GetType() => nameof(Log_IB_8_12__8_13);
+        public virtual new  string GetType() => nameof(Log_IB_8_12__8_13);
         public virtual Dictionary<string, string> GetPropertyList()
         {
             var result = new Dictionary<string, string>();
@@ -1997,7 +1997,7 @@
 
         [XmlAttribute] public string Preview { get; set; }
 
-        public virtual Dictionary<string, string> GetPropertyList()
+        public virtual new  Dictionary<string, string> GetPropertyList()
         {
             var result = base.GetPropertyList();
             result.Add(nameof(Trigger), Trigger);

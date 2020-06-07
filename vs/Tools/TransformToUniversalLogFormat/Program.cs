@@ -84,34 +84,7 @@ namespace TransformToUniversalLogFormat
                 args = new string[] { "--help" };
 
 #if DEBUG
-            
-            args = new string[] { "-i", @"C:\work\day\2020_05_15__B128DataProcessing\in\",
-                "-x", @"C:\work\day\2020_05_15__B128DataProcessing\out\test.xlsx",
-                "-s", @"C:\work\day\2020_05_15__B128DataProcessing\out\test_dta.zip",
-                "-z", @"C:\work\day\2020_05_15__B128DataProcessing\out\test_csv.zip",
-                "-o", @"C:\work\day\2020_05_15__B128DataProcessing\out\test_spss.zip",
-                "-r", @"irtlibv01a",
-                "-m", @"*.zip",
-                "-t", @"C:\work\day\2020_05_15__B128DataProcessing\in\ConcordanceTest.sav",
-                "-d",@"C:\work\day\2020_05_15__B128DataProcessing\in\codebook.xlsx",
-                "-c",@"C:\work\day\2020_05_15__B128DataProcessing\out\codebook.xlsx",
-                "-w", @"https://www.neps-online.de/B128/api/session/",
-                //"-w", @"https://b128.software-driven.de/B128/api/session/",
-                "-k", @"8f752564-9df6-11ea-85cf-878c4496f506",
-               // "-w", @"https://dipf-neps.software-driven.de/MASK1/api/session/",
-             //   "-a", @"MaxNumberOfCases=1",  
-                "-v" };
-            
-           /*
-            args = new string[] { "-i", @"C:\work\tba_svn\dfg-mask-project\DATA\in\",
-                "-x", @"C:\work\tba_svn\dfg-mask-project\DATA\out\test.xlsx", 
-                "-r", @"irtlibv01a",
-                "-m", @"*.zip",
-                "-k", @"8f752564-9df6-11ea-85cf-878c4496f506",
-                "-w", @"https://dipf-neps.software-driven.de/MASK2/api/session/",
-             //   "-a", @"MaxNumberOfCases=1",  
-                "-v" };*/
-          
+       
 #endif
 
             try
