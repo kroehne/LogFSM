@@ -56,7 +56,7 @@ jobs:
       run: dotnet publish vs/LogFSMCore.sln -c release -r osx.10.12-x64 -o "$GITHUB_WORKSPACE/r/inst/extdata/osx-x64"
  
     - name: Setup R Environment
-      uses: r-lib/actions/setup-r@master
+      uses: r-lib/actions/setup-r@v1
       
     - name: Install Dependencies
       run: Rscript -e "install.packages(c('rcmdcheck','knitr','dplyr', 'curl', 'jsonlite', 'XML', 'ggplot2', 'Rmisc', 'TraMineR', 'rmarkdown', 'rappdirs' , 'testthat'))"  
