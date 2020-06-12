@@ -14,11 +14,8 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
- 
-library(dplyr)
-library(DiagrammeR) 
-library(kableExtra)
- 
+  
+ `%>%` <- magrittr::`%>%`
 ```
   
 ## Start and End State(s)
@@ -190,7 +187,7 @@ ex01_test_multiple_triggers_fsm <-"Start: From
 
 
 ```{r, echo=FALSE}
-grViz("digraph { compound=true; node [shape=oval fontsize=10] rankdir=\"LR\" From [label=\"From\"]; To [style='filled' fillcolor='gray' label=\"To\"];  From -> To [style=\"solid\", label=\"A\" fontsize=8]; From -> To [style=\"solid\", label=\"B\" fontsize=8]; From -> To [style=\"solid\", label=\"C\" fontsize=8];  init [label=\"\", shape=point];  init -> From[style = \"solid\"] }") 
+DiagrammeR::grViz("digraph { compound=true; node [shape=oval fontsize=10] rankdir=\"LR\" From [label=\"From\"]; To [style='filled' fillcolor='gray' label=\"To\"];  From -> To [style=\"solid\", label=\"A\" fontsize=8]; From -> To [style=\"solid\", label=\"B\" fontsize=8]; From -> To [style=\"solid\", label=\"C\" fontsize=8];  init [label=\"\", shape=point];  init -> From[style = \"solid\"] }") 
 ```
   
 Multiple Transitions Triggered by (a List of) Conditions
@@ -223,7 +220,7 @@ ex01a_demo_multiple_states_fsm <-"Start: Start
 
 
 ```{r}
-grViz("digraph { compound=true; node [shape=oval fontsize=10] rankdir=\"LR\" Start [label=\"Start\"]; S1 [label=\"S1\"]; S2 [label=\"S2\"]; End [style='filled' fillcolor='gray' label=\"End\"];  Start -> S1 [style=\"solid\", label=\"A\" fontsize=8]; Start -> S1 [style=\"solid\", label=\"B\" fontsize=8]; Start -> S1 [style=\"solid\", label=\"C\" fontsize=8]; Start -> S2 [style=\"solid\", label=\"D\" fontsize=8]; S1 -> End [style=\"solid\", label=\"E\" fontsize=8]; S1 -> End [style=\"solid\", label=\"F\" fontsize=8]; S2 -> End [style=\"solid\", label=\"E\" fontsize=8]; S2 -> End [style=\"solid\", label=\"F\" fontsize=8];  init [label=\"\", shape=point];  init -> Start[style = \"solid\"] }")
+DiagrammeR::grViz("digraph { compound=true; node [shape=oval fontsize=10] rankdir=\"LR\" Start [label=\"Start\"]; S1 [label=\"S1\"]; S2 [label=\"S2\"]; End [style='filled' fillcolor='gray' label=\"End\"];  Start -> S1 [style=\"solid\", label=\"A\" fontsize=8]; Start -> S1 [style=\"solid\", label=\"B\" fontsize=8]; Start -> S1 [style=\"solid\", label=\"C\" fontsize=8]; Start -> S2 [style=\"solid\", label=\"D\" fontsize=8]; S1 -> End [style=\"solid\", label=\"E\" fontsize=8]; S1 -> End [style=\"solid\", label=\"F\" fontsize=8]; S2 -> End [style=\"solid\", label=\"E\" fontsize=8]; S2 -> End [style=\"solid\", label=\"F\" fontsize=8];  init [label=\"\", shape=point];  init -> Start[style = \"solid\"] }")
 ```
 
 ## Implicit Ignore Statements
@@ -245,7 +242,7 @@ ex01a_demo_ignore_samestate_fsm <-"Start: Start
  
 
 ```{r, out.width='65%', fig.asp=.75, fig.align='center', echo=FALSE}
-grViz("digraph { compound=true; node [shape=oval fontsize=10] rankdir=\"LR\" Start [label=\"Start\"]; S1 [label=\"S1\"]; S2 [label=\"S2\"]; End [style='filled' fillcolor='gray' label=\"End\"];  Start -> S1 [style=\"solid\", label=\"A\" fontsize=8]; S1 -> S2 [style=\"solid\", label=\"C\" fontsize=8]; S1 -> S1 [style=\"solid\", label=\"B\" fontsize=8]; S2 -> End [style=\"solid\", label=\"E\" fontsize=8]; S2 -> S2 [style=\"solid\", label=\"D\" fontsize=8];  init [label=\"\", shape=point];  init -> Start[style = \"solid\"] }")
+DiagrammeR::grViz("digraph { compound=true; node [shape=oval fontsize=10] rankdir=\"LR\" Start [label=\"Start\"]; S1 [label=\"S1\"]; S2 [label=\"S2\"]; End [style='filled' fillcolor='gray' label=\"End\"];  Start -> S1 [style=\"solid\", label=\"A\" fontsize=8]; S1 -> S2 [style=\"solid\", label=\"C\" fontsize=8]; S1 -> S1 [style=\"solid\", label=\"B\" fontsize=8]; S2 -> End [style=\"solid\", label=\"E\" fontsize=8]; S2 -> S2 [style=\"solid\", label=\"D\" fontsize=8];  init [label=\"\", shape=point];  init -> Start[style = \"solid\"] }")
 ```
 
 - Explicit and implicit ignore states are identical
@@ -269,7 +266,7 @@ grViz("digraph { compound=true; node [shape=oval fontsize=10] rankdir=\"LR\" Sta
     Starting -> State2 [label='EventA' fontsize=10 fontcolor='red']; 
     State1 -> Endstate [label='EventB' fontsize=10];
 }"
-  grViz(p1)
+DiagrammeR::grViz(p1)
 ```
 
 - In this example, it is not defined what happens, if the FSM in the state *Starting* is requested to processes \color{red}```EventA```\color{black}
@@ -288,7 +285,7 @@ table(out$AugmentedLogDataTable$Result_1)
 
 ```{r, eval=T, echo=F,  warning=F}
 tab<-tab <- data.frame(EventNotDefinedAsTrigger =17)
-tab %>% kable() %>%  kable_styling(font_size = 12)
+tab %>%  kableExtra::kable() %>%  kableExtra::kable_styling(font_size = 12)
 ```
 
 - Theoretically: All previous knowledge about the *assessment platform* (i.e., the analyzed item) is used to create the FSM. If events are not expected (in a particular *state*) log data are either not valid (or theoretical knowledge is incomplete)

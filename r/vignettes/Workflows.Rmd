@@ -14,8 +14,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-
-library(DiagrammeR)
+ 
 ```
   
 ##  Preparing Data for LogFSM 
@@ -54,7 +53,7 @@ p1 <-" digraph G {
            ElemeentFilter -> Filter [label = <elements = >]
       }" 
  
- grViz(p1)
+DiagrammeR::grViz(p1)
  
 ```
 
@@ -88,7 +87,7 @@ p1 <-" digraph G {
            
       }" 
  
- grViz(p1)
+DiagrammeR::grViz(p1)
  
 ```
 

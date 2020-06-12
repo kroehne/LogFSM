@@ -25,6 +25,7 @@ Imports:
     rmarkdown, 
     rappdirs,
     utils, 
+    magrittr,
     DiagrammeR,
     kableExtra,
     testthat

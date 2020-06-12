@@ -14,10 +14,8 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
- 
-library(dplyr)
-library(DiagrammeR) 
-library(kableExtra)
+   
+`%>%` <- magrittr::`%>%`
 ```
   
 ##  Overview 
@@ -74,7 +72,7 @@ p1 <-" digraph G {
           
       }" 
  
- grViz(p1)
+ DiagrammeR::grViz(p1)
  
 ```
 
@@ -129,7 +127,7 @@ p1 <-" digraph G {
           step5 -> step6
           step6 ->step2  [label='If unexpected or \\nimplausible results \\noccur, consider these \\ncases separately...' , fontsize = 10]; 
       }" 
-grViz(p1)
+DiagrammeR::grViz(p1)
 ``` 
  
 ## AugmentedLogDataTable
@@ -154,7 +152,7 @@ df1 <- data.frame(V1=c("ID01","ID01", "...","ID02", "..."),
 colnames(df1) <- c("PersonIdentifier","{Time}","Element","EventName",
                    "Event-Specific Data e(x)", "...")
 
-df1 %>% kable() %>%  kable_styling(font_size = 12)
+df1 %>% kableExtra::kable() %>%  kableExtra::kable_styling(font_size = 12)
 ```
   
 - *PersonIdentifier* is the identifier for persons (students, ...)
@@ -191,7 +189,8 @@ df2 <- data.frame(V1=rep("...",3),
 
 colnames(df2) <- c("...","TimeDifference", "StateBefore_1", 
                    "StateAfter_1", "Result_1","{Variables}", "...")
-df2 %>% kable() %>%  kable_styling(font_size = 12)
+
+df2 %>% kableExtra::kable() %>%  kableExtra::kable_styling(font_size = 12)
 ```
 
 - *TimeDifference*: The time difference to the previous event (computed either from relative times or absolute timestamps)
@@ -221,7 +220,7 @@ df3 <- data.frame(V1=c("1","1", "...","1", "..."),
 
 colnames(df3) <- c("Machine","From","To","Frequency")
 
-df3 %>% kable() %>%  kable_styling(font_size = 12)
+df3 %>% kableExtra::kable() %>%  kableExtra::kable_styling(font_size = 12)
  
 ```  
 
@@ -245,7 +244,7 @@ df1 <- data.frame(V1=c("ID01","ID01", "..."),
 
 colnames(df1) <- c("PersonIdentifier","From","To", "Frequency")
 
-df1 %>% kable() %>%  kable_styling(font_size = 12)
+df1 %>% kableExtra::kable() %>%  kableExtra::kable_styling(font_size = 12)
 ```
 
 - Example usage to create an indicator 
@@ -310,7 +309,7 @@ df1 <- data.frame(V1=c("ID01","..."),
 
 colnames(df1) <- c("PersonIdentifier","State","Name", "Result", "Frequency")
 
-df1 %>% kable() %>%  kable_styling(font_size = 12)
+df1 %>% kableExtra::kable() %>%  kableExtra::kable_styling(font_size = 12)
 ```
 
 - Result refers to the result of the FSM (one table for each machine)
@@ -337,7 +336,7 @@ df1 <- data.frame(V1=c("ID01","ID01","..."),
 
 colnames(df1) <- c("PersonIdentifier","State","Duration")
 
-df1 %>% kable() %>%  kable_styling(font_size = 12)
+df1 %>% kableExtra::kable() %>%  kableExtra::kable_styling(font_size = 12)
 ```
 
 - Entries in the table are ordered by time (=**reconstructed sequence**)
@@ -383,7 +382,7 @@ df1 <- data.frame(V1=c("ID01","ID01", "..."),
 
 colnames(df1) <- c("PersonIdentifier","Size","Sequence", "Frequency", "TotalTime")
 
-df1 %>% kable() %>%  kable_styling(font_size = 12)
+df1 %>% kableExtra::kable() %>%  kableExtra::kable_styling(font_size = 12)
 ```
 
 - Column ```Size``` refers to the size of the n-gram (1=unigram, 2=bigram, 3=trigram, ...)
@@ -411,7 +410,7 @@ df1 <- data.frame(V1=c("ID01","ID01", "..."),
 
 colnames(df1) <- c("PersonIdentifier","State","TotalTime", "Frequency", "ShortesttVisit", "LongestVisit", "AverageVisit")
 
-df1 %>% kable() %>%  kable_styling(font_size = 12)
+df1 %>% kableExtra::kable() %>%  kableExtra::kable_styling(font_size = 12)
 ```
 
 - Time information is provided as *TotalTime*, *ShortesVisit*, *LongestVisit*, and *AverageVisit*
@@ -438,7 +437,7 @@ df1 <- data.frame(V1=c("ID01","..."),
 
 colnames(df1) <- c("PersonIdentifier","Variable","Value", "NumberOfChanges")
 
-df1 %>% kable() %>%  kable_styling(font_size = 12)
+df1 %>% kableExtra::kable() %>%  kableExtra::kable_styling(font_size = 12)
 ```
 
 - Initializing the (default) value of a variable counts as variable change, i.e., the number of (real) value changes is typically 
