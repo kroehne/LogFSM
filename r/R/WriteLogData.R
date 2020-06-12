@@ -1,6 +1,7 @@
 #' Write Log Data
 #'
-#' Writes log data from data fram ```data``` to json format, that can be used to run FSM.
+#' Writes log data from data frame ```data``` to JSON format (```jsonlite```), that can be used to
+#' run a finite-state machine with the function ```RunFSMSyntax.```
 #'
 #' The following columns names are taken as keywords:
 #' * ```PersonIdentifier``` (required)
@@ -9,7 +10,7 @@
 #' * ```TimeDifferencePrevious``` (optional)
 #'
 #' @param file Filename
-#' @param data Data frame with log data
+#' @param data Data frame with log data (*Flat and sparse log data table*)
 #'
 #' @export
 #' @md

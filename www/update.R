@@ -16,8 +16,8 @@ install_script <- c("cat('LogFSM - Install\\n\\n')",
                     "  cat(paste('LogFSM is not available for:',Sys.info()[['machine']],'\n'))",
                     "  cat('Installation failed.') ",
                     "} else {",
-                    "  remotes::install_url('https://github.com/kroehne/LogFSM/releases/download/0.4.5.2/LogFSM_0.4.5.2.tar.gz')",
-                    "  cat('Done.\\nType library(LogFSM) to start. For more information type ??LogFSM or ?vignette(package=\"LogFSM\").')",
+                    "  remotes::install_url('https://github.com/kroehne/LogFSM/releases/download/0.4.5.3/LogFSM_0.4.5.3.tar.gz', build_vignettes=T)",
+                    "  cat('Done.\\nType library(LogFSM) to start. For more information type ??LogFSM or help(package = \"LogFSM\").')",
                     "}")
 
 write(install_script, file = "www/_site/latest")

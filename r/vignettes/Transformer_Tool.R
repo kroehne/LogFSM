@@ -1,10 +1,10 @@
-## ----setup, include = FALSE----------------------------------------------
+## ----setup, include = FALSE---------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  myinfolder <- ""    # Absolute file path to the directory containing ZIP archives
 #                      # or XML files exported from the CBA ItemBuilder Execution Environment
 #  mystatazip <- ""    # Absolute file path for a ZIP archive that will be created containing the
@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 #                                dictionary = mydictionary,
 #                                codebook = mycodebook)
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  # create data for sheet 'metadata'
 #  
 #  m <- rbind(c("StudyName", "Name of the study" ,"Studienname"),
@@ -28,7 +28,7 @@ knitr::opts_chunk$set(
 #  
 #  colnames(m) <- c("Attribute","AttributeValue_ENG","AttributeValue_DE")
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  # create data for sheet 'head'
 #  
 #  h <- rbind(
@@ -65,7 +65,7 @@ knitr::opts_chunk$set(
 #  
 #  colnames(h) <- c("Column","VariableLable_ENG","VariableLable_DE","Identifies")
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  # create data for sheet 'events'
 #  
 #  e <- rbind(
@@ -77,7 +77,7 @@ knitr::opts_chunk$set(
 #  
 #  colnames(e) <- c("EventName","Table","EventDescription_DE","EventDescription_ENG")
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  # create data for sheet 'attributes'
 #  
 #  a <- rbind(
@@ -96,7 +96,7 @@ knitr::opts_chunk$set(
 #  colnames(a)<- c("Table","Column","Condition","Description_DE","Description_ENG", "Anonymity", "Purification")
 #  
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  
 #  # combine datasets and write as xlsx file
 #  

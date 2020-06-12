@@ -16,22 +16,23 @@ PrepareLogData(zipfilename, outfilename, workingdir, verbose = F,
 
 \item{verbose}{Requesting more detailed output from LogFSM.}
 
-\item{elements}{A string variable refering to the element names (i.e., items, units or tasks), that should be extracted. Multiple elemtns can be combinded using ';'.}
+\item{elements}{A string variable referring to the element names (i.e., items, units, or tasks) that should be extracted. Multiple elements can be combinded using ';'.}
 
 \item{datafiletype}{Type of the data provided in the file \code{zipfilename} (either \code{dataflatv01a} or \code{piaaczip01a})}
 
-\item{flags}{Optional flags as documented for the specific data formats. The flag "RELATIVETIME" can be used to prepare log data provided with relative timestamps. Multiple flages can be combined in the string variable using the pipe (|).}
+\item{flags}{Optional flags as documented for the specific data formats. The flag "RELATIVETIME" can be used to prepare log data provided with relative timestamps. Multiple flags can be combined in the string variable using the pipe (|).}
 
 \item{...}{(Further arguments will be passed on if necessary)}
 }
 \value{
-The function returns TRUE, if a file was created.
+The function returns TRUE if a file was created.
 }
 \description{
-Differtent data sources can be used with the LogFSM package. In order to harmonize the processing, data
-must be converted in the internal LogFSM format (\code{logfsmjson}) using this function. The function must be
-called with the filename (\code{zipfilename}) in which the data are stored and a filename (\code{outfilename})
-in which the prepared data are written.
+Different data sources can be used with the LogFSM package. In order to harmonize the processing, data
+must be converted into the internal LogFSM format (\code{logfsmjson}) using the function \code{PrepareLogData}.
+The function must be called with at least two arguments: The string variable provided as \code{zipfilename} refers
+to the ZIP archive in which  the source data are stored. The string provided as \code{outfilename} defines in which
+file the prepared data will be written.
 }
 \details{
 Data formats that require pre-processing using the function \code{PrepareLogData}
@@ -39,24 +40,27 @@ to create the \code{logfsmjson}(i.e. data that can be used with \code{RunFSMSynt
 \itemize{
 \item \code{dataflatv01a}: Flat table with log data
 \item \code{piaaczip01a}: Text file with log data from the Programme for the International Assessment of Adult Competencies (PIAAC), exported from PIAAC LogDataAnalyzer (R1)
-\item \code{nepszip01a}: ZIP archive with data in generic log data format used in the National Educational Panel Study (NEPS, TBT-studies 2009-2020)
+\item \code{nepszip01a}: ZIP archive with data in the universal log data format used in the National Educational Panel Study (NEPS, TBT-studies 2009-2020)
 }
 
 If data are provided as  \code{dataflatv01a}, the following columns are expected:
 \itemize{
 \item \code{PersonIdentifier}: Identifier for the test-taker / person / student
 \item \code{EventName}: Name of the log event
-\item \code{Element}: Item, unit, task (part of the assessemnt) to which the event belongs
+\item \code{Element}: Item, unit, task (part of the assessment) to which the event belongs
 \item \code{TimeStamp} or \code{RelativeTime}: Timestamp (or relative time, if the flag \code{RELATIVETIME} is used)
 }
 
 If data are provided as  \code{nepszip01a}, the following columns are expected:
 \itemize{
-\item \code{PersonIdentifier}:  Identifier for the test-taker / person / student (Provide a value as argument 'ColumnNamePersonIdentifier' to override this default.)
-\item \code{EventName}: Name of the log event (Provide a value as argument 'ColumnNameEventName' to override this default.)
-\item \code{Element}: Item, unit, task (part of the assessemnt) to which the event belongs (Provide a value as argument 'ColumnNameElement' to override this default.)
-\item \code{TimeStamp} or \code{RelativeTime}: Timestamp (Absolut time stamps are expected. For relative times use the flag \code{RELATIVETIME}. Provide a value as argument 'ColumnNameTimeStamp' to override the default column name.)
+\item \code{PersonIdentifier}:  Identifier for the test-taker / person / student. This default can be overwritten by providing an additional argument 'ColumnNamePersonIdentifier,' which specifies the name of the column that contains the person identifier.
+\item \code{EventName}: Name of the log event. This default can be overwritten by providing an additional argument 'ColumnNameEventName,' which specifies the name of the column that contains the event name (resp. event type).
+\item \code{Element}: Item, unit, task (part of the assessemnt) to which the event belongs. This default can be overwritten by providing an additional argument 'ColumnNameElement,' which specifies the name of the column that contains the element (item name, unit name, etc.).
+\item \code{TimeStamp} or \code{RelativeTime}: Timestamp (Absolut time stamps are expected. For relative times, use the flag \code{RELATIVETIME}. This default can be overwritten by providing an additional argument 'ColumnNameTimeStamp,' which specifies the name of the column that contains the timestamp.
 }
+
+For more details about the workflow see the vignette \emph{LogFSM Workflows (Overview)}:
+\code{vignette("Workflow", package = "LogFSM")}
 
 Additional formats (under development)
 \itemize{

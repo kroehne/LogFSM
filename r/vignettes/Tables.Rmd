@@ -1,0 +1,450 @@
+---
+title: "LogFSM Tables (Output)"
+author: "Ulf Kroehne"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{LogFSM Tables (Output)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+ 
+library(dplyr)
+library(DiagrammeR) 
+library(kableExtra)
+```
+  
+##  Overview 
+
+Schematic illustration of LogFSM input and output
+
+```{r, echo=F, out.width="100%"}
+ 
+p1 <-" digraph G {
+          rankdir=LR; 
+          node [shape=record, fontname = Arial];
+          a [label = '<f0> Data | <f1> Syntax | (Parameters and Flags)', width = 3];
+          b [label = '<f0> Augmented Data | <f1> Graph', width = 2.5];
+          a:f0 -> b:f0 
+          a:f1 -> b:f1 
+           
+          tab2 [label = '(aggregated)' shape=ellipse, color=gray]; 
+          tab1 [label = 'for each machine i'  shape=ellipse, color=gray]; 
+        
+          b:f0 -> tab1:f0   
+          b:f0 -> tab2:f0   
+          c [label = '<f0> AugmentedLogDataTable', width = 3];
+         
+          d [label = '<f0> SequenceTable_i', width = 3];
+          e [label = '<f0> TransitionFrequencyTable_i', width = 3];
+          f [label = '<f0> NGramTable', width = 3];
+          g [label = '<f0> StateEventFrequencyTable_i', width = 3];
+          h [label = '<f0> TransitionFrequencyTotalsTable', width = 3];
+          i [label = '<f0> VariableValueTable', width = 3];
+          j [label = '<f0> UmlDotGraph [[i]]', width = 3];
+          l [label = '<f0> StateFrequencyGraph [[i]]', width = 3];
+          k [label = '<f0> StateSummaryTable_i', width = 3];
+          
+          subgraph cluster_0 {
+              label='Input';
+             a
+          }
+          subgraph cluster_1 {
+              label='Output';
+              c; b; d; e; f; g; h; i; j; l; tab1; tab2; k
+          }
+    
+          tab1:f0 -> d:f0 
+          tab1:f0 -> e:f0 
+          tab1:f0 -> f:f0 
+          tab1:f0 -> g:f0 
+          tab1:f0 -> k:f0 
+          
+          tab2:f0 -> h:f0 
+          tab2:f0 -> i:f0 
+          b:f0 -> c:f0 
+          b:f1 -> j:f0 
+          b:f1 -> l:f0
+          
+      }" 
+ 
+ grViz(p1)
+ 
+```
+
+
+Function ```LogFSM::RunFSMSyntax()``` Returns a List (e.g., ```out```)
+
+- The following generic tables are created using all machines
+ 
+```{r, eval=F, echo=T}
+View(out$AugmentedLogDataTable)   
+View(out$VariableValueTable)   
+View(out$TransitionFrequencyTotalsTable)   
+```
+ 
+- Additional tables are created for each machine (e.g., machine $1$)
+
+```{r, eval=F, echo=T}
+View(out$StateEventFrequencyTable_1)  
+View(out$SequenceTable_1)   
+View(out$StateSummaryTable_1)
+View(out$TransitionFrequencyTable_1)
+View(out$NGramTable_1)
+```
+  
+- DOT (GraphViz) syntax for plotting is created (e.g., machine $1$)
+
+```{r, eval=F, echo=T}
+DiagrammeR::grViz(out$UmlDotGraph[[1]])                 # input
+DiagrammeR::grViz(out$TransitionFrequencyGraph[[1]])    # output
+```
+ 
+Step-by-step procedure for the creation of finite state machines for empirical data sets 
+ 
+```{r, out.width='100%', echo=F}
+ 
+p1 <-" digraph G {
+          graph [ranksep='0.175', overlap = true, fontsize = 12];  
+          node [shape=record, fontname = Arial];
+          step1 [label = 'Start with Minimal FSM Syntax', width = 4];
+          step2 [label = 'Run FSM With Selected Case', width = 4];
+          step3 [label = 'Inspect Output Tables and Graphs', width = 4];
+          check [label = 'Are the unexpeced \\nrejected events or \\nmissing state changes?', shape='ellipse'];
+          step4 [label = 'Extend / Modify FSM Syntax', width = 4];
+          step5 [label = 'Run FSM With All Case', width = 4];
+          step6 [label = 'Extrat Indicator using R Syntax...', width = 4];
+          step1 -> step2 -> step3  
+          step4 -> step2  [label='Gradually increase  \\nthe number of cases \\n in order to \\n progressively \\n develop the FSM...', 
+                           fontsize = 10, lp=30]; 
+          check -> step4 [label='Yes']; 
+          step3 -> check
+          check -> step5  [label='No']; 
+          step5 -> step6
+          step6 ->step2  [label='If unexpected or \\nimplausible results \\noccur, consider these \\ncases separately...' , fontsize = 10]; 
+      }" 
+grViz(p1)
+``` 
+ 
+## AugmentedLogDataTable
+
+```{r, eval=F, echo=T, tidy=F}
+View(out$AugmentedLogDataTable)
+```
+
+Basic Structure of the ```AugmentedLogDataTable```
+
+- Flat log data table for all processed test-takers
+
+```{r, eval=T, echo=F, warning=F}
+
+df1 <- data.frame(V1=c("ID01","ID01", "...","ID02", "..."),
+                 V2=rep("...",5),
+                 V3=rep("...",5),
+                 V4=rep("...",5),
+                 V5=rep("...",5),
+                 V6=rep("...",5))
+
+colnames(df1) <- c("PersonIdentifier","{Time}","Element","EventName",
+                   "Event-Specific Data e(x)", "...")
+
+df1 %>% kable() %>%  kable_styling(font_size = 12)
+```
+  
+- *PersonIdentifier* is the identifier for persons (students, ...)
+- *{Time}* is either ```TimeStamp``` (default) or ```RelativeTime```^[If the flag ```RELATIVETIME``` is set]
+- *EventName* as the name of the log event (used as trigger if no attribute is specified)
+- *Element* to identify parts of the assessment (e.g., item, unit, ...) 
+ 
+Result of the Finite-State Machines
+
+- For each defined finite-state machine^[e.g., for the first machine with *{Machine Index}* = 1] the following information is added
+  
+  - *State_Before_{Machine Index}*: The current state of the *FSM* with index *{Machine Index}* is added in this column
+  
+  - *State_After_{Machine Index}*: When for the given state a transition is defined, and the log data in a row match to a defined trigger, the *FSM* accepts the input and changes to a new state
+  
+  - *State_Result_{Machine Index}*: The result of processing a line of the input (Possible values are: ```EventAccepted```, ```EventNotDefinedAsTrigger```, and ```EventNotPermitted```)
+  
+- AugmentedLogDataTable can be used to retrace line by line the behavior of the finite-state machine 
+
+
+Columns Added by LogFSM (Augmented Data)
+
+- For each machine, the columns *State_Before_{Machine Index}, *State_After_{Machine Index} and *Result_{Machine Index} are added to the table (= the input is augmented)
+
+```{r, eval=T, echo=F, warning=F}
+
+df2 <- data.frame(V1=rep("...",3),
+                 V2=rep("...",3),
+                 V3=rep("...",3),
+                 V4=rep("...",3),
+                 V5=rep("...",3),
+                 V6=rep("...",3),
+                 V7=rep("...",3))
+
+colnames(df2) <- c("...","TimeDifference", "StateBefore_1", 
+                   "StateAfter_1", "Result_1","{Variables}", "...")
+df2 %>% kable() %>%  kable_styling(font_size = 12)
+```
+
+- *TimeDifference*: The time difference to the previous event (computed either from relative times or absolute timestamps)
+
+- *{Variables}*: A column for each defined variable is added
+  - Variables are ```NA``` before the first value is assigned to a variable
+  - Variable values are carried forward to the next event by default
+  
+## TransitionFrequencyTotalsTable 
+
+```{r, eval=F, echo=T, tidy=F}
+View(out$TransitionFrequencyTotalsTable)
+```
+ 
+- For all machines, the frequency for occurred transitions is aggregated
+
+- Can be used to inspect the specification (are all expected transitions observed?)
+
+- Structure of the ```TransitionFrequencyTotalsTable```:
+
+```{r, eval=T, echo=F, warning=F}
+
+df3 <- data.frame(V1=c("1","1", "...","1", "..."),
+                 V2=c("Startstate","State1","...","State3","..."),
+                 V3=c("State1","State2","...","Endstate","..."),
+                 V4=c("100","...","...","...","...") )
+
+colnames(df3) <- c("Machine","From","To","Frequency")
+
+df3 %>% kable() %>%  kable_styling(font_size = 12)
+ 
+```  
+
+## TransitionFrequencyTable 
+
+```{r, eval=F, echo=T, tidy=F}
+View(out$TransitionFrequencyTable_1)
+```
+
+- Structure of the ```TransitionFrequencyTable_i```
+
+   - All transitions with a frequency $> 0$ are listed, for each test-taker
+   - Table is created for each machine separately ($i=1$ for the first machine)
+
+```{r, eval=T, echo=F, warning=F}
+
+df1 <- data.frame(V1=c("ID01","ID01", "..."),
+                 V2=rep("...",3),
+                 V3=rep("...",3),
+                 V4=rep("...",3))
+
+colnames(df1) <- c("PersonIdentifier","From","To", "Frequency")
+
+df1 %>% kable() %>%  kable_styling(font_size = 12)
+```
+
+- Example usage to create an indicator 
+
+```{r logfsm-output-transitionfrequencytable-02, eval=F, echo=T, tidy=F}
+out$TransitionFrequencyTotalsTable %>% 
+  filter(From == "Page7" & To == "Page8") %>% 
+  select(Frequency)
+```
+
+
+## UmlDotGraph
+
+Generic Visualization of the Decomposition 
+
+- LogFSM creates / exports DOT language for visualization of state machines using the DOT^[Can plotted in R using the package DiagrammeR, see http://rich-iannone.github.io/DiagrammeR/] language
+- Provided in the result list in an additional list ```UmlDotGraph``` (one diagram for each machine)
+ 
+- Example  
+
+```{r, eval=F, echo=T, warning=F}
+out <- RunFSMSyntax(...)
+library(DiagrammeR)
+grViz(out$UmlDotGraph[[1]])
+```
+ 
+- Make sure to add the ```[[1]]```; otherwise an error will occur
+
+## StateFrequencyGraph
+
+Generic Visualization of Results 
+
+- Visualizes data from the ```TransitionFrequencyTotalsTable```
+- Nodes are the defined state (1:1 from the state machine)
+- Transitions are reduced to the empirically observed transitions 
+- Weight of the path corresponds to the proportion (frequency of transition divided by the total number of transitions, **within states**)
+- Rule: Sum of all outgoing path from one node is $1.0$
+ 
+- Example  
+
+```{r, eval=F, echo=T, warning=F}
+out <- RunFSMSyntax(...)
+library(DiagrammeR)
+grViz(out$TransitionFrequencyGraph[[1]])
+```
+
+## StateEventFrequencyTable 
+
+```{r, eval=F, echo=T, tidy=F}
+View(out$StateEventFrequencyTable_1)
+```
+
+- Frequencies of all events (column ```Name```) within each state are counted per test-taker 
+
+```{r, eval=T, echo=F, warning=F}
+
+df1 <- data.frame(V1=c("ID01","..."),
+                 V2=rep("...",2),
+                 V3=rep("...",2),
+                 V4=rep("...",2),
+                 V5=rep("...",2))
+
+colnames(df1) <- c("PersonIdentifier","State","Name", "Result", "Frequency")
+
+df1 %>% kable() %>%  kable_styling(font_size = 12)
+```
+
+- Result refers to the result of the FSM (one table for each machine)
+ 
+- Typical Usage 
+
+    - Explore log data (occurrence of contextualized events) 
+    - Create indicators using activities (i.e., log information that has no duration or where the duration cannot be reconstructed from the log data) 
+ 
+## SequenceTable
+
+```{r, eval=F, echo=T, tidy=F}
+View(out$SequenceTable_1)
+```
+
+- Table is the core output of LogFSM, one table for each machine
+- One line per state (i.e., the reconstructed sequence is the combination of all lines)
+
+```{r, eval=T, echo=F, warning=F}
+
+df1 <- data.frame(V1=c("ID01","ID01","..."),
+                 V2=c("State1","State2","..."),
+                 V3=rep("...",3))
+
+colnames(df1) <- c("PersonIdentifier","State","Duration")
+
+df1 %>% kable() %>%  kable_styling(font_size = 12)
+```
+
+- Entries in the table are ordered by time (=**reconstructed sequence**)
+
+Typical Usage
+
+- Querying whether the reconstructed sequence of a test-taker contains a particular state (e.g., visited a page, showed a behavior, ...)
+- Concatenate rows to extract complete sequence 
+
+##  *N-Grams* / NGramTable
+
+Definition of *N-Grams*
+
+- N-Gram is a contiguous sequence of n items from a given sample of text or speech (i.e., alphabet)
+  - Unigram / 1-gram: A; B; C
+  - Bigram / 2-gram: A-B; A-C; B-C; ...
+  - Trigram / 3-gram: A-B-C; A-C-B; B-A-C; B-C-A; ...
+  - ...
+
+\vspace{-0.25cm}  
+- Concept of n-grams is used to analyze log file data [e.g., @HeIdentifyingFeatureSequences2015;@HaoTamingLogFiles2016]
+
+- LogFSM generalize^[Generalization not yet satisfactory, because states can be identified from events only under special circumstances.] the idea from *Event n-grams* to *State n-grams* (using states as the unit / alphabet for the n-grams)
+
+  - Each visited state is considered as *unigram*
+  - Transitions (i.e., ordered pairs of states) are considered as *bigram*
+ 
+NGramTable 
+
+```{r, eval=F, echo=T, tidy=F}
+View(out$NGramTable_1)
+```
+ 
+- All n-grams of states are counted^[The max size for n-grams can be reduced using the parameter ```NGRAMMAXSIZE```] in  ```NGramTable_i```
+
+```{r, eval=T, echo=F, warning=F}
+
+df1 <- data.frame(V1=c("ID01","ID01", "..."),
+                 V2=rep("...",3),
+                 V3=rep("...",3),
+                 V4=rep("...",3),
+                 V4=rep("...",3))
+
+colnames(df1) <- c("PersonIdentifier","Size","Sequence", "Frequency", "TotalTime")
+
+df1 %>% kable() %>%  kable_styling(font_size = 12)
+```
+
+- Column ```Size``` refers to the size of the n-gram (1=unigram, 2=bigram, 3=trigram, ...)
+- Column ```Sequence``` contains the states, separated by ```;```
+- Column ```Frequency``` counts how often the particular n-gram was observed for the test-taker
+- Column ```TotalTime``` is the cumulated time for this n-gram
+
+## StateSummaryTable  
+
+```{r, eval=F, echo=T, tidy=F}
+View(out$StateSummaryTable_1)
+```
+
+- For each test-taker, all visited states are listed (one table per machine)
+
+```{r, eval=T, echo=F, warning=F}
+
+df1 <- data.frame(V1=c("ID01","ID01", "..."),
+                 V2=rep("...",3),
+                 V3=rep("...",3),
+                 V4=rep("...",3),
+                 V5=rep("...",3),
+                 V6=rep("...",3),
+                 V7=rep("...",3))
+
+colnames(df1) <- c("PersonIdentifier","State","TotalTime", "Frequency", "ShortesttVisit", "LongestVisit", "AverageVisit")
+
+df1 %>% kable() %>%  kable_styling(font_size = 12)
+```
+
+- Time information is provided as *TotalTime*, *ShortesVisit*, *LongestVisit*, and *AverageVisit*
+- Frequency refers to the number of state visits (states with a frequency of $0$ are not included)
+ 
+Typical Usage for Indicators 
+
+- Filter relevant states (frequency, total time or both) and add $0$ or $NA$ for persons never visited the state(s) of interest
+
+## VariableValueTable
+ 
+```{r, eval=F, echo=T, tidy=F}
+View(out$VariableValueTable)
+```
+ 
+- For each of the variables (defined by using them in operators), the last value, and the number of changes is summarized
+
+```{r, eval=T, echo=F, warning=F}
+
+df1 <- data.frame(V1=c("ID01","..."),
+                 V2=rep("...",2),
+                 V3=rep("...",2),
+                 V4=rep("...",2))
+
+colnames(df1) <- c("PersonIdentifier","Variable","Value", "NumberOfChanges")
+
+df1 %>% kable() %>%  kable_styling(font_size = 12)
+```
+
+- Initializing the (default) value of a variable counts as variable change, i.e., the number of (real) value changes is typically 
+- This table contains variables from all machines (i.e., only one table is created)
+  
+Typical Usage 
+
+- Count of transitions, events, ... (i.e., allow to create counting indicators directly while running the state machine)
+   

@@ -1,8 +1,8 @@
 ---
-title: "LogFSM: Transform Raw Log Data"
+title: "LogFSM Transformer Tool (Under Development)"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Transform}
+  %\VignetteIndexEntry{LogFSM Transformer Tool (Under Development}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

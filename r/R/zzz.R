@@ -3,7 +3,7 @@
 }
 
 .onAttach <- function(libname, pkgname){
-  packageStartupMessage(paste0("- LogFSM  -- Version: ", utils::packageVersion("LogFSM")," -- See www.logfsm.com for updates."))
+  packageStartupMessage(paste0("- LogFSM  -- Version: ", utils::packageVersion("LogFSM")," -- See www.logfsm.com for updates. \n  For more information type ??LogFSM or help(package = \"LogFSM\")."))
 }
 
 setPathVariable <-  function(pkgname){

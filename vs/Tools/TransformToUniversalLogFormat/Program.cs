@@ -84,7 +84,8 @@ namespace TransformToUniversalLogFormat
                 args = new string[] { "--help" };
 
 #if DEBUG
-       
+
+
 #endif
 
             try

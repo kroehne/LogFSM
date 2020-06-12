@@ -1,0 +1,501 @@
+---
+title: "LogFSM Syntax (Input)"
+author: "Ulf Kroehne"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette    
+vignette: >
+  %\VignetteIndexEntry{LogFSM Syntax (Input)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+ 
+library(dplyr)
+library(DiagrammeR) 
+library(kableExtra)
+ 
+```
+  
+## Start and End State(s)
+ 
+Start- and End State
+
+- *FSM*'s are used to reconstruct one (or multiple nested) sequences of meaningful parts of assessments (*states*)
+- For each test-taker and each element (e.g., Item / Unit), the sequence will start with what is called *start state* 
+- A complete sequence is expected to end in one (out of possibly multiple defined) *end states*
+  
+The following syntax is used to define start state and end states:
+ 
+```{r, eval=F, echo=T}
+myFSM <- 'Start: {Start-State}
+          End: {End-State-1}; {End-State-2}'
+``` 
+  
+- FM syntax is defined in an R *(string) variable* (```myFSM```)
+
+- Texts in curly brackets, e.g., \texttt{\{Start-State\}}, are placeholders^[Names of states are used in internally generated source code, i.e. do not use blanks, special characters, etc.; follow the conventions of variable names in R.]
+  
+## Transitions Define States
+
+Additional States are Implicitly Defined
+
+- (Only) The start state and the end states are defined explicitly 
+- Additional states are defined implicitly by mentioning states in the definition of transitions 
+ 
+Transitions
+
+- The following line defines a transition between a state ```{State-From}``` and a state  ```{State-To}```. 
+
+```{r, eval=F, echo=T}
+'Transition: {State-From} -> {State-To} @ {Trigger 1}'
+```
+
+- The *current state* in the reconstructed sequence of states will change from  ```{State-From}``` to ```{State-To}``` when the state machine processes an event for which  ```{Trigger 1}``` matches
+  
+- After mentioning ```{State-From}``` and ```{State-To}``` in the definition of this transition, both states are defined
+
+## Transitions and Triggers
+
+Triggers
+
+- Transitions are activated by valid triggers (i.e., events with the required properties such as a specific event name or specific values of  event-specific attributes)  
+
+- Example
+
+```{r, eval=F, echo=T}
+'Transition: Inst -> Text @ EventName=TextOpenEvent'
+```
+
+- Event with a particular event name can trigger the transition (from *state* ```Inst``` to *state* ```Text```)
+
+- Triggers are boolean statements that will be evaluated for a current log event (e.g., ```EventName``` is ```TextOpenEvent```) 
+
+- Triggers (i.e., log events with specific attribute values) forming the **input alphabet** of the finite-state machine(s) used to reconstruct the sequence of states
+ 
+## Triggers as Conditions
+
+Combination of Conditions
+
+- For practical applications, not only the ```EventName``` but the combination of the ```EventName``` and any additional event-specific attribute can be used to trigger a transition
+
+- Example 
+
+```{r, eval=F, echo=T}
+'Transition: Inst -> Text @ EventName=Click&id=Start'
+```
+
+- If multiple conditions are used, the trigger evaluates to ```TRUE``` if all conditions are ```TRUE``` (i.e., ```EventName``` is ```Click``` AND ```id``` is ```Start``` )
+
+- When the FSM is in state ```Inst```, events with  ```EventName=Click``` and ```id=Start``` trigger the *transition* to state ```Text```
+ 
+## Contextualization of Events
+
+Transitions are State-Specific 
+
+- Transitions are defined for a particular state (```{State-From}```)
+
+- Events (with attributes) are used as trigger
+- $\Rightarrow$ Meaning of triggers (Events) is *contextualized* into states
+
+Example
+
+```{r, eval=F, echo=T}
+'Transition: EndDialog -> Exit @ EventName=Click'
+'Transition: StartPage -> Unit @ EventName=Click'
+```
+
+- Event ```Click``` is interpreted differently (according to the FSM's current state)
+  - As click on a button in a dialog that informs about the end of the unit (Transition ```EndDialog -> Exit```)
+  - As click on a button in an instruction page before entering the actual unit (Transition ```StartPage -> Unit```)
+  
+ 
+## Ignore Statement 
+ 
+Define What can be Ignored
+
+- Events (i.e., lines in the flat log data table) that should be ignored can be defined using the ignore syntax:
+
+```{r, eval=F, echo=T}
+'Ignore: {State-Name} @ {Trigger 1}'
+```
+  
+- Multiple triggers can be separated by ```;```
+
+```{r, eval=F, echo=T}
+'Ignore: {State-Name} @ {Trigger 1};{Trigger 1}'
+```
+ 
+- Multiple states can be separated by ```;```
+
+```{r, eval=F, echo=T}
+'Ignore: {State-Name1};{State-Name2} @ {Trigger 1};{Trigger 1}'
+```
+  
+- FSM stays in it's current state and explicetly ignores events^[However, operators are executed if an event is ignored due to a valid trigger.]
+
+## Trigger (Basics)
+
+- For trigger referring to the column ```EventName```, the syntax ```'EventName='``` is optional (i.e., the following two lines are equivalent): 
+
+```{r, eval=F, echo=T}
+'Transition: EndDialog -> Exit @ EventName=Click'
+```
+ 
+```{r, eval=F, echo=T}
+'Transition: EndDialog -> Exit @ Click'
+```
+  
+- General schema is ```ColumName=Value``` (i.e., EventName any event-specific value can be used for triggers)^[*Note*: Negation (i.e., != or $\neq$) requires the guard ```CompareAttributes```.]
+  
+- Combination of statements is possible using the ```&``` symbol 
+
+   - Example: The following transition is triggered when the FSM is in state ```S1``` an event with the ```EventName``` equal to ```ButtonClick```  and a value of the attribute ```id``` equal to ```MyButtonID``` is processed 
+ 
+
+```{r, eval=F, echo=T}
+'Transition: S1 -> S2 @ EventName=ButtonClick&id=MyButtonID'
+```
+ 
+
+## Efficient Writing of Transition  
+
+Transitions Triggered by Multiple Conditions
+
+- For transitions that can be triggered by a list of different triggers, LogFSM allows the following syntax short cut 
+
+```{r, eval=F, echo=T}
+'Transition: {From} -> {To} @ {Trigger 1}; {Trigger 2}'  
+```
+
+- Conditions are separated by ```;``` after the trigger identifier ```@``` 
+  
+- Minimal example for a list of triggers
+ 
+```{r, eval=F, echo=T}
+ex01_demo_multiple_triggers_fsm <-"Start:From
+ End:To 
+ Transitions:From->To@EventName=A;EventName=B;EventName=C"
+```
+
+```{r, eval=T, echo=F,  warning=F}
+ex01_test_multiple_triggers_fsm <-"Start: From
+   End: To 
+   Transitions: From -> To @EventName=A;EventName=B;EventName=C"
+```
+
+
+```{r, echo=FALSE}
+grViz("digraph { compound=true; node [shape=oval fontsize=10] rankdir=\"LR\" From [label=\"From\"]; To [style='filled' fillcolor='gray' label=\"To\"];  From -> To [style=\"solid\", label=\"A\" fontsize=8]; From -> To [style=\"solid\", label=\"B\" fontsize=8]; From -> To [style=\"solid\", label=\"C\" fontsize=8];  init [label=\"\", shape=point];  init -> From[style = \"solid\"] }") 
+```
+  
+Multiple Transitions Triggered by (a List of) Conditions
+
+- Transitions from multiple different source states can defined in LogFSM using the following syntax short cut 
+ 
+```{r, eval=F, echo=T}
+'Transition: {S1};{S2} -> {S3} @ {Trigger 1};{Trigger 2}'  
+```
+
+- LogFSM translate this internally into transitions for all pairs of states and all triggers
+
+```{r, eval=F, echo=T}
+'Transition: {S1} -> {S3} @ {Trigger1}'  
+'Transition: {S2} -> {S3} @ {Trigger1}'  
+'Transition: {S1} -> {S3} @ {Trigger2}'  
+'Transition: {S2} -> {S3} @ {Trigger2}'  
+```
+
+Example for Multiple Transitions 
+ 
+```{r, eval=T, echo=T}
+ex01a_demo_multiple_states_fsm <-"Start: Start
+   End: End 
+   Transitions: Start -> S1 @ EventName=A;B
+   Transitions: Start -> S1 @ EventName=C   
+   Transitions: Start -> S2 @ D      
+   Transitions: S1;S2 -> End @ EventName=E;EventName=F"
+```
+
+
+```{r}
+grViz("digraph { compound=true; node [shape=oval fontsize=10] rankdir=\"LR\" Start [label=\"Start\"]; S1 [label=\"S1\"]; S2 [label=\"S2\"]; End [style='filled' fillcolor='gray' label=\"End\"];  Start -> S1 [style=\"solid\", label=\"A\" fontsize=8]; Start -> S1 [style=\"solid\", label=\"B\" fontsize=8]; Start -> S1 [style=\"solid\", label=\"C\" fontsize=8]; Start -> S2 [style=\"solid\", label=\"D\" fontsize=8]; S1 -> End [style=\"solid\", label=\"E\" fontsize=8]; S1 -> End [style=\"solid\", label=\"F\" fontsize=8]; S2 -> End [style=\"solid\", label=\"E\" fontsize=8]; S2 -> End [style=\"solid\", label=\"F\" fontsize=8];  init [label=\"\", shape=point];  init -> Start[style = \"solid\"] }")
+```
+
+## Implicit Ignore Statements
+
+Created Ignore Statements  
+
+- If ```{State-From}``` and state  ```{State-To}``` are identicial, transitions are automatically translated into ignore statements:
+ 
+```{r, eval=T, echo=T}
+ex01a_demo_ignore_samestate_fsm <-"Start: Start
+   End: End 
+   Transitions: Start -> S1 @ EventName=A 
+   Transitions: S1 -> S1 @ EventName=B     
+   Transitions: S1 -> S2 @ EventName=C     
+   Ignore: S2 @ EventName=D   
+   Transitions: S2 -> End @ EventName=E"
+```
+ 
+ 
+
+```{r, out.width='65%', fig.asp=.75, fig.align='center', echo=FALSE}
+grViz("digraph { compound=true; node [shape=oval fontsize=10] rankdir=\"LR\" Start [label=\"Start\"]; S1 [label=\"S1\"]; S2 [label=\"S2\"]; End [style='filled' fillcolor='gray' label=\"End\"];  Start -> S1 [style=\"solid\", label=\"A\" fontsize=8]; S1 -> S2 [style=\"solid\", label=\"C\" fontsize=8]; S1 -> S1 [style=\"solid\", label=\"B\" fontsize=8]; S2 -> End [style=\"solid\", label=\"E\" fontsize=8]; S2 -> S2 [style=\"solid\", label=\"D\" fontsize=8];  init [label=\"\", shape=point];  init -> Start[style = \"solid\"] }")
+```
+
+- Explicit and implicit ignore states are identical
+
+## Important Rules
+
+### 1) FSM must be Deterministic
+
+- Idea: For each possible state of the FSM and each input, exactly one transition is allowed only
+- Consequence: For each state, all triggers must *mutually exclude* each other 
+- In other words: Only one trigger can be active at one time 
+
+- This is what a violation of this rule looks like: 
+
+```{r}
+ p1 <-"digraph  {
+    rankdir=LR; 
+    Starting [peripheries = 2];
+    Endstate [style='filled' fillcolor='gray']
+    Starting -> State1 [label='EventA' fontsize=10 fontcolor='red']; 
+    Starting -> State2 [label='EventA' fontsize=10 fontcolor='red']; 
+    State1 -> Endstate [label='EventB' fontsize=10];
+}"
+  grViz(p1)
+```
+
+- In this example, it is not defined what happens, if the FSM in the state *Starting* is requested to processes \color{red}```EventA```\color{black}
+
+ 
+### 2) Define all Transitions*^[The first rule is strictly necessary. This second rule is 'optional', meaning that LogFSM can be used, even if only some events can be processed by the FSM. However, to use LogFSM to validate log data, this second rule applies. ] 
+
+Transitions for all events that can occur when the FSM is in a particular state must be defined
+
+- Practically: After running LogFSM with a *complete* FSM definition, the result for each processed line must be ```EventAccepted``` (i.e., no ```EventNotPermitted```)
+ 
+
+```{r, eval=F, echo=T,  warning=F}
+table(out$AugmentedLogDataTable$Result_1)
+```
+
+```{r, eval=T, echo=F,  warning=F}
+tab<-tab <- data.frame(EventNotDefinedAsTrigger =17)
+tab %>% kable() %>%  kable_styling(font_size = 12)
+```
+
+- Theoretically: All previous knowledge about the *assessment platform* (i.e., the analyzed item) is used to create the FSM. If events are not expected (in a particular *state*) log data are either not valid (or theoretical knowledge is incomplete)
+
+
+## Variables 
+
+Variables (Beyond Simple FSM's)
+
+- While reconstructing the test-taking process, **variables** can be useful to simplify the syntax
+- Variables are modified by **operators** and operators are executed when the FSM accepts a particular input
+ 
+Syntax 
+
+```{r, eval=F, echo=T}
+'Transition: {S1} -> {S2} @ {Trigger 1} ! {Operator 1}'
+'Ignore: {S2} @ {Trigger 2} ! {Operator 2}'
+```
+
+- Operators are added to the definition of transitions or ignore statements using ```!``` as a keyword (everything behind the ! is interpreted as operator, multiple operators can be combined using ```;```)
+ 
+- If a variable is changed to a particular value, the variable is created as an additional attribute
+
+- By default, variables are 'NA' (i.e., variables are missing before they are defined)
+
+- Value of variables from previous events are carried forward to subsequent events
+ 
+Operators for Variable Manipulation
+
+- ```SetVariable(VarName,Value)```: Set the variable ```VarName``` to the value ```Value``` 
+ 
+
+- ```IncreaseIntValue(VarName,Increment)```: Increase the value of variable ```VarName``` by the value of ```Increment``` 
+ 
+
+- ```CopyAttributeToVariable(VarName,AttributeName)```: Copy the value of the attribute ```AttributeName``` to the variable ```VarName```
+  
+
+Example (Counting)
+
+- The following FSM counts the number of navigations: 
+ 
+```{r, eval=F, echo=T, tidy=F}
+ex01a_counting_fsm <-"Start: Starting
+End: Endstate 
+Transitions:Starting -> Working  
+       @ Loading ! SetVariable(NavigationCounter,0)
+Transitions:Working -> Endstate @ UnLoaded
+Ignore: Working  
+       @ NavigateTo ! IncreaseIntValue(NavigationCounter,1)"
+```
+  
+Example (Extract Values)
+
+- The following FSM creates a variable for the current page: 
+
+```{r fsm_syntax_variables_example_02, eval=F, echo=T, tidy=F}
+ex01a_copy_attribute_fsm <- "Start: Starting
+End: Endstate  
+Transitions:Starting -> Working @ Loading  
+    ! SetVariable(CurrentPage,text1)
+Transitions:Working -> Endstate @ UnLoaded
+Ignore: Working@NavigateTo  
+    ! CopyAttributeToVariable(CurrentPage,Page)"
+```
+ 
+
+## Multiple Machines 
+
+- LogFSM allows the simultaneous execution of multiple finite state machines with one syntax
+- In fact, the machines are executed one after the other so that the result of the first machine can be accessed in the second
+
+Syntax: An ```{Index}``` (starting with $1$) is used as prefix for each line
+ 
+```{r, eval=F, echo=T}
+1 Start: Starting
+1 End: Endstate  
+2 Start: Starting
+2 End: Endstate 
+1 Transitions:Starting->Working @ Loading  
+1 ... 
+2 Transitions: Starting->Text1 @ EventName=Loading
+```
+ 
+## Guards  
+
+- Guards can be used to filter transitions before the FSM tries to process the current event
+   
+- Because log data are processed, after the assessment is completed, not only previous but also subsequent events can be evaluated in guard^[Exception: As the reconstruction of the sequence of states is created event by event, the state-variable is filled only for events that were already processed]
+ 
+- Guards (also) allow to create conditional transitions, but with reference to previous / later events
+- Hence, guards can create some kind of complexity 
+
+- Guards can be added at the end of a syntax line, after the pipe ```|```
+ 
+```{r, eval=F, echo=T}
+'Transitions : {List of States ;} -> {State}
+       @ {List of Triggers ;} ! {List of Operators ;} | {Guard}'
+'Ignore : {List of States ;} 
+       @ {List of Triggers ;} ! {List of Operators ;} | {Guard}'
+```
+ 
+Guard: ```IsLastTrigger(Trigger)```^[Following the same logic, the guards ```IsNotLastTrigger(Trigger)```, ```IsFirstTrigger(Trigger)``` and ```IsNotFirstTrigger(Trigger)``` can be used]
+
+- If in the remaining events for a particular test-taker (i.e., all events with the same PersonIdentifier) the ```Trigger``` is not true, this guard evaluates to true (i.e., the event can be processed by the FSM, if the regular ```Trigger``` is true)
+
+- Example 
+ 
+```{r, eval=F, echo=T}
+'Transitions:Working-> AfterLastRadiobutton @ 
+    EventName=Radiobutton  | IsLastTrigger(EventName=Radiobutton)'
+```
+  
+Guard: ```PreviousState(State)```
+
+- Evaluates to true, if the previous sates match the argument
+  
+Guard: ```CompareAttribute``` (with two arguments)
+
+- Guard to select trigger according to the attribute / variable specified as first argument and the value specified as second argument:
+
+- ```{AttributeName}``` can refer to all event specific values^[*Note* ```State_Before_{Machine Index}``` can be used, ```State_After_{Machine Index```} not.]
+
+- ```{Value}``` can be either a string or a number
+ 
+```{r, eval=F, echo=T}
+'Transition: {S1} -> {S2} @ {Trigger 1} | 
+               CompareAttribute(AttributeName,Value)'  
+```
+  
+- If no furher arguments are provided, triggres are selected if the variable / attribute values is ```id``` (identical), compared to the value (string comparison)
+ 
+Guard: ```CompareAttribute``` (with three arguments)
+
+- The third parameter for more advanced comparisons can be specified
+ 
+```{r, eval=F, echo=T}
+'Transition: {S1} -> {S2} @ {Trigger 1} |  
+               CompareAttribute(AttributeName,Value,Comparer)'  
+```
+ 
+
+- ```Comparer``` can be specified to compare *characters* or *numbers*^[If the value of the specified attribute for the current event or the provided value is not a valid number, the trigger is not selected.]
+
+  - Strings: ```Comparer``` can be either ```id``` (identical) or  ```not``` (not identical)
+
+  - Numbers (double): ```Comparer``` can be either ```eq``` ($=$ equal), ```le``` ($\le$ less or equal), ```lt``` ($<$ less than), ```ge``` ($\ge$ greater or equal), or  ```gt``` (greater than $>$),  ```neq``` (not equal $!=$) 
+ 
+
+Guard: ```CompareAttribute```  (with four arguments)
+
+- A forth parameter for more advanced comparisons can be specified
+ 
+```{r, eval=F, echo=T}
+'Transition: {S1} -> {S2} @ {Trigger 1} |  
+               CompareAttribute(AttributeName,Value,Comparer,Offset)'  
+```
+ 
+
+- ```Offset```  extends the ```CompareAttribute```-guard by allowing to compare the value of the current event with a previous event (i.e., row in the flat log data table)
+
+- The previous event is specified as offset -1, the subsequent / next event as offset +1
+- The first event is specified as ```first```, the last event as ```last```
+  
+Guard: ```CompareAttributes``` (plural, with two arguments)
+
+- Guard to select trigger according to two attributes / variables specified as first and second argument:
+
+- ```{AttributeName1}``` can refer to all event specific values^[*Note* ```State_Before_{Machine Index}``` can be used, ```State_After_{Machine Index```} not.]
+
+- ```{AttributeName2}``` can refer to all event specific values
+ 
+```{r, eval=F, echo=T}
+'Transition: {S1} -> {S2} @ {Trigger 1} | 
+               CompareAttributes(AttributeName1,AttributeName2)'  
+```
+
+- If no further arguments are provided, triggers are selected if the values of the variables / attributes values are ```id``` (identical; string comparison) 
+ 
+Guard: ```CompareAttributes``` (with three arguments)
+
+- The third parameter for more advanced comparisons can be specified
+ 
+```{r, eval=F, echo=T}
+'Transition: {S1} -> {S2} @ {Trigger 1} |  
+               CompareAttributes(AttributeName1,AttributeName2,Comparer)'  
+```
+ 
+
+- ```Comparer``` can be specified to compare *characters* or *numbers*^[If the value of the specified attribute for the current event or the provided value is not a valid number, the trigger is not selected.]
+
+  - Strings: ```Comparer``` can be either ```id``` (identical) or  ```not``` (not identical)
+
+  - Numbers (double): ```Comparer``` can be either ```eq``` ($=$ equal), ```le``` ($\le$ less or equal), ```lt``` ($<$ less than), ```ge``` ($\ge$ greater or equal), or  ```gt``` (greater than $>$),  ```neq``` (not equal $!=$) 
+
+
+Guard: ```CompareAttributes```  (with four arguments)
+
+- A forth parameter for more advanced comparisons can be specified
+ 
+```{r, eval=F, echo=T}
+'Transition: {S1} -> {S2} @ {Trigger 1} |  
+    CompareAttributes(AttributeName1,AttributeName2,Comparer,Offset)'  
+```
+  
+- ```Offset```  extends the ```CompareAttributes```-guard by allowing to compare the attribute values of the current event with a previous event (i.e., row in the flat log data table)
+
+- The previous event is specified as offset -1, the subsequent / next event as offset +1
+- The first event is specified as ```first```, the last event as ```last```
+  

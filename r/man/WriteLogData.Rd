@@ -9,10 +9,11 @@ WriteLogData(file, data)
 \arguments{
 \item{file}{Filename}
 
-\item{data}{Data frame with log data}
+\item{data}{Data frame with log data (\emph{Flat and sparse log data table})}
 }
 \description{
-Writes log data from data fram \code{data} to json format, that can be used to run FSM.
+Writes log data from data frame \code{data} to JSON format (\code{jsonlite}), that can be used to
+run a finite-state machine with the function \code{RunFSMSyntax.}
 }
 \details{
 The following columns names are taken as keywords:

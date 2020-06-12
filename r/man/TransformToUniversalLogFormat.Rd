@@ -2,7 +2,7 @@
 % Please edit documentation in R/TransformToUniversalLogFormat.R
 \name{TransformToUniversalLogFormat}
 \alias{TransformToUniversalLogFormat}
-\title{Transform Log Data with LogFSM}
+\title{Transform Log Data with LogFSM (Under Development)}
 \usage{
 TransformToUniversalLogFormat(inputfolders, stataoutput = "",
   zcsvoutput = "", xlsxoutput = "", inputformat = "", mask = "*.*",

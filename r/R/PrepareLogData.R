@@ -1,43 +1,45 @@
 #' Prepare Log Data form Different Fromats for Use with LogFSM
 #'
-#' Differtent data sources can be used with the LogFSM package. In order to harmonize the processing, data
-#' must be converted in the internal LogFSM format (```logfsmjson```) using this function. The function must be
-#' called with the filename (```zipfilename```) in which the data are stored and a filename (```outfilename```)
-#' in which the prepared data are written.
+#' Different data sources can be used with the LogFSM package. In order to harmonize the processing, data
+#' must be converted into the internal LogFSM format (```logfsmjson```) using the function ```PrepareLogData```.
+#' The function must be called with at least two arguments: The string variable provided as ```zipfilename``` refers
+#' to the ZIP archive in which  the source data are stored. The string provided as ```outfilename``` defines in which
+#' file the prepared data will be written.
 #'
 #' Data formats that require pre-processing using the function ```PrepareLogData```
 #' to create the ```logfsmjson```(i.e. data that can be used with ```RunFSMSyntax```)
 #' * ```dataflatv01a```: Flat table with log data
 #' * ```piaaczip01a```: Text file with log data from the Programme for the International Assessment of Adult Competencies (PIAAC), exported from PIAAC LogDataAnalyzer (R1)
-#' * ```nepszip01a```: ZIP archive with data in generic log data format used in the National Educational Panel Study (NEPS, TBT-studies 2009-2020)
+#' * ```nepszip01a```: ZIP archive with data in the universal log data format used in the National Educational Panel Study (NEPS, TBT-studies 2009-2020)
 #'
 #' If data are provided as  ```dataflatv01a```, the following columns are expected:
 #' - ```PersonIdentifier```: Identifier for the test-taker / person / student
 #' - ```EventName```: Name of the log event
-#' - ```Element```: Item, unit, task (part of the assessemnt) to which the event belongs
+#' - ```Element```: Item, unit, task (part of the assessment) to which the event belongs
 #' - ```TimeStamp``` or ```RelativeTime```: Timestamp (or relative time, if the flag ```RELATIVETIME``` is used)
 #'
 #' If data are provided as  ```nepszip01a```, the following columns are expected:
-#' - ```PersonIdentifier```:  Identifier for the test-taker / person / student (Provide a value as argument 'ColumnNamePersonIdentifier' to override this default.)
-#' - ```EventName```: Name of the log event (Provide a value as argument 'ColumnNameEventName' to override this default.)
-#' - ```Element```: Item, unit, task (part of the assessemnt) to which the event belongs (Provide a value as argument 'ColumnNameElement' to override this default.)
-#' - ```TimeStamp``` or ```RelativeTime```: Timestamp (Absolut time stamps are expected. For relative times use the flag ```RELATIVETIME```. Provide a value as argument 'ColumnNameTimeStamp' to override the default column name.)
+#' - ```PersonIdentifier```:  Identifier for the test-taker / person / student. This default can be overwritten by providing an additional argument 'ColumnNamePersonIdentifier,' which specifies the name of the column that contains the person identifier.
+#' - ```EventName```: Name of the log event. This default can be overwritten by providing an additional argument 'ColumnNameEventName,' which specifies the name of the column that contains the event name (resp. event type).
+#' - ```Element```: Item, unit, task (part of the assessemnt) to which the event belongs. This default can be overwritten by providing an additional argument 'ColumnNameElement,' which specifies the name of the column that contains the element (item name, unit name, etc.).
+#' - ```TimeStamp``` or ```RelativeTime```: Timestamp (Absolut time stamps are expected. For relative times, use the flag ```RELATIVETIME```. This default can be overwritten by providing an additional argument 'ColumnNameTimeStamp,' which specifies the name of the column that contains the timestamp.
 #'
+#' For more details about the workflow see the vignette *LogFSM Workflows (Overview)*:
+#' \code{vignette("Workflow", package = "LogFSM")}
 #'
 #' Additional formats (under development)
 #' *  ```pisabqzip01a``` / ```pisabqzip01b``` / ```pisabqzip01c``` / ```pisacazip01a```
-#'
 #'
 #' @param zipfilename Name of the file containing the raw log data that should be used with LogFSM. 'PrepareLogData' will read from this file.
 #' @param outfilename Name of the file in which 'PrepareLogData' will write the prepared log data.
 #' @param workingdir Working directory (optional).
 #' @param verbose Requesting more detailed output from LogFSM.
-#' @param elements A string variable refering to the element names (i.e., items, units or tasks), that should be extracted. Multiple elemtns can be combinded using ';'.
+#' @param elements A string variable referring to the element names (i.e., items, units, or tasks) that should be extracted. Multiple elements can be combinded using ';'.
 #' @param datafiletype Type of the data provided in the file ```zipfilename``` (either ```dataflatv01a``` or ```piaaczip01a```)
-#' @param flags Optional flags as documented for the specific data formats. The flag "RELATIVETIME" can be used to prepare log data provided with relative timestamps. Multiple flages can be combined in the string variable using the pipe (|).
+#' @param flags Optional flags as documented for the specific data formats. The flag "RELATIVETIME" can be used to prepare log data provided with relative timestamps. Multiple flags can be combined in the string variable using the pipe (|).
 #' @param ... (Further arguments will be passed on if necessary)
 #'
-#' @return The function returns TRUE, if a file was created.
+#' @return The function returns TRUE if a file was created.
 #'
 #' @export
 #' @md

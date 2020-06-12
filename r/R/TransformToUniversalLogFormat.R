@@ -1,4 +1,4 @@
-#' Transform Log Data with LogFSM
+#' Transform Log Data with LogFSM (Under Development)
 #'
 #' Function for transforming raw log data files (from different supported sources) to the universal log format.
 #'
