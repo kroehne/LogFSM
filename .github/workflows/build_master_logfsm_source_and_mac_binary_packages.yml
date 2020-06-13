@@ -58,8 +58,8 @@ jobs:
     - name: Setup R Environment
       uses: r-lib/actions/setup-r@v1
       
-    - name: Install Dependencies
-      run: Rscript -e "install.packages(c('rcmdcheck','knitr','dplyr', 'curl', 'jsonlite', 'XML', 'ggplot2', 'Rmisc', 'TraMineR', 'rmarkdown', 'rappdirs' , 'testthat'))"  
+    - name: Install Dependencies 
+      run: Rscript -e "install.packages(c('rcmdcheck','knitr','dplyr', 'curl', 'jsonlite', 'XML', 'ggplot2', 'Rmisc', 'TraMineR', 'rmarkdown', 'rappdirs', 'testthat','magrittr','DiagrammeR','kableExtra'))"  
             
     - name: Check R package
       run: Rscript -e "rcmdcheck::rcmdcheck(path='r/', args = '--no-manual', error_on = 'error')"
