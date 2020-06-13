@@ -49,7 +49,12 @@ jobs:
       
     - name: Install Dependencies 
       run: Rscript -e "install.packages(c('rcmdcheck','knitr','dplyr', 'curl', 'jsonlite', 'XML', 'ggplot2', 'Rmisc', 'TraMineR', 'rmarkdown', 'rappdirs', 'testthat','magrittr','DiagrammeR','kableExtra'))"  
-            
+    
+    - name: Install Pandoc
+      uses: r-lib/actions/setup-pandoc@v1
+      with:
+        pandoc-version: '2.7.3'  
+                    
     - name: Check R package
       run: Rscript -e "rcmdcheck::rcmdcheck(path='r/', args = '--no-manual', error_on = 'error')"
             
