@@ -53,22 +53,36 @@
             return _ret;
         }
 
-        public static List<Log_IB_8_12__8_13> ParseLogElements(string line)
+        public static List<Log_IB_8_12__8_13> ParseLogElements(string line, string source)
         {
             List<Log_IB_8_12__8_13> _ret = new List<Log_IB_8_12__8_13>();
 
-            var _trace = JsonConvert.DeserializeObject<LogDataTransformer_IRTlibPlayer_V01.TraceEvent>(line);
-            if (_trace.Trace == null)
-                return _ret;
-              
-            var logFragment = JsonConvert.DeserializeObject<json_IB_8_12__8_13>(_trace.Trace); 
+            string _IBTraceJSON = "";
+            string _element = "";
+            string _test = "";
+            string _task = "";
+            if (source == "IRTlibPlayer_V01")
+            {
+                var _trace = JsonConvert.DeserializeObject<LogDataTransformer_IRTlibPlayer_V01.TraceEvent>(line);
+                if (_trace.Trace == null)
+                    return _ret;
+
+                 _element = _trace.Context.Item;
+                 _test = _trace.Context.Test;
+                 _task = _trace.Context.Task;
+
+                _IBTraceJSON = _trace.Trace;
+            }
+            else if (source == "IBSD_V01")
+            {
+                _IBTraceJSON = line;
+            } 
+
+            var logFragment = JsonConvert.DeserializeObject<json_IB_8_12__8_13>(_IBTraceJSON); 
             string _personIdentifier = logFragment.metaData.userId;
 
             foreach (var entry in logFragment.logEntriesList)
             {
-                string _element = _trace.Context.Item;
-                string _test = _trace.Context.Test;
-                string _task = _trace.Context.Task;
                 string _pageAreaType = "";
                 string _pageAreaName = "";
                 string _page = "";
@@ -1663,6 +1677,7 @@
 
             return _ret;
         }
+
 
         public static string XmlSerializeToString(this object objectInstance)
         {

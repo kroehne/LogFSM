@@ -33,6 +33,8 @@ namespace LogFSMConsole
         {
 
 #if DEBUG
+            args = new string[1];
+            args[0] = "";
  #endif
 
             Stopwatch _watch = new Stopwatch();

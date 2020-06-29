@@ -65,48 +65,56 @@
                         if (ParsedCommandLineArguments.Verbose)
                             Console.Write("Info: Read File  '" + fileName + "' ");
 
-                        string line;
-                        var reader = new StreamReader(fileName);
-
-                        int linecounter = 0;
-                        while ((line = reader.ReadLine()) != null)
+                        try
                         {
-                            if (ParsedCommandLineArguments.Transform_LogVersion == "default")
+                            string line;
+                            var reader = new StreamReader(fileName);
+
+                            int linecounter = 0;
+                            while ((line = reader.ReadLine()) != null)
                             {
-
-                                List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log =
-                                                        LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(line);
-
-                                foreach (var _l in _log)
+                                if (ParsedCommandLineArguments.Transform_LogVersion == "default")
                                 {
-                                    var g = new logxGenericLogElement()
+
+                                    List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log =
+                                                            LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(line, "IBSD_V01");
+
+                                    foreach (var _l in _log)
                                     {
-                                        Item = _l.Element,
-                                        EventID = _l.EventID,
-                                        EventName = _l.EventName,
-                                        PersonIdentifier = _l.PersonIdentifier,
-                                        TimeStamp = _l.TimeStamp
-                                    };
+                                        var g = new logxGenericLogElement()
+                                        {
+                                            Item = _l.Element,
+                                            EventID = _l.EventID,
+                                            EventName = _l.EventName,
+                                            PersonIdentifier = _l.PersonIdentifier,
+                                            TimeStamp = _l.TimeStamp
+                                        };
 
-                                    g.EventDataXML = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.XmlSerializeToString(_l);
-                                    _ret.AddEvent(g);
+                                        g.EventDataXML = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.XmlSerializeToString(_l);
+                                        _ret.AddEvent(g);
+                                    }
+
                                 }
-                                 
-                            }
-                            else
-                            {
-                                if (ParsedCommandLineArguments.Verbose)
-                                    Console.WriteLine("failed.");
+                                else
+                                {
+                                    if (ParsedCommandLineArguments.Verbose)
+                                        Console.WriteLine("failed.");
 
-                                Console.WriteLine("Version '" + ParsedCommandLineArguments.Transform_LogVersion + "' not supported.");
-                                return;
+                                    Console.WriteLine("Version '" + ParsedCommandLineArguments.Transform_LogVersion + "' not supported.");
+                                    return;
+                                }
+                                linecounter++;
                             }
-                            linecounter++;
+                            if (ParsedCommandLineArguments.Verbose)
+                                Console.WriteLine(" ok ('" + linecounter + " lines).");
+
+                            reader.Close();
+                        } 
+                        catch (Exception exfile)
+                        {
+                            Console.WriteLine("Error processing file '" + fileName +  "'. Details: " + Environment.NewLine + exfile.Message.ToString());
                         }
-                        if (ParsedCommandLineArguments.Verbose)
-                            Console.WriteLine(" ok ('" + linecounter + " lines).");
-
-                        reader.Close();
+                       
                     }
 
                 }

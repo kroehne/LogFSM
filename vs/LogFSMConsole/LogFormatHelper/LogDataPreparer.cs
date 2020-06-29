@@ -254,8 +254,14 @@ namespace LogFSMConsole
                     }
                 }
             }
-            catch  
-            { 
+            catch (ZlibException _ex)
+            {
+                Console.WriteLine("Error reading zip archive: " + _ex.ToString());
+                return false;
+            }
+            catch (Exception _ex)
+                {
+                Console.WriteLine("Unknown error: " + _ex.ToString());
                 return false;
             }
         }

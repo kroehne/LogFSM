@@ -217,7 +217,9 @@
                                                     {
 
                                                         List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log =
-                                                            LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(_json);
+                                                            LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(_json, "IRTlibPlayer_V01");
+
+                                                        // TODO: Add flag to extract full name (project.task) vs. short name (project)
 
                                                         foreach (var _l in _log)
                                                         {

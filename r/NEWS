@@ -1,6 +1,10 @@
 CHANGE-LOG
 ==========
 
+2020-06-29 0.4.5.4
+
+* Bug fixing IBSD import
+
 2020-06-13 0.4.5.3
 
 * Added vignettes

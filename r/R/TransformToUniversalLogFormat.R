@@ -8,7 +8,7 @@
 #' - ```nepsrawv01a```: Folder(s) with extracted output files from NEPS TBT modules (created by DIPF/TBA).
 #' - ```ibsdraw01a```: Folder(s) with log data generated with CBA 'ItemBuilder static delivery' (IBSD, provided by DIPF/TBA, CBA ItemBuilder >= 8.12, REACT).
 #' - ```eeibraprawv01a```: Folder(s) with ZIP archives or XML files created with the CBA ItemBuilder Execution Environment (EE, provided by DIPF/TBA, CBA ItemBuilder <= 8.12, RAP).
-#'
+#' - ```irtlibv01a```: Data generated with the IRTlib-Player (provided by DIPF/TBA, CBA ItemBuilder > 8.12, REACT).
 #'
 #' The following flags are supported:
 #'
@@ -23,6 +23,7 @@
 #' @param stataoutput Output file name for the generated universal log format, type Stata (i.e., absolute path to the zip file containing log data as Stata files, one file for each event type).
 #' @param zcsvoutput Output file name for the generated universal log format, type zip-compressed CSV (i.e., absolute path to the zip file containing log data as CSV files, one file for each event type).
 #' @param xlsxoutput Output file name for the generated universal log format, type XLSX (i.e., absolute path to XLSX file containing log data, one sheet for each event type).
+#' @param spssoutput Output file name for the generated universal log format, type SPSS (i.e., absolute path to the zip file containing log data as SPSS files, one file for each event type).
 #' @param inputformat File format of the raw log data to be processed (see above for valid options).
 #' @param mask File filter mask. Only files that match the specified mask will be used (e.g., *.jsonl).
 #' @param excludedelements A string variable refering to the element names (i.e., items, units or tasks), that should be ignored.
@@ -37,7 +38,7 @@
 #'
 #' @export
 #' @md
-TransformToUniversalLogFormat <- function(inputfolders, stataoutput="", zcsvoutput="", xlsxoutput="",
+TransformToUniversalLogFormat <- function(inputfolders, stataoutput="", zcsvoutput="", xlsxoutput="", spssoutput="",
                                           inputformat = "", mask="*.*",verbose=F, excludedelements = "",
                                           table="",dictionary="",codebook="",logversion="default",
                                           flags="", ...){
@@ -47,6 +48,7 @@ TransformToUniversalLogFormat <- function(inputfolders, stataoutput="", zcsvoutp
                                    stataoutput=stataoutput,
                                    zcsvoutput=zcsvoutput,
                                    xlsxoutput=xlsxoutput,
+                                   spssoutput=spssoutput,
                                    inputformat=inputformat,
                                    codebook=codebook,
                                    dictionary=dictionary,
