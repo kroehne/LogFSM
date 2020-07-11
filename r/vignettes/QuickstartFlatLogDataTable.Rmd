@@ -4,7 +4,7 @@ author: "Ulf Kroehne"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette    
 vignette: >
-  %\VignetteIndexEntry{LogFSM Syntax (Input)}
+  %\VignetteIndexEntry{LogFSM Quick Start: Using Log Data Available as 'Flat and Sparse Log Data Table' (Under Development)}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
