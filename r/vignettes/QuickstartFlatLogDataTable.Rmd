@@ -1,0 +1,197 @@
+---
+title: "LogFSM Quick Start: Using Log Data Available as 'Flat and Sparse Log Data Table' (Under Development)"
+author: "Ulf Kroehne"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette    
+vignette: >
+  %\VignetteIndexEntry{LogFSM Syntax (Input)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+  
+ `%>%` <- magrittr::`%>%`
+```
+  
+## What's this Vignette About?
+
+If you have log data from a computer-based assessment in the form of the 'Flat and Sparse Log Data Table', this vignette describes how you can make use of it in LogFSM. 
+
+* Step A/B-1: Prepare the 'Flat and Sparse Log Data Table'
+
+Option A:
+
+* Step A-2: Save log data for all cases temporary as (uncompressed) JSON file using the function ```LogFSM::WriteLogData()```
+
+Option B: 
+
+* Step B-2: Save log data for all cases as compressed CSV file using the function ``` ```
+* Step B-3: Read data into LogFSM using the function  ```LogFSM::PrepareLogData()``` and create a zip archive with log data separated by cases. 
+
+
+After steps 1 and 2a or 1, 2b and 3 have been performed, the function ```LogFSM::RunFSMSyntax()``` can be used to reconstruct the test-taking process with your user defined finite-state macine(s). See vignette *LogFSM Syntax (Input)* for more details. 
+
+## Step 1: Flat and Sparse Log Data Table
+
+What is a	*'flat and sparse log data table'*?
+
+One combined table (e.g., a data frame in R with the name $~$```tab```) containing all event data, including the event-specific data located in columns, with missing values for event-specific data not provided for an event of a particular type (because event-specific data are either optional or not defined for this event type).
+
+Example:
+```{r, eval=F, echo=T, warning=F}
+View(tab)
+```
+
+```{r, eval=T, echo=F, warning=F}
+tab <- LogFSM::SyntheticLogData(example = "ex01a")
+tab$Name[tab$EventName == "Radiobutton"] <- paste0("selected&value=",tab$Name[tab$EventName == "Radiobutton"])
+
+tab$EventName <- paste0("Event:",tab$EventName )
+missing_timestamp <- tab[2,2]
+tab[2,2]<-NA
+colnames(tab) <- c("ID","Time","Event","Page","Item","Name","Action")
+tab %>% kableExtra::kable() %>%  kableExtra::kable_styling(font_size = 12)
+```
+
+Why is this representation called *'flat'*? 
+
+* Because all data is contained in only one table, with one row per event. 
+* The table only contains data of one person / individual. 
+* All available log data is stored in this one table.
+
+Why is this representation called *'sparse'*? 
+
+* Because of the many ```NA``` values in the event-specific attributes. 
+* Event specific data are columns that are only filled for events of a particular type. 
+* If only events of a certain type are considered, then it becomes obvious that the event-specific data is responsible for the sparsely structured 'flat and spares log data table'. 
+
+What requirements must be met in order to use this kind of data  with LogFSM?
+
+* Column names (see section 'required column names')
+* Special character (see section 'special characters')
+* Completeness (see section 'completeness')
+
+Moreover, selecteding relevant data required for a particular analysis is suggested (see section 'subset by element').
+
+### Required Column Names
+
+The example data set contains the following columns, which are always required for a *flat and spares log data table*:
+
+* PersonIdentifier: Identifier of the test-taker (i.e., person, participant, student, teacher, test-taker, ...). The name 'PersonIdentifier' is required for this column (i.e., to use the example data in LogFSM the column ```ID``` must be renamed to ```PersonIdentifier```) 
+
+* TimeStamp: Either a relative time or an absolute time must be provided as column 'TimeStamp' for each event. In the example, it is necessary to rename the column to ```TimeStamp```. Data with missing timestamps cannot be processed in LogFSM. There must be exactly one column with the name 'TimeStamp'. 
+
+* ```EventTyp```: It is assumed that each log event has a specific event type. This event type can be used later to define transitions. If there is no event type in the data, a column with the name EventTyp must be created, otherwise it is sufficient to rename the column to 'EventTyp'. 
+
+Example: 
+
+```{r, eval=T, echo=T, warning=F}
+names(tab)[names(tab)=="ID"] <- "PersonIdentifier"
+names(tab)[names(tab)=="Time"] <- "TimeStamp"
+names(tab)[names(tab)=="Event"] <- "EventName"
+
+names(tab)
+```
+
+### Event-Specific Attributes
+
+When using LogFSM, it is necessary to provide the additional event-specific values for log events separately in individual columns of the `flat and sparse log data table'. 
+
+JSON and XML components and other structured strings must be resolved and separated into individual columns in order to use LogFSM.  If a JSON or XML contains more than one piece of information, several columns can be created. 
+
+### Special Characters
+
+The entries in the flat and spares log data table that contains information to be used later with LogFSM to define transitions must not have special characters or white spaces. 
+
+In the example above, the event names wiht ```:``` must be pre-processed:
+
+
+```{r, eval=T, echo=T, warning=F}
+# Event names contain ':'
+unique(tab$EventName) 
+
+# Remove 'Event:' with gsub()
+tab$EventName <- gsub("Event:","",tab$EventName)
+
+# Event names ready for LogFSM
+unique(tab$EventName) 
+```
+
+Moreover, the event specific values of the attribute ```Name``` for events of type ```Radiobutton``` contain ```&``` and should be pre-processed:
+
+```{r, eval=T, echo=T, warning=F}
+# Attribute 'Name' contains '&'
+unique(tab$Name) 
+
+# Remove 'selected&value=' with gsub()
+tab$Name <- gsub("selected&value=","",tab$Name)
+
+# Event-specific values of attribute 'Name' ready for LogFSM
+unique(tab$Name) 
+```
+
+### Completeness 
+
+LogFSM requires that all events have complete data in the following attributes:
+
+* PersonIdentifier
+* TimeStamp
+* EventName
+
+In the example above, the ```TimeStamp``` is missing for one event. This row must be either removed or the ```TimeStamp``` must be added, before the data can be used with LogFSM.
+
+```{r, eval=T, echo=T, warning=F}
+tab[2,2] <- missing_timestamp
+```
+ 
+If log data of a complete instrument is available, the analysis is typically still performed in smaller measurement units. LogFSM therefore assumes that there is an additional column ```Element``` in the data for each log event, which contains the assignment of the event in a particular line to an instrument part (Item, Unit, Passage, ...). 
+
+```{r, eval=T, echo=T, warning=F}
+tab$Element <- "Item01"
+```
+ 
+Pre-processed log data as flat and sparse log data table:
+```{r, eval=F, echo=T, warning=F}
+View(tab)
+```
+
+```{r, eval=T, echo=F, warning=F}
+tab %>% kableExtra::kable() %>%  kableExtra::kable_styling(font_size = 12)
+```
+
+### Subset by Element 
+
+The preparation of the data for analysis with LogFSM described in this vignette can then split the data from the 'flat and sparse log data table'.  
+
+Example: 
+
+```{r, eval=T, echo=T, warning=F}
+tab <- tab[tab$Element == "Item01",]
+```
+
+### Order Data 
+
+For processing the data in LogFSM the events have to be sorted. LogFSM can automatically sort by PersonIdentifier, Element and TimeStamp. If the time resolution of the time stamps is not sufficient and information about the order of the log events is available, for example in the form of a counting variable, the log events can be sorted in advance.
+
+## Step 2: Use of the Function ```WriteLogData```
+
+```{r, eval=T, echo=T, warning=F}
+tmpfile <- tempfile(fileext = ".json")
+LogFSM::WriteLogData(file=tmpfile, data = tab)
+```
+
+
+## Step 3: Use of the Function ```PrepareLogData```
+
+
+```{r, eval=T, echo=T, warning=F}
+tmpfile <- tempfile(fileext = "")
+LogFSM::WriteLogData(file=tmpfile, data = tab)
+```
+
+

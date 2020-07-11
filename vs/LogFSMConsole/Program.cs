@@ -681,7 +681,15 @@ namespace LogFSMConsole
         {
             List<string> _tmpReturn = new List<string>();
             var _groupdLogData = _logDataAll.GroupBy(x => x.PersonIdentifier);
-            
+
+            string _outputTimeStampFormatString = "dd.MM.yyyy hh:mm:ss.fff tt";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputtimestampformatstring"))
+                _outputTimeStampFormatString = ParsedCommandLineArguments.ParameterDictionary["outputtimestampformatstring"];
+
+            string _outputRelativeTimeFormatString = "hh':'mm':'ss':'fff";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputrelativetimeformatstring"))
+                _outputRelativeTimeFormatString = ParsedCommandLineArguments.ParameterDictionary["outputrelativetimeformatstring"];
+             
             foreach (var _data in _groupdLogData)
             {
                
@@ -847,9 +855,9 @@ namespace LogFSMConsole
                                 else if (c == "Element" && !ParsedCommandLineArguments.Flags.Contains("EXCLUDE_ELEMENT"))
                                     _value = e.Element;
                                 else if (c == "TimeStamp") 
-                                    _value = e.TimeStamp.ToString("dd.MM.yyyy hh:mm:ss.fff tt"); // TODO: Define parameter for output format string
+                                    _value = e.TimeStamp.ToString(_outputTimeStampFormatString);  
                                 else if (c == "RelativeTime")
-                                    _value = e.RelativeTime.ToString("hh':'mm':'ss':'fff"); // TODO: Define parameter for output format string
+                                    _value = e.RelativeTime.ToString(_outputRelativeTimeFormatString); 
                                 else if (c == "EventName")
                                     _value = e.EventName;
                                 else if (c == "TimeDifference")

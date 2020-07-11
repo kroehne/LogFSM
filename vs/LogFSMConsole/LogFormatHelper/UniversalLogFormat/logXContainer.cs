@@ -3,6 +3,7 @@
     #region usings
     using CsvHelper;
     using Ionic.Zip;
+    using LogFSMConsole;
     using NPOI.OpenXmlFormats.Dml;
     using NPOI.SS.Formula.Functions;
     using NPOI.SS.UserModel;
@@ -872,8 +873,19 @@
             } 
         }
  
-        public void ExportCSV(string filename)
+        public void ExportCSV(CommandLineArguments ParsedCommandLineArguments)
         {
+            string filename = ParsedCommandLineArguments.Transform_OutputZCSV;
+
+            string _outputTimeStampFormatString = "dd.MM.yyyy hh:mm:ss.fff tt";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputtimestampformatstring"))
+                _outputTimeStampFormatString = ParsedCommandLineArguments.ParameterDictionary["outputtimestampformatstring"];
+
+            string _outputRelativeTimeFormatString = "hh':'mm':'ss':'fff";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputrelativetimeformatstring"))
+                _outputRelativeTimeFormatString = ParsedCommandLineArguments.ParameterDictionary["outputrelativetimeformatstring"];
+
+
             DateTime dt1960 = new DateTime(1960, 1, 1, 0, 0, 0, 0);
             string _sep = ";";
 
@@ -900,8 +912,8 @@
                             sw.Write(id);
                             sw.Write(_sep + StringToCSVCell(uniqueValues["PersonIdentifier"][(int)v.PersonIdentifier]));
                             sw.Write(_sep + StringToCSVCell(uniqueValues["Element"][v.Element]));
-                            sw.Write(_sep + StringToCSVCell(v.TimeStamp.ToString())); // TODO: Format Statement
-                            sw.Write(_sep + StringToCSVCell(v.RelativeTime.ToString()));
+                            sw.Write(_sep + StringToCSVCell(v.TimeStamp.ToString(_outputTimeStampFormatString, CultureInfo.InvariantCulture)));  
+                            sw.Write(_sep + StringToCSVCell(v.RelativeTime.ToString(_outputRelativeTimeFormatString)));  
                             sw.Write(_sep + StringToCSVCell(v.EventID.ToString()));
                             sw.Write(_sep + StringToCSVCell(v.ParentEventID.ToString()));
                             sw.Write(_sep + StringToCSVCell(uniqueValues["Path"][v.Path]));
@@ -1014,8 +1026,18 @@
             }
         }
 
-        public void ExportXLSX(string filename)
+        public void ExportXLSX(CommandLineArguments ParsedCommandLineArguments)
         {
+            string filename = ParsedCommandLineArguments.Transform_OutputXLSX;
+
+            string _outputTimeStampFormatString = "dd.MM.yyyy hh:mm:ss.fff tt";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputtimestampformatstring"))
+                _outputTimeStampFormatString = ParsedCommandLineArguments.ParameterDictionary["outputtimestampformatstring"];
+
+            string _outputRelativeTimeFormatString = "hh':'mm':'ss':'fff";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputrelativetimeformatstring"))
+                _outputRelativeTimeFormatString = ParsedCommandLineArguments.ParameterDictionary["outputrelativetimeformatstring"];
+             
             using (var fs = new FileStream(filename, FileMode.Create, FileAccess.Write))
             {
                 Dictionary<string, string> _sheetIndex = new Dictionary<string, string>();
@@ -1078,8 +1100,8 @@
                       
                         row.CreateCell(2).SetCellValue(uniqueValues["Element"][v.Element]);
                         row.CreateCell(3).SetCellValue(v.TimeStamp.ToString());
-                        row.CreateCell(4).SetCellValue(v.RelativeTime.ToString());
-                        row.CreateCell(5).SetCellValue(v.EventID.ToString());
+                        row.CreateCell(4).SetCellValue(v.RelativeTime.ToString(_outputTimeStampFormatString, CultureInfo.InvariantCulture));
+                        row.CreateCell(5).SetCellValue(v.EventID.ToString(_outputRelativeTimeFormatString));
                         row.CreateCell(6).SetCellValue(v.ParentEventID.ToString());
                         row.CreateCell(7).SetCellValue(uniqueValues["Path"][v.Path]);
                         row.CreateCell(8).SetCellValue(uniqueValues["ParentPath"][v.ParentPath]);

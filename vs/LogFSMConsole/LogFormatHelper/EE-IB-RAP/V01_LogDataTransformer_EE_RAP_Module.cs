@@ -178,7 +178,7 @@
                     if (ParsedCommandLineArguments.Verbose)
                         Console.WriteLine("Create XLSX file.");
 
-                    _ret.ExportXLSX(ParsedCommandLineArguments.Transform_OutputXLSX);
+                    _ret.ExportXLSX(ParsedCommandLineArguments);
 
                 }
 
@@ -187,7 +187,7 @@
                     if (ParsedCommandLineArguments.Verbose)
                         Console.WriteLine("Create ZIP archive with CSV file(s).");
 
-                    _ret.ExportCSV(ParsedCommandLineArguments.Transform_OutputZCSV);
+                    _ret.ExportCSV(ParsedCommandLineArguments);
                 }
 
                 if (ParsedCommandLineArguments.Transform_Codebook.Trim() != "")

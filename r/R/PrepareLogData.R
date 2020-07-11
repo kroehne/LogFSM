@@ -37,6 +37,8 @@
 #' @param elements A string variable referring to the element names (i.e., items, units, or tasks) that should be extracted. Multiple elements can be combinded using ';'.
 #' @param datafiletype Type of the data provided in the file ```zipfilename``` (either ```dataflatv01a``` or ```piaaczip01a```)
 #' @param flags Optional flags as documented for the specific data formats. The flag "RELATIVETIME" can be used to prepare log data provided with relative timestamps. Multiple flags can be combined in the string variable using the pipe (|).
+#' @param outputtimestampformatstring Format string for timestamps in the output (default: "dd.MM.yyyy hh:mm:ss.fff tt")
+#' @param outputrelativetimeformatstring Format string for relative times in the output (default: "hh':'mm':'ss':'fff")
 #' @param ... (Further arguments will be passed on if necessary)
 #'
 #' @return The function returns TRUE if a file was created.
