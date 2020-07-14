@@ -34,7 +34,7 @@ namespace LogFSMConsole
 
 #if DEBUG
             args = new string[1];
-            args[0] = "";
+            args[0] = @"";
  #endif
 
             Stopwatch _watch = new Stopwatch();
@@ -682,7 +682,7 @@ namespace LogFSMConsole
             List<string> _tmpReturn = new List<string>();
             var _groupdLogData = _logDataAll.GroupBy(x => x.PersonIdentifier);
 
-            string _outputTimeStampFormatString = "dd.MM.yyyy hh:mm:ss.fff tt";
+            string _outputTimeStampFormatString = "dd.MM.yyyy hh:mm:ss.fff";
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputtimestampformatstring"))
                 _outputTimeStampFormatString = ParsedCommandLineArguments.ParameterDictionary["outputtimestampformatstring"];
 

@@ -178,6 +178,8 @@ tab <- tab[tab$Element == "Item01",]
 
 For processing the data in LogFSM the events have to be sorted. LogFSM can automatically sort by PersonIdentifier, Element and TimeStamp. If the time resolution of the time stamps is not sufficient and information about the order of the log events is available, for example in the form of a counting variable, the log events can be sorted in advance.
 
+
+
 ## Step 2: Use of the Function ```WriteLogData```
 
 ```{r, eval=T, echo=T, warning=F}

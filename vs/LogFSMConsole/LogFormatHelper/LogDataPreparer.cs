@@ -174,14 +174,14 @@ namespace LogFSMConsole
                                 {
 
                                     if (!ParseTime(row[_timeRelativeTimeColumnName].ToString(), _relativeTimeFormatString, out _relativeTime))
-                                        Console.WriteLine("Datetime format error (value '" + row[_timeStampColumnName].ToString() + "' does not match the format string '" + _timeStampFormatString + "')");
+                                        Console.WriteLine("Date time format error for relative time (value '" + row[_timeStampColumnName].ToString() + "' does not match the format string '" + _timeStampFormatString + "' provided as argument for 'timestampformatstring')");
 
                                     e.RelativeTime = _relativeTime;
                                 }
                                 else
                                 {
                                     if (!DateTime.TryParseExact(row[_timeStampColumnName].ToString(), _timeStampFormatString, provider, DateTimeStyles.None, out _timeStamp))
-                                        Console.WriteLine("Datetime format error (value '" + row[_timeStampColumnName].ToString() + "' does not match the format string '" + _timeStampFormatString + "')");
+                                        Console.WriteLine("Date time format error for time stamp (value '" + row[_timeStampColumnName].ToString() + "' does not match the format string '" + _timeStampFormatString + "' provided as argument for  'timestampformatstring')");
 
                                     e.TimeStamp = _timeStamp;
 

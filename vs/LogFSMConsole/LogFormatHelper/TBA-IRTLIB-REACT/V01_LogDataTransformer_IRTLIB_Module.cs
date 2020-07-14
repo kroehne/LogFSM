@@ -420,6 +420,8 @@
 
                 }
 
+                _ret.UpdateRelativeTimes();
+
                 if (ParsedCommandLineArguments.Transform_OutputStata.Trim() != "")
                 {
                     if (ParsedCommandLineArguments.Verbose)

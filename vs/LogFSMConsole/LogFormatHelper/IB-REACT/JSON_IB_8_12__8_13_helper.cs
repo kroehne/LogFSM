@@ -1699,6 +1699,10 @@
             Dictionary<string, string> _rawDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(itemscorejson);
             Dictionary<string, List<hitEntry>> _classResults = new Dictionary<string, List<hitEntry>>();
 
+            if  (_rawDict == null)
+            {
+                return _ret;
+            }
             // hitsAccumulated
             if (_rawDict.ContainsKey("hitsAccumulated"))
                 _ret.hitsAccumulated = int.Parse(_rawDict["hitsAccumulated"]);

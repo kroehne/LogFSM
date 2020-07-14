@@ -140,9 +140,11 @@
                     
                   
                 }
-                   
 
-                string _value = element.Results[_name].ToString();
+
+                string _value = "";
+                if (element.Results[_name]!= null)
+                    element.Results[_name].ToString();
                 AddValueToResultDataTable(_name, _value, resultDataTable[element.PersonIdentifier]);
             }
  
@@ -215,12 +217,19 @@
             if (element.EventID > maxEventIDByPerson[element.PersonIdentifier])
                 maxEventIDByPerson[element.PersonIdentifier] = element.EventID;
 
+            TimeSpan _relativeTimeSpan = TimeSpan.FromMilliseconds(element.RelativeTime);
+
+            /* TODO: Add Flag
+            if (ParsedCommandLineArguments.Flags.Contains("RELATIVETIMESECONDS"))
+                _relativeTimeSpan = TimeSpan.FromSeconds(element.RelativeTime);
+            */
+
             logxLogDataRow rootParentLine = new logxLogDataRow()
             {
                 PersonIdentifier = _personIdentifier,
                 Element = uniqueValues["Element"].IndexOf(element.Item),
                 TimeStamp = element.TimeStamp,
-                RelativeTime = element.RelativeTime,
+                RelativeTime = _relativeTimeSpan,
                 ParentEventID = -1,
                 Path = uniqueValues["Path"].IndexOf(rootLogName),
                 ParentPath = uniqueValues["ParentPath"].IndexOf("(no parent)"),
@@ -338,15 +347,17 @@
             {
                 foreach (var v in logDataTables[_id])
                 {
-                    double _tmp = (v.TimeStamp - _startByPersonIdentifier[v.PersonIdentifier]).TotalMilliseconds;
-                    v.RelativeTime = (long)_tmp;
+                    //double _tmp = (v.TimeStamp - _startByPersonIdentifier[v.PersonIdentifier]).TotalMilliseconds;
+                    // v.RelativeTime = (long)_tmp;
+                    v.RelativeTime  = (v.TimeStamp - _startByPersonIdentifier[v.PersonIdentifier]);
+
                 }
 
                 logDataTables[_id].Sort((x, y) =>
                 {
                     int result = decimal.Compare(x.PersonIdentifier, y.PersonIdentifier);
                     if (result == 0)
-                        result = decimal.Compare(x.RelativeTime, y.RelativeTime);
+                        result = decimal.Compare((decimal)x.RelativeTime.TotalMilliseconds, (decimal)y.RelativeTime.TotalMilliseconds);
                     return result;
                 });
             }
@@ -448,7 +459,7 @@
                         {
                             _line[3] = Math.Round((v.TimeStamp - dt1960).TotalMilliseconds, 0);
                         }
-                        _line[4] = v.RelativeTime;
+                        _line[4] = Math.Round(v.RelativeTime.TotalMilliseconds,0);
                         _line[5] = v.EventID;
                         _line[6] = v.ParentEventID;
                         _line[7] = v.Path;
@@ -721,8 +732,8 @@
                                 else
                                 {
                                     _line[3] = (double)Math.Round((v.TimeStamp - dt1960).TotalMilliseconds, 0);
-                                }
-                                _line[4] = (double)v.RelativeTime;
+                                } 
+                                _line[4] = (double)(Math.Round(v.RelativeTime.TotalMilliseconds,0));  
                                 _line[5] = (double)v.EventID;
                                 _line[6] = (double)v.ParentEventID;
                                 _line[7] = (double)v.Path;
@@ -877,7 +888,7 @@
         {
             string filename = ParsedCommandLineArguments.Transform_OutputZCSV;
 
-            string _outputTimeStampFormatString = "dd.MM.yyyy hh:mm:ss.fff tt";
+            string _outputTimeStampFormatString = "dd.MM.yyyy hh:mm:ss.fff";
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputtimestampformatstring"))
                 _outputTimeStampFormatString = ParsedCommandLineArguments.ParameterDictionary["outputtimestampformatstring"];
 
@@ -911,9 +922,10 @@
                         {
                             sw.Write(id);
                             sw.Write(_sep + StringToCSVCell(uniqueValues["PersonIdentifier"][(int)v.PersonIdentifier]));
-                            sw.Write(_sep + StringToCSVCell(uniqueValues["Element"][v.Element]));
-                            sw.Write(_sep + StringToCSVCell(v.TimeStamp.ToString(_outputTimeStampFormatString, CultureInfo.InvariantCulture)));  
-                            sw.Write(_sep + StringToCSVCell(v.RelativeTime.ToString(_outputRelativeTimeFormatString)));  
+                            sw.Write(_sep + StringToCSVCell(uniqueValues["Element"][v.Element])); 
+                            sw.Write(_sep + StringToCSVCell(v.TimeStamp.ToString(_outputTimeStampFormatString)));  
+                             
+                            sw.Write(_sep + StringToCSVCell(Math.Round(v.RelativeTime.TotalMilliseconds,0).ToString()));  
                             sw.Write(_sep + StringToCSVCell(v.EventID.ToString()));
                             sw.Write(_sep + StringToCSVCell(v.ParentEventID.ToString()));
                             sw.Write(_sep + StringToCSVCell(uniqueValues["Path"][v.Path]));
@@ -1030,7 +1042,7 @@
         {
             string filename = ParsedCommandLineArguments.Transform_OutputXLSX;
 
-            string _outputTimeStampFormatString = "dd.MM.yyyy hh:mm:ss.fff tt";
+            string _outputTimeStampFormatString = "dd.MM.yyyy hh:mm:ss.fff";
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputtimestampformatstring"))
                 _outputTimeStampFormatString = ParsedCommandLineArguments.ParameterDictionary["outputtimestampformatstring"];
 
@@ -1100,7 +1112,7 @@
                       
                         row.CreateCell(2).SetCellValue(uniqueValues["Element"][v.Element]);
                         row.CreateCell(3).SetCellValue(v.TimeStamp.ToString());
-                        row.CreateCell(4).SetCellValue(v.RelativeTime.ToString(_outputTimeStampFormatString, CultureInfo.InvariantCulture));
+                        row.CreateCell(4).SetCellValue(Math.Round(v.RelativeTime.TotalMilliseconds,0));
                         row.CreateCell(5).SetCellValue(v.EventID.ToString(_outputRelativeTimeFormatString));
                         row.CreateCell(6).SetCellValue(v.ParentEventID.ToString());
                         row.CreateCell(7).SetCellValue(uniqueValues["Path"][v.Path]);
@@ -1563,7 +1575,7 @@
         public long PersonIdentifier { get; set; }
         public int Element { get; set; }
         public DateTime TimeStamp { get; set; }
-        public long RelativeTime { get; set; }
+        public TimeSpan RelativeTime { get; set; }
         public int ParentEventID { get; set; }
         public int EventID { get; set; }
         public int Path { get; set; }
@@ -1589,7 +1601,7 @@
     {
         public string PersonIdentifier { get; set; }
         public DateTime TimeStamp { get; set; }
-        public long RelativeTime { get; set; }
+        public double RelativeTime { get; set; }
         public int EventID { get; set; }
         public string Item { get; set; }
         public string EventName { get; set; }

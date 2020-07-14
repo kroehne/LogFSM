@@ -65,6 +65,8 @@
                 {
                     foreach (object[] _objectArray in _jsonArray)
                     {
+
+                        // TODO: Fix bug / Check: RelativeTime --> _messageCounter and EventID --> _timeCounter?
                         int _messageCounter = int.Parse(_objectArray[0].ToString());
                         int _timeCounter = int.Parse(_objectArray[1].ToString());
                         string _key = _objectArray[2].ToString();
