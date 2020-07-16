@@ -5,7 +5,9 @@
 \title{Prepare Log Data form Different Fromats for Use with LogFSM}
 \usage{
 PrepareLogData(zipfilename, outfilename, workingdir, verbose = F,
-  elements = "", datafiletype = "dataflatv01a", flags = "", ...)
+  elements = "", datafiletype = "dataflatv01a", flags = "",
+  outputtimestampformatstring = "dd.MM.yyyy hh:mm:ss.fff tt",
+  outputrelativetimeformatstring = "hh':'mm':'ss':'fff", ...)
 }
 \arguments{
 \item{zipfilename}{Name of the file containing the raw log data that should be used with LogFSM. 'PrepareLogData' will read from this file.}
@@ -22,11 +24,11 @@ PrepareLogData(zipfilename, outfilename, workingdir, verbose = F,
 
 \item{flags}{Optional flags as documented for the specific data formats. The flag "RELATIVETIME" can be used to prepare log data provided with relative timestamps. Multiple flags can be combined in the string variable using the pipe (|).}
 
-\item{...}{(Further arguments will be passed on if necessary)}
-
 \item{outputtimestampformatstring}{Format string for timestamps in the output (default: "dd.MM.yyyy hh:mm:ss.fff tt")}
 
 \item{outputrelativetimeformatstring}{Format string for relative times in the output (default: "hh':'mm':'ss':'fff")}
+
+\item{...}{(Further arguments will be passed on if necessary)}
 }
 \value{
 The function returns TRUE if a file was created.

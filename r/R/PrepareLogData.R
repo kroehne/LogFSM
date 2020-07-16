@@ -46,7 +46,9 @@
 #' @export
 #' @md
 
-PrepareLogData <- function(zipfilename, outfilename, workingdir, verbose=F, elements = "", datafiletype = "dataflatv01a", flags="", ...){
+PrepareLogData <- function(zipfilename, outfilename, workingdir, verbose=F, elements = "", datafiletype = "dataflatv01a", flags="",
+                           outputtimestampformatstring = "dd.MM.yyyy hh:mm:ss.fff tt",
+                           outputrelativetimeformatstring = "hh':'mm':'ss':'fff", ...){
 
   if(missing(workingdir)){
     workingdir <- rappdirs::user_data_dir()

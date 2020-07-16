@@ -73,7 +73,10 @@
 #' @md
 
 RunFSMSyntax <- function(fsmsyntax, datafilename, zipfilename, title="title", workingdir, outfilename,
-                         fsmfilename, fsmfiletype = "custom01", datafiletype = "jsonlite", verbose = F, flags = "",  maxnumberofcases= -1, datafilefilter="", ...){
+                         fsmfilename, fsmfiletype = "custom01", datafiletype = "jsonlite", verbose = F, flags = "",
+                         maxnumberofcases= -1, datafilefilter="",
+                         outputtimestampformatstring = "dd.MM.yyyy hh:mm:ss.fff tt",
+                         outputrelativetimeformatstring = "hh':'mm':'ss':'fff", ...){
 
   if(missing(workingdir)){
     workingdir <- rappdirs::user_data_dir()

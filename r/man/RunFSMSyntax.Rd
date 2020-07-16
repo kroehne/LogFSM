@@ -7,7 +7,9 @@
 RunFSMSyntax(fsmsyntax, datafilename, zipfilename, title = "title",
   workingdir, outfilename, fsmfilename, fsmfiletype = "custom01",
   datafiletype = "jsonlite", verbose = F, flags = "",
-  maxnumberofcases = -1, datafilefilter = "", ...)
+  maxnumberofcases = -1, datafilefilter = "",
+  outputtimestampformatstring = "dd.MM.yyyy hh:mm:ss.fff tt",
+  outputrelativetimeformatstring = "hh':'mm':'ss':'fff", ...)
 }
 \arguments{
 \item{fsmsyntax}{String variable containing the FSM syntax to be processed. The syntax string must include a valid LogFSM syntax segment in each line.}
@@ -36,11 +38,11 @@ RunFSMSyntax(fsmsyntax, datafilename, zipfilename, title = "title",
 
 \item{datafilefilter}{String mask, which is used to select files. If specified, only those files are processed whose file name matches the filter.}
 
-\item{...}{(Further arguments will be passed on if necessary)}
-
 \item{outputtimestampformatstring}{Format string for timestamps in the output (default: "dd.MM.yyyy hh:mm:ss.fff tt")}
 
 \item{outputrelativetimeformatstring}{Format string for relative times in the output (default: "hh':'mm':'ss':'fff")}
+
+\item{...}{(Further arguments will be passed on if necessary)}
 }
 \value{
 The function returns a list with the following components (i as machine index):
