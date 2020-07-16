@@ -183,6 +183,13 @@ namespace LogFSMShared
                             _isValidCondition = false;
                         }
                     }
+                    else if (c.Key == "Element")
+                    {
+                        if (e.Element.ToLower() != c.Value.ToLower())
+                        {
+                            _isValidCondition = false;
+                        }
+                    }
                     else
                     {
                         _isValidCondition = false;
@@ -567,6 +574,14 @@ namespace LogFSMShared
                                                 break;
                                             }
                                         }
+                                        else if (_key == "Element")
+                                        {
+                                            if (Data[k].Element != ConditionFilter[_key])
+                                            {
+                                                _rowIsTrue = false;
+                                                break;
+                                            }
+                                        }
                                         else if (Data[k].EventValues[_key] != Data[k].EventValues[ConditionFilter[_key]])
                                         {
                                             _rowIsTrue = false;
@@ -586,7 +601,15 @@ namespace LogFSMShared
                                                     break;
                                                 }
                                             }
-                                             else if (Data[k].EventValues[_key] != ConditionTrigger[_key])
+                                            else if (_key == "Element")
+                                            {
+                                                if (Data[k].Element != ConditionFilter[_key])
+                                                {
+                                                    _rowIsTrue = false;
+                                                    break;
+                                                }
+                                            }
+                                            else if (Data[k].EventValues[_key] != ConditionTrigger[_key])
                                             {
                                                 _rowIsTrue = false;
                                                 break;

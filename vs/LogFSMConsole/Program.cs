@@ -34,7 +34,7 @@ namespace LogFSMConsole
 
 #if DEBUG
             args = new string[1];
-            args[0] = @"";
+            args[0] = @"job=fsm&fsmfilename=C:%5CUsers%5Ckroehne%5CAppData%5CLocal/title.fsm&outfilename=C:%5CUsers%5Ckroehne%5CAppData%5CLocal/title.json&zipfilename=C:/work/tba_svn/neps-lifbi-2019-b128-onlinf-dp/reporting/monitoring_log.zip&datafiletype=jsonlite&fsmfiletype=custom01&datafilefilter=*.*&flags=&maxnumberofcases=5&verbose=TRUE&";
  #endif
 
             Stopwatch _watch = new Stopwatch();
@@ -423,9 +423,7 @@ namespace LogFSMConsole
 
                         _combinedResults.Tables.Add("TransitionFrequencyTotalsTable", _transitionFrequencyTotalsTable);
                         #endregion
-
-
-
+ 
                         #region "Create TransitionFrequencyPlot"
 
                         Dictionary<Tuple<int, string>, int> _totalOutGoing = new Dictionary<Tuple<int, string>, int>();

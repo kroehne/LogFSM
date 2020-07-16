@@ -23,6 +23,10 @@ PrepareLogData(zipfilename, outfilename, workingdir, verbose = F,
 \item{flags}{Optional flags as documented for the specific data formats. The flag "RELATIVETIME" can be used to prepare log data provided with relative timestamps. Multiple flags can be combined in the string variable using the pipe (|).}
 
 \item{...}{(Further arguments will be passed on if necessary)}
+
+\item{outputtimestampformatstring}{Format string for timestamps in the output (default: "dd.MM.yyyy hh:mm:ss.fff tt")}
+
+\item{outputrelativetimeformatstring}{Format string for relative times in the output (default: "hh':'mm':'ss':'fff")}
 }
 \value{
 The function returns TRUE if a file was created.
