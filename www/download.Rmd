@@ -38,4 +38,7 @@ install_local(path="PATH_AND/LogFSM_{Version}.tar.zip")
 |--------------|--------------------------|-----------|
 | 2016-09-08   | FDZ Autumn Academy 2016  |  [link](http://logfsm.com/download/fdz2016/material.zip)  |
 | 2019-08-30   | FDZ Autumn Academy 2019  |  [link](http://logfsm.com/download/fdz2019/material.zip)  |
+| 2020-06-19   | [Beyond-Results Workshop](https://beyond-results.com/frankfurt2020/logfsm/), Online  |  [link](http://logfsm.com/download/beyond2020/material.zip)  |
+ 
+
  

@@ -116,6 +116,10 @@
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("language"))
                     _language = ParsedCommandLineArguments.ParameterDictionary["language"];
 
+                double _utcoffset = 0;
+                if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("utcoffset"))
+                    _utcoffset = double.Parse(ParsedCommandLineArguments.ParameterDictionary["utcoffset"]);
+
                 // Create logXContainer 
 
                 logXContainer _ret = new LogFSM_LogX2019.logXContainer()
@@ -361,7 +365,7 @@
                                                     {
                                                          
                                                         List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log =
-                                                          LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseTraceLogs(_json);
+                                                          LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseTraceLogs(_json, _utcoffset);
                                                          
                                                         foreach (var _l in _log)
                                                         {

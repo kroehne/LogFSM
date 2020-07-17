@@ -19,7 +19,7 @@
     public static class JSON_IB_8_12__8_13_helper
     {
 
-        public static List<Log_IB_8_12__8_13> ParseTraceLogs(string line)
+        public static List<Log_IB_8_12__8_13> ParseTraceLogs(string line, double UTCOffset)
         {
             List<Log_IB_8_12__8_13> _ret = new List<Log_IB_8_12__8_13>();
 
@@ -48,7 +48,9 @@
                   
             } 
 
-            _ret.Add(new PlatformTraceLog() { Trigger = _trace.Trigger, Log = _trace.Log, Sender = _trace.Sender, TimeStamp = _trace.Timestamp, SessonId = _trace.SessionId , Element = _element, EventName = nameof(PlatformTraceLog) , Booklet = _bookklet, Preview  = _preview});
+            // Hint: Timestamp is currently UTC
+             
+            _ret.Add(new PlatformTraceLog() { Trigger = _trace.Trigger, Log = _trace.Log, Sender = _trace.Sender, TimeStamp = _trace.Timestamp + TimeSpan.FromHours(UTCOffset), SessonId = _trace.SessionId , Element = _element, EventName = nameof(PlatformTraceLog) , Booklet = _bookklet, Preview  = _preview});
 
             return _ret;
         }
