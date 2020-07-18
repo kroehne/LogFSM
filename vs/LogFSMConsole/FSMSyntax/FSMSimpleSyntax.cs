@@ -164,8 +164,8 @@
 
                             foreach (string _from in _listOfFromStates)
                             {
-                                if (!_fsmtrigger.States.Contains(_from + "_logfsm_id_" + _machineIndex))
-                                    _fsmtrigger.States.Add(_from + "_logfsm_id_" + _machineIndex);
+                                if (!_fsmtrigger.States.Contains(_from + "_logfsm_id_" + (_machineIndex - 1)))
+                                    _fsmtrigger.States.Add(_from + "_logfsm_id_" + (_machineIndex - 1));
                                  
                                 FSMOperator _fsmoperator = new FSMOperator() { OperatorString = _parsedLine.Operator, State = _from, TriggerName = _fsmtrigger.GetTriggerName, MachineIndex = _machineIndex - 1 };
   
@@ -255,8 +255,8 @@
 
                             foreach (string _state in _listOfIgnoredStates)
                             {
-                                if (!_fsmtrigger.States.Contains(_state + "_logfsm_id_" + _machineIndex))
-                                    _fsmtrigger.States.Add(_state + "_logfsm_id_" + _machineIndex);
+                                if (!_fsmtrigger.States.Contains(_state + "_logfsm_id_" + (_machineIndex-1)))
+                                    _fsmtrigger.States.Add(_state + "_logfsm_id_" + (_machineIndex - 1));
 
 
                                 FSMOperator _fsmoperator = new FSMOperator() { OperatorString = _parsedLine.Operator, State = _state, TriggerName = _fsmtrigger.GetTriggerName, MachineIndex = _machineIndex - 1 };
