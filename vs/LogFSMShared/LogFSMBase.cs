@@ -40,7 +40,8 @@ namespace LogFSMShared
         public virtual void ProcessEvent(List<EventData> Data, int EventIndex) { }
 
         public void ExecuteOperators(string OperatorString, List<EventData> Data, int EventIndex)
-        {
+        { 
+
             EventData e = Data[EventIndex];
             List<string> _operators = OperatorString.Split(";".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList<string>();
 
@@ -142,7 +143,7 @@ namespace LogFSMShared
             return true;
         }
 
-        public List<Tuple<string, string>> GetActiveTriggerNames(List<EventData> Data, int EventIndex, List<FSMTrigger> Trigger, int MachineIndex)
+        public List<Tuple<string, string>> GetActiveTriggerNames(List<EventData> Data, int EventIndex, List<FSMTrigger> Trigger, int MachineIndex, string CurrentState)
         { 
             List<Tuple<string, string>> _return = new List<Tuple<string, string>>();
 
@@ -164,6 +165,9 @@ namespace LogFSMShared
             foreach (FSMTrigger t in Trigger)
             {
                 if (t.MachineIndex != MachineIndex)
+                    continue;
+                 
+                if (!t.States.Contains(CurrentState))
                     continue;
 
                 bool _isValidCondition = true;
@@ -935,9 +939,19 @@ namespace LogFSMShared
             // return String.Join("", Identifier.Split(' ', '&', '|', '$', '*', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '(', '(', ',', '=', '\'', '\"', '|', '>', '<'));
         }
 
+        public List<string> States { get; set; }
+
+        public string GetStatesString
+        {
+            get
+            {
+                return String.Join(";", States);
+            }
+        }
+
         public Dictionary<string, string> Condition { get; set; }
          
-        public FSMTrigger(string ConditionString, string GuardString, string OperatorString, int MachineIndex)
+        public FSMTrigger(string ConditionString, string GuardString, string OperatorString, int MachineIndex, string StatesString)
         {
             this.ConditionString = ConditionString;
             this.OperatorString = OperatorString; 
@@ -959,9 +973,12 @@ namespace LogFSMShared
                 {
                     Condition.Add(_parts[0], _parts[1]);
                 }
-
             }
 
+            if (StatesString.Trim() != "")
+                States = StatesString.Split(';').ToList<string>();
+            else
+                States = new List<string>();
         }
     }
 }

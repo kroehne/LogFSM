@@ -180,7 +180,7 @@ namespace LogFSM
  
             foreach (var trigger in Trigger)
             {
-                createTriggerFunctionCodeFragment += "     Triggers.Add(new FSMTrigger(\"" + trigger.ConditionString + "\", \"" + trigger.GuardString + "\", \"" + trigger.OperatorString  + "\", " + trigger.MachineIndex + "));" + Environment.NewLine;
+                createTriggerFunctionCodeFragment += "     Triggers.Add(new FSMTrigger(\"" + trigger.ConditionString + "\", \"" + trigger.GuardString + "\", \"" + trigger.OperatorString  + "\", " + trigger.MachineIndex + ",\"" + trigger.GetStatesString + "\"));" + Environment.NewLine;
             }
             createTriggerFunctionCodeFragment += "}" + Environment.NewLine;
         }
@@ -242,7 +242,7 @@ namespace LogFSM
             createProcessEventMethodCodeFragment += "          EProccEventResult _res = EProccEventResult.Unknown;" + Environment.NewLine;
 
             createProcessEventMethodCodeFragment += "          //  Get list of active triggers" + Environment.NewLine;
-            createProcessEventMethodCodeFragment += "          List<Tuple<string,string>> _listOfTriggers = base.GetActiveTriggerNames(Data, EventIndex, Triggers, mIndex);" + Environment.NewLine;
+            createProcessEventMethodCodeFragment += "          List<Tuple<string,string>> _listOfTriggers = base.GetActiveTriggerNames(Data, EventIndex, Triggers, mIndex, machines[mIndex].State.ToString());" + Environment.NewLine;
             createProcessEventMethodCodeFragment += "          if (_listOfTriggers.Count > 0)" + Environment.NewLine;
             createProcessEventMethodCodeFragment += "          {" + Environment.NewLine; 
             createProcessEventMethodCodeFragment += "               foreach (Tuple<string,string> _triggerGuardTuple in _listOfTriggers)" + Environment.NewLine;
@@ -258,7 +258,7 @@ namespace LogFSM
             createProcessEventMethodCodeFragment += "                            //  Try to fire the trigger...  " + Environment.NewLine;             
             createProcessEventMethodCodeFragment += "                            try" + Environment.NewLine;
             createProcessEventMethodCodeFragment += "                            {" + Environment.NewLine;
-            createProcessEventMethodCodeFragment += "                                   //  Execute operators for the activated trigger: " + Environment.NewLine;
+            createProcessEventMethodCodeFragment += "                                   //  Execute operators for the activated trigger in the current state: " + Environment.NewLine;
             createProcessEventMethodCodeFragment += "                                   if (_triggerGuardTuple.Item2 != \"\")" + Environment.NewLine;
             createProcessEventMethodCodeFragment += "                                       base.ExecuteOperators(_triggerGuardTuple.Item2, Data, EventIndex);" + Environment.NewLine;
             createProcessEventMethodCodeFragment += "                                   //  Fire the trigger in the FSM: " + Environment.NewLine;
