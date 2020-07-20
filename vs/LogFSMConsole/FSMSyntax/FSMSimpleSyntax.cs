@@ -305,7 +305,7 @@
                 Replace("4", "four").Replace("5", "five").Replace("6", "six").
                 Replace("7", "seven").Replace("8", "eight").Replace("9", "nine").
                 Replace("|", "bar").Replace("<", "gt").Replace(">", "st").
-                Replace("-", "minus").Replace("+", "plus").Replace(".", "dot").Replace(" ", "");
+                Replace("-", "minus").Replace("+", "plus").Replace(".", "dot").Replace(" ", "").Replace(";","semicolon");
             // return String.Join("", Identifier.Split(' ', '&', '|', '$', '*', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '(', '(', ',', '=', '\'', '\"', '|', '>', '<'));
         }
 

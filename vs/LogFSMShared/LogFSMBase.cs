@@ -166,7 +166,7 @@ namespace LogFSMShared
             {
                 if (t.MachineIndex != MachineIndex)
                     continue;
-                 
+                
                 if (!t.States.Contains(CurrentState))
                     continue;
 
@@ -910,17 +910,8 @@ namespace LogFSMShared
                 string _ret = "t_";
                 foreach (string _k in Condition.Keys)
                     _ret = _ret + _k + "_" + CreateValidIdentifier(Condition[_k]) + "_";
-                _ret = _ret + CreateValidIdentifier(GuardString) + MachineIndex;
-
-                // TODO: Remove
-
-                //string _ret = "t_";
-                //foreach (string _k in Condition.Keys)
-                //    _ret = _ret + _k + "_" + Condition[_k] + "_";
-
-                //_ret = _ret + GuardString.Trim().Replace("(", "_").Replace(")", "_").Replace(" ", "").Replace("&", "_").Replace(",", "_").Replace("=", "_");
-                //if (_ret.EndsWith("_"))
-                //    _ret = _ret.Substring(0, _ret.Length - 1);
+               
+                _ret = _ret + CreateValidIdentifier(GuardString) + "_" + CreateValidIdentifier(OperatorString) + "_" + MachineIndex;
 
                 return _ret;
             }
@@ -935,7 +926,7 @@ namespace LogFSMShared
                 Replace("4", "four").Replace("5", "five").Replace("6", "six").
                 Replace("7", "seven").Replace("8", "eight").Replace("9", "nine").
                 Replace("|", "bar").Replace("<", "gt").Replace(">", "st").
-                Replace("-", "minus").Replace("+","plus").Replace(".","dot").Replace(" ", "");
+                Replace("-", "minus").Replace("+","plus").Replace(".","dot").Replace(" ", "").Replace(";", "semicolon");
             // return String.Join("", Identifier.Split(' ', '&', '|', '$', '*', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '(', '(', ',', '=', '\'', '\"', '|', '>', '<'));
         }
 
