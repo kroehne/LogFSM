@@ -41,62 +41,68 @@
             return _ret; 
         }
 
-        public static void UpdateFiles(List<json_IRTLib_V01__TokenLis> _sessions, string web, string username, string password, string key, string folder)
+        public static void UpdateFiles(List<json_IRTLib_V01__TokenLis> _sessions, string web, string username, string password, string key, string folder, string mask)
         {
             foreach (var _s in _sessions)
             {
-                if (_s.lastUpdate != DateTime.MinValue || true) 
+                bool _selected = true;
+
+                if (mask != "")
+                    _selected = CommandLineArguments.FitsMask(_s.sessionId, mask);
+
+                // TODO: Necessary to download all files?
+
+                if (File.Exists(folder + _s.sessionId + ".zip"))
                 {
-                    // TODO: Necessary to download all files?
-
-                    if (File.Exists(folder + _s.sessionId + ".zip"))
-                    {
-                        // TODO: Check DateTimes in ZIP
-                    }
-                     
-                    string _adress = web + _s.sessionId + "/result";
-                    try
-                    {
-                        Console.Write(" - Session '" + _s.sessionId + "' --> ");
-                        WebClient _client = new WebClient();
-                        if (username.Trim () != "" || password.Trim() != "")
-                        {
-                            string credentials = Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes(username + ":" + password));
-                            _client.Headers[HttpRequestHeader.Authorization] = string.Format("Basic {0}", credentials);
-                        }
-
-
-                        if (key.Trim() != "")
-                        {
-                            if (web.Contains("?"))
-                                _adress = _adress + "&apiKey=" + key;
-                            else
-                                _adress = _adress + "?apiKey=" + key;
-                        }
-
-                        _client.DownloadFile(_adress, folder + "//" + _s.sessionId + ".zip");
-
-                        FileInfo _fi = new FileInfo(folder + "//" + _s.sessionId + ".zip");
-
-                        
-                        Console.WriteLine(_fi.Length);
-
-                    }
-                    catch (System.Net.WebException _fnf)
-                    {
-                        Console.WriteLine(" Error - " + _fnf.Status + "");
-                    }
-                    catch (Exception _ex)
-                    {
-                        Console.WriteLine(" Unknown Error - " + _ex.ToString());
-                    }
-       
+                    // TODO: Check DateTimes in ZIP
                 }
 
+                if (_selected) 
+                {
+                    if (!Directory.Exists(folder))
+                    {
+                        Console.WriteLine(" Error - Specified directory '" + folder + "' not found");
+                    }
+                    else
+                    {
+                        string _adress = web + _s.sessionId + "/result";
+                        try
+                        {
+                            Console.Write(" - Session '" + _s.sessionId + "' --> ");
+                            WebClient _client = new WebClient();
+                            if (username.Trim() != "" || password.Trim() != "")
+                            {
+                                string credentials = Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes(username + ":" + password));
+                                _client.Headers[HttpRequestHeader.Authorization] = string.Format("Basic {0}", credentials);
+                            }
 
+
+                            if (key.Trim() != "")
+                            {
+                                if (web.Contains("?"))
+                                    _adress = _adress + "&apiKey=" + key;
+                                else
+                                    _adress = _adress + "?apiKey=" + key;
+                            }
+
+                            _client.DownloadFile(_adress, folder + "//" + _s.sessionId + ".zip");
+
+                            FileInfo _fi = new FileInfo(folder + "//" + _s.sessionId + ".zip");
+                             
+                            Console.WriteLine(_fi.Length);
+
+                        }
+                        catch (System.Net.WebException _fnf)
+                        {
+                            Console.WriteLine(" Error - " + _fnf.Status + "");
+                        }
+                        catch (Exception _ex)
+                        {
+                            Console.WriteLine(" Unknown Error - " + _ex.ToString());
+                        }
+                    }
+                }
             }
-           
-
         }
   
         public static void ProcessLogFilesOnly(Stopwatch Watch, CommandLineArguments ParsedCommandLineArguments)
@@ -160,10 +166,14 @@
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey(CommandLineArguments._CMDA_JOB_TRANSFORM_key))
                     _key = ParsedCommandLineArguments.ParameterDictionary[CommandLineArguments._CMDA_JOB_TRANSFORM_key];
 
+                string _mask = "";
+                if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey(CommandLineArguments._CMDA_mask))
+                    _mask = ParsedCommandLineArguments.ParameterDictionary[CommandLineArguments._CMDA_mask];
+
                 if (_web.Trim() != "")
                 {
                     var _sessions = RetrieveListOfSessesions(_web, _username, _password, _key);
-                    UpdateFiles(_sessions, _web, _username, _password, _key, ParsedCommandLineArguments.Transform_InputFolders[0]);
+                    UpdateFiles(_sessions, _web, _username, _password, _key, ParsedCommandLineArguments.Transform_InputFolders[0], _mask);
                 }
   
                 // Iterate over all input filters

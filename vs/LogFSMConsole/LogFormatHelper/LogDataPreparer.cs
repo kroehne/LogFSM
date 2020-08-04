@@ -1,11 +1,10 @@
-namespace LogFSMConsole     
+namespace LogFSMConsole
 {
     #region usings
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
-    using System.Threading.Tasks;
     using Ionic.Zip;
     using LogFSMShared;
     using StataLib;
@@ -15,11 +14,10 @@ namespace LogFSMConsole
     using System.Text.RegularExpressions;
     using System.Xml.Serialization;
     using System.Xml;
-    using System.Xml.Linq;
-    using Ionic.Zlib;
-    using CsvHelper;
+    using Ionic.Zlib; 
     using System.Globalization;
     using LogDataTransformer_PIAAC_R1_V01;
+    using CsvHelper;
     #endregion
 
     public class LogDataPreparer

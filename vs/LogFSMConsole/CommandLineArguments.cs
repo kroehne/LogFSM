@@ -309,6 +309,7 @@ namespace LogFSMConsole
         public string ZIPFileFilterName = "";
         public bool AddEventInfo = false;
         public List<string> Flags = new List<string>();
+        public string UniversalFileFormat = "Stata";
 
         public bool RelativeTime = false;
 
@@ -426,9 +427,45 @@ namespace LogFSMConsole
                             _return = false;
                         }
                     }
+                    else if (DataFileTypeIsUniversalLogFormat)
+                    {
+                        if (!File.Exists(ZIPFileName))
+                        {
+                            Console.WriteLine("- Error (DF106 / Archive not found): Archive file '" + ZIPFileName + "' not found. Check the value provided as 'zipfilename'.");
+                            _return = false;
+
+                            int _NumberOfStataFiles = 0;
+                            int _NumberOfSPSSFiles = 0;
+                            int _NumberOfSCSVSFiles = 0; 
+                            using (ZipFile zip = ZipFile.Read(ZIPFileName))
+                            {
+                                foreach (var entry in zip)
+                                {
+                                    if (entry.FileName.ToLower().EndsWith(".dta"))
+                                        _NumberOfStataFiles += 1;
+                                    else if (entry.FileName.ToLower().EndsWith(".sav"))
+                                        _NumberOfSPSSFiles += 1;
+                                    else if (entry.FileName.ToLower().EndsWith(".csv"))
+                                        _NumberOfSCSVSFiles += 1;
+                                }
+                            }
+
+                            if (_NumberOfSCSVSFiles != 0 && _NumberOfSPSSFiles==0 && _NumberOfStataFiles == 0)
+                                UniversalFileFormat = "CSV";
+                            else if (_NumberOfSCSVSFiles == 0 && _NumberOfSPSSFiles != 0 && _NumberOfStataFiles == 0)
+                                UniversalFileFormat = "SPSS";
+                            else if (_NumberOfSCSVSFiles == 0 && _NumberOfSPSSFiles == 0 && _NumberOfStataFiles != 0)
+                                UniversalFileFormat = "STATA";
+                            else
+                            {
+                                 Console.WriteLine("- Error (DF107 / Universal Log Format not Detected): Data format of not detected (SPSS: '" + _NumberOfSPSSFiles + "', Stata: '" + _NumberOfStataFiles + "', CSV: '" + _NumberOfStataFiles +"')");
+                                _return = false;
+                            }
+                        }
+                    }
                     else
                     {
-                        Console.WriteLine("- Error (DF101 / Format unkown): Data of file type '" + DataFileType + "' not supported. Check the value provided as 'datafiletype'. ");
+                        Console.WriteLine("- Error (DF101 / Format Unknown): Data of file type '" + DataFileType + "' not supported. Check the value provided as 'datafiletype'. ");
                         _return = false;
                     }
                 }
@@ -639,6 +676,14 @@ namespace LogFSMConsole
             get
             {
                 return (FSMFileType.Trim().ToLower() == "custom01" || FSMFileType.Trim().ToLower() == "01");
+            }
+        }
+
+        public bool DataFileTypeIsUniversalLogFormat
+        {
+            get
+            {
+                return (DataFileType.Trim().ToLower() == "universal01");
             }
         }
 

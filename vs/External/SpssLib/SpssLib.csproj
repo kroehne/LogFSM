@@ -6,6 +6,7 @@
     <AssemblyName>SpssLib</AssemblyName>
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <RootNamespace>SpssLib</RootNamespace>
+    <Configurations>Debug;Release;Release TransformToUniversalLogForamt</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

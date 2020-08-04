@@ -20,6 +20,7 @@
 #' as single files (```datafilename```) or as ZIP archives with multiple files (```zipfilename```):
 #'
 #' * ```logfsmjson```: Format created by LogFSM when pre-processing using the function ```PrepareLogData.```
+#' * ```universal01``` : Format created by LogFSM when calling the function ```TransformToUniversalLogFormat.```
 #' * ```eexml```: Format created by the CBA ItemBuilder using the excecution environment.
 #'
 #' Data formats that require pre-processing using the function ```PrepareLogData``` to create

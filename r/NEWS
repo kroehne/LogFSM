@@ -1,6 +1,10 @@
 CHANGE-LOG
 ==========
 
+2020-08-04 0.4.5.8
+
+* Added 'universal01' as input format for RunFSMSyntax()
+
 2020-07-18 0.4.5.7
 
 * Added offset for importing data in format 'irtlibv01a'

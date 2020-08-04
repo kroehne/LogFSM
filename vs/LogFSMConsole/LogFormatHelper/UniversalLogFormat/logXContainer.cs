@@ -56,8 +56,6 @@
 
         #endregion
 
-
-
         public logXContainer()
         {
             PersonIdentifierIsNumber = true;
@@ -141,10 +139,10 @@
                   
                 }
 
-
                 string _value = "";
                 if (element.Results[_name]!= null)
-                    element.Results[_name].ToString();
+                    _value = element.Results[_name].ToString();
+
                 AddValueToResultDataTable(_name, _value, resultDataTable[element.PersonIdentifier]);
             }
  
@@ -169,8 +167,7 @@
             row.AttributValues.Add(new Tuple<int, int>(logDataTableColnames[path].IndexOf(name), uniqueValues[name].IndexOf(value)));
 
         }
-
-
+         
         public void AddEvent(logxGenericLogElement element)
         {
             if (CondordanceTable.Count != 0)
@@ -347,10 +344,7 @@
             {
                 foreach (var v in logDataTables[_id])
                 {
-                    //double _tmp = (v.TimeStamp - _startByPersonIdentifier[v.PersonIdentifier]).TotalMilliseconds;
-                    // v.RelativeTime = (long)_tmp;
                     v.RelativeTime  = (v.TimeStamp - _startByPersonIdentifier[v.PersonIdentifier]);
-
                 }
 
                 logDataTables[_id].Sort((x, y) =>
@@ -680,9 +674,9 @@
                     _varlist.Add(new SpssLib.SpssDataset.Variable("Line") { Label = CodebookDictionary.GetColumnNameDescription("Line", language) });
 
                     if (PersonIdentifierIsNumber || !labelContainers.ContainsKey("PersonIdentifier"))
-                        _varlist.Add(new SpssLib.SpssDataset.Variable("PersonIdentifierName") { Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", language, 64) });
+                        _varlist.Add(new SpssLib.SpssDataset.Variable(PersonIdentifierName) { Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", language, 64) });
                     else
-                        _varlist.Add(new SpssLib.SpssDataset.Variable("PersonIdentifierName") { ValueLabels = labelContainers["PersonIdentifier"], Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", language, 64) });
+                        _varlist.Add(new SpssLib.SpssDataset.Variable(PersonIdentifierName) { ValueLabels = labelContainers["PersonIdentifier"], Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", language, 64) });
 
                     _varlist.Add(new SpssLib.SpssDataset.Variable("Element") { ValueLabels = labelContainers["Element"], Label = CodebookDictionary.GetResultVariableLabel("Element", language, 64) });
                     _varlist.Add(new SpssLib.SpssDataset.Variable("TimeStamp") { /*ValueLabels = labelContainers["TimeStamp"],*/ Label = CodebookDictionary.GetResultVariableLabel("TimeStamp", language, 64) });
@@ -795,9 +789,9 @@
                     _varlist.Add(new SpssLib.SpssDataset.Variable("Line") { Label = CodebookDictionary.GetColumnNameDescription("Line", language) });
 
                     if (PersonIdentifierIsNumber || !labelContainers.ContainsKey("PersonIdentifier"))
-                        _varlist.Add(new SpssLib.SpssDataset.Variable("PersonIdentifierName") { Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", language, 64)}); 
+                        _varlist.Add(new SpssLib.SpssDataset.Variable(PersonIdentifierName) { Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", language, 64)}); 
                     else
-                        _varlist.Add(new SpssLib.SpssDataset.Variable("PersonIdentifierName") { ValueLabels = labelContainers["PersonIdentifier"],  Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", language, 64)}); 
+                        _varlist.Add(new SpssLib.SpssDataset.Variable(PersonIdentifierName) { ValueLabels = labelContainers["PersonIdentifier"],  Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", language, 64)}); 
                        
                     // Head
                     for (int _i = 0; _i < resultDataTableColnames.Count; _i++)
@@ -888,7 +882,7 @@
         {
             string filename = ParsedCommandLineArguments.Transform_OutputZCSV;
 
-            string _outputTimeStampFormatString = "dd.MM.yyyy hh:mm:ss.fff";
+            string _outputTimeStampFormatString = "dd.MM.yyyy HH:mm:ss.fff";
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputtimestampformatstring"))
                 _outputTimeStampFormatString = ParsedCommandLineArguments.ParameterDictionary["outputtimestampformatstring"];
 
@@ -1042,7 +1036,7 @@
         {
             string filename = ParsedCommandLineArguments.Transform_OutputXLSX;
 
-            string _outputTimeStampFormatString = "dd.MM.yyyy hh:mm:ss.fff";
+            string _outputTimeStampFormatString = "dd.MM.yyyy HH:mm:ss.fff";
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputtimestampformatstring"))
                 _outputTimeStampFormatString = ParsedCommandLineArguments.ParameterDictionary["outputtimestampformatstring"];
 
@@ -1082,7 +1076,7 @@
                     firstrow.CreateCell(3).SetCellValue("TimeStamp");
                     firstrow.CreateCell(4).SetCellValue("RelativeTime");
                     firstrow.CreateCell(5).SetCellValue("EventID");
-                    firstrow.CreateCell(6).SetCellValue("ParentEventID");
+                    firstrow.CreateCell(6).SetCellValue("ParentEventID");   
                     firstrow.CreateCell(7).SetCellValue("Path");
                     firstrow.CreateCell(8).SetCellValue("ParentPath");
                     firstrow.CreateCell(9).SetCellValue("EventName");
@@ -1118,8 +1112,7 @@
                         row.CreateCell(7).SetCellValue(uniqueValues["Path"][v.Path]);
                         row.CreateCell(8).SetCellValue(uniqueValues["ParentPath"][v.ParentPath]);
                         row.CreateCell(9).SetCellValue(uniqueValues["EventName"][v.EventName]);
-
-
+                         
                         if (logDataTableColnames.ContainsKey(_id))
                         {
                             int _colIndex = 10;

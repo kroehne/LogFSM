@@ -78,13 +78,11 @@ namespace TransformToUniversalLogFormat
         static void Main(string[] args)
         { 
             // Register Code Page for Stata / SPSS  
-            Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-        
+            Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance); 
             if (args.Length == 0)
                 args = new string[] { "--help" };
 
 #if DEBUG
-
 
 #endif
 

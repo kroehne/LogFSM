@@ -50,7 +50,7 @@
 
             // Hint: Timestamp is currently UTC
              
-            _ret.Add(new PlatformTraceLog() { Trigger = _trace.Trigger, Log = _trace.Log, Sender = _trace.Sender, TimeStamp = _trace.Timestamp + TimeSpan.FromHours(UTCOffset), SessonId = _trace.SessionId , Element = _element, EventName = nameof(PlatformTraceLog) , Booklet = _bookklet, Preview  = _preview});
+                _ret.Add(new PlatformTraceLog() { Trigger = _trace.Trigger, Log = _trace.Log, Sender = _trace.Sender, TimeStamp = _trace.Timestamp.AddHours(UTCOffset), SessonId = _trace.SessionId , Element = _element, EventName = nameof(PlatformTraceLog) , Booklet = _bookklet, Preview  = _preview});
 
             return _ret;
         }
@@ -266,6 +266,8 @@
                         }
                         details.HitList = taskResultDict.Values.ToArray<HitList>();
                     }
+
+                    
                     _ret.Add(details);
                     #endregion
                 }

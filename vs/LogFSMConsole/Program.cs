@@ -234,6 +234,27 @@ namespace LogFSMConsole
                 }
                 _temporaryResultFiles.AddRange(ProcessLogData(ParsedCommandLineArguments, _myGeneratedFSM, _logData));
             }
+            else if (ParsedCommandLineArguments.DataFileTypeIsUniversalLogFormat)
+            {
+                // extract list of person identifiers from log file
+                
+                List<string> _personIdentifiers = LogDataReader.GetListOfPersonIdentifiersFromUniversalLogFormat(ParsedCommandLineArguments.ZIPFileName, ParsedCommandLineArguments);
+               
+                // loop over all person identifiers 
+                foreach (string _p in _personIdentifiers)
+                {
+                    if (ParsedCommandLineArguments.MaxNumberOfCases > 0 && ParsedCommandLineArguments.currentNumberOfPersons >= ParsedCommandLineArguments.MaxNumberOfCases)
+                        break;
+
+                    if (ParsedCommandLineArguments.DataFileFilter == "" | CommandLineArguments.FitsMask(_p, ParsedCommandLineArguments.DataFileFilter))
+                    {
+                        _logData = LogDataReader.ReadLogUniversalLogFormat(ParsedCommandLineArguments.ZIPFileName, _p, ParsedCommandLineArguments.RelativeTime, ParsedCommandLineArguments, ParsedCommandLineArguments.Elements, sort);
+                        ILogFSM _myGeneratedFSM = (ILogFSM)_compiledFSMAssembly.CreateInstance("LogFSMTests" + "." + "LogFSMTests");
+                        _temporaryResultFiles.AddRange(ProcessLogData(ParsedCommandLineArguments, _myGeneratedFSM, _logData));
+                    }
+                }
+                 
+            }
             else if (ParsedCommandLineArguments.DataFileTypeIsEEZip || ParsedCommandLineArguments.DataFileTypeIsLogFSMJsonZip || ParsedCommandLineArguments.DataFileTypeIsJsonLiteZip)
             {
                 using (ZipFile zip = ZipFile.Read(ParsedCommandLineArguments.ZIPFileName))
@@ -242,24 +263,10 @@ namespace LogFSMConsole
                     {
                         ILogFSM _myGeneratedFSM = (ILogFSM)_compiledFSMAssembly.CreateInstance("LogFSMTests" + "." + "LogFSMTests");
                         ZipEntry entry = zip[ParsedCommandLineArguments.DataFileName];
-                        ExtractAndProcess(ParsedCommandLineArguments, entry, _logData, _temporaryResultFiles, _myGeneratedFSM, sort);
+                        ExtractAndProcessFlatAndSparseLogFileTables(ParsedCommandLineArguments, entry, _logData, _temporaryResultFiles, _myGeneratedFSM, sort);
                     }
                     else if (ParsedCommandLineArguments.DataFileFilter != "")
                     {
-
-                        /*
-                        Parallel.ForEach(zip.Entries, (entry, state) =>
-                        {
-                            if (ParsedCommandLineArguments.MaxNumberOfCases > 0 && ParsedCommandLineArguments.currentNumberOfPersons >= ParsedCommandLineArguments.MaxNumberOfCases)
-                                state.Break();
-                            
-                            if (CommandLineArguments.FitsMask(entry.FileName, ParsedCommandLineArguments.DataFileFilter))
-                            {
-                                ILogFSM _myGeneratedFSM = (ILogFSM)_compiledFSMAssembly.CreateInstance("LogFSMTests" + "." + "LogFSMTests");
-                                ExtractAndProcess(ParsedCommandLineArguments, entry, _logData, _temporaryResultFiles, _myGeneratedFSM);
-                            }
-                        });
-                         */
                          
                         foreach (var entry in zip)
                         {
@@ -268,7 +275,7 @@ namespace LogFSMConsole
                             if (CommandLineArguments.FitsMask(entry.FileName, ParsedCommandLineArguments.DataFileFilter))
                             {
                                 ILogFSM _myGeneratedFSM = (ILogFSM)_compiledFSMAssembly.CreateInstance("LogFSMTests" + "." + "LogFSMTests");
-                                ExtractAndProcess(ParsedCommandLineArguments, entry, _logData, _temporaryResultFiles, _myGeneratedFSM, sort);
+                                ExtractAndProcessFlatAndSparseLogFileTables(ParsedCommandLineArguments, entry, _logData, _temporaryResultFiles, _myGeneratedFSM, sort);
                             }
 
                         }
@@ -282,7 +289,7 @@ namespace LogFSMConsole
                                 break;
                              
                             ILogFSM _myGeneratedFSM = (ILogFSM)_compiledFSMAssembly.CreateInstance("LogFSMTests" + "." + "LogFSMTests");
-                            ExtractAndProcess(ParsedCommandLineArguments, entry, _logData, _temporaryResultFiles, _myGeneratedFSM, sort);
+                            ExtractAndProcessFlatAndSparseLogFileTables(ParsedCommandLineArguments, entry, _logData, _temporaryResultFiles, _myGeneratedFSM, sort);
                         }
                     }
                 }
@@ -642,8 +649,9 @@ namespace LogFSMConsole
                 foreach (string columnName in _columnNames)
                     row[columnName] = row[columnName] == null ? NewNullValue : row[columnName];
         }
+         
 
-        private static void ExtractAndProcess(CommandLineArguments ParsedCommandLineArguments, ZipEntry entry, List<EventData> _logData, List<string> _resultFiles, ILogFSM _myGeneratedFSM, EventDataListExtension.ESortType Sort)
+        private static void ExtractAndProcessFlatAndSparseLogFileTables(CommandLineArguments ParsedCommandLineArguments, ZipEntry entry, List<EventData> _logData, List<string> _resultFiles, ILogFSM _myGeneratedFSM, EventDataListExtension.ESortType Sort)
         {
             
             using (MemoryStream zipStream = new MemoryStream())
@@ -681,7 +689,7 @@ namespace LogFSMConsole
             List<string> _tmpReturn = new List<string>();
             var _groupdLogData = _logDataAll.GroupBy(x => x.PersonIdentifier);
 
-            string _outputTimeStampFormatString = "dd.MM.yyyy hh:mm:ss.fff";
+            string _outputTimeStampFormatString = "dd.MM.yyyy HH:mm:ss.fff";
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputtimestampformatstring"))
                 _outputTimeStampFormatString = ParsedCommandLineArguments.ParameterDictionary["outputtimestampformatstring"];
 
