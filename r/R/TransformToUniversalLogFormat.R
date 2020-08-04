@@ -39,7 +39,7 @@
 #' @export
 #' @md
 TransformToUniversalLogFormat <- function(inputfolders, stataoutput="", zcsvoutput="", xlsxoutput="", spssoutput="",
-                                          inputformat = "", mask="*.*",verbose=F, excludedelements = "",
+                                          inputformat = "", mask="",verbose=F, excludedelements = "",
                                           table="",dictionary="",codebook="",logversion="default",
                                           flags="", ...){
 

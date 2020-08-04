@@ -36,7 +36,7 @@ namespace LogFSMConsole
             // TODO: Import from "irtlibv01a": Return cases with import errors. 
             args = new string[1];
             args[0] = @"";
- #endif
+#endif
 
             Stopwatch _watch = new Stopwatch();
             _watch.Start();

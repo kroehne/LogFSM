@@ -237,6 +237,9 @@
 
                                                         foreach (var _l in _log)
                                                         {
+                                                            if (_l.EventName == "")
+                                                                _l.Element = "(Platform)";
+
                                                             var g = new logxGenericLogElement()
                                                             {
                                                                 Item = _l.Element,

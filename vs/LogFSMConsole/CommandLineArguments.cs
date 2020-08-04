@@ -43,6 +43,15 @@ namespace LogFSMConsole
         /// </summary>
         public const string _CMDA_elements = "elements";
 
+        /// <summary>
+        /// Excluded events.
+        /// </summary>
+        public const string _CMDA_excludedevents = "excludedevents";
+
+        /// <summary>
+        /// Selected events.
+        /// </summary>
+        public const string _CMDA_events = "events";
 
         /// <summary>
         /// Flags
@@ -304,6 +313,8 @@ namespace LogFSMConsole
         public string PersonIdentifier = "";
         public string[] Elements = { };
         public string[] ExcludedElements = { };
+        public string[] Events = { };
+        public string[] ExcludedEvents= { };
         public string ZIPPassword = "";
         public string DataFileTypeDetails = "";
         public string ZIPFileFilterName = "";
@@ -820,7 +831,13 @@ namespace LogFSMConsole
             this.ExcludedElements = _excludedElementsString.Split(";".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
             string _elementsString = GetParameterOrDefault(_CMDA_elements, "");
-            Elements = _elementsString.Split(";".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+            this.Elements = _elementsString.Split(";".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+
+            string _excludedEventsString = GetParameterOrDefault(_CMDA_excludedevents, "");
+            this.ExcludedEvents = _excludedEventsString.Split(";".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+
+            string _eventsString = GetParameterOrDefault(_CMDA_events, "");
+            this.Events = _eventsString.Split(";".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
             #endregion
 
