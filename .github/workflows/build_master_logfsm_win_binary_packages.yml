@@ -29,7 +29,7 @@ jobs:
         dotnet-version: '3.1.100' 
       
     - name: Build Dotnet Worker 
-      run: echo "dotnet build vs/LogFSMCore.sln -c Release -p:Version=$VERSION"
+      run: echo "dotnet build vs/LogFSMCore.sln -c "Release LogFSM" -p:Version=$VERSION"
       shell: bash
       
     - name: Prepare Folders 1
@@ -42,7 +42,7 @@ jobs:
       run: mkdir r/inst/extdata/win-x64
       
     - name: 'Publish Windows Worker 2'   
-      run: dotnet publish vs/LogFSMCore.sln -c release -r win7-x64 -o "r/inst/extdata/win-x64"
+      run: dotnet publish vs/LogFSMCore.sln -c "Release LogFSM" -r win7-x64 -o "r/inst/extdata/win-x64"
  
     - name: Setup R Environment
       uses: r-lib/actions/setup-r@master
