@@ -1,8 +1,15 @@
 rmarkdown::render_site(encoding = 'UTF-8', input="www")
 
-# TODO: Add check for currently installed version of LogFSM!
-
-install_script <- c("cat('LogFSM - Install\\n\\n')",
+current_version <- '0.4.5.9'
+  
+install_script <- c(paste0("cat('LogFSM - Install Version ",current_version, "\\n\\n')"),
+                    paste0("current_version <- '",current_version,"'"),
+                    "installed_version <- ''",
+                    "if('LogFSM' %in% rownames(installed.packages())) {",
+                    "  installed_version <- gsub('‘','',packageVersion('LogFSM'))",
+                    "}",
+                    "",
+                    "if (current_version != installed_version){",
                     "list.of.packages <- c('remotes')",
                     "new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,'Package'])]",
                     "if(length(new.packages)) {",
@@ -16,8 +23,11 @@ install_script <- c("cat('LogFSM - Install\\n\\n')",
                     "  cat(paste('LogFSM is not available for:',Sys.info()[['machine']],'\n'))",
                     "  cat('Installation failed.') ",
                     "} else {",
-                    "  remotes::install_url('https://github.com/kroehne/LogFSM/releases/download/0.4.5.3/LogFSM_0.4.5.3.tar.gz', build_vignettes=T)",
+                    paste0("  remotes::install_url('https://github.com/kroehne/LogFSM/releases/download/",current_version,"/LogFSM_",current_version,".tar.gz', build_vignettes=T)"),
                     "  cat('Done.\\nType library(LogFSM) to start. For more information type ??LogFSM or help(package = \"LogFSM\").')",
+                    "}",
+                    "} else {",
+                    paste0("  cat('The current version ", current_version, " is installed.')"),
                     "}")
 
 write(install_script, file = "www/_site/latest")
