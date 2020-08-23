@@ -8,6 +8,8 @@
     using System.IO;
     using System.Linq;
     using System.Net;
+    using System.Runtime.InteropServices.WindowsRuntime;
+    using System.Text.RegularExpressions;
     using Ionic.Zip;
     using LogFSM_LogX2019;
     using LogFSMConsole;
@@ -47,7 +49,7 @@
             {
                 bool _selected = true;
 
-                if (mask != "")
+                if (mask != "" && mask != "*.*")
                     _selected = CommandLineArguments.FitsMask(_s.sessionId, mask);
 
                 // TODO: Necessary to download all files?
@@ -175,10 +177,16 @@
                     var _sessions = RetrieveListOfSessesions(_web, _username, _password, _key);
                     UpdateFiles(_sessions, _web, _username, _password, _key, ParsedCommandLineArguments.Transform_InputFolders[0], _mask);
                 }
-  
+
+                if (ParsedCommandLineArguments.Transform_OutputStata.Trim() == "" && ParsedCommandLineArguments.Transform_OutputXLSX.Trim() == "" &&
+                    ParsedCommandLineArguments.Transform_OutputZCSV.Trim() == "" && ParsedCommandLineArguments.Transform_OutputSPSS.Trim() == "")
+                {
+                    return; 
+                }
+
                 // Iterate over all input filters
 
-                foreach (string inFolder in ParsedCommandLineArguments.Transform_InputFolders)
+                    foreach (string inFolder in ParsedCommandLineArguments.Transform_InputFolders)
                 {
                     if (!Directory.Exists(inFolder))
                     {
@@ -223,7 +231,8 @@
                                             {
                                                 if (entry.FileName.StartsWith("Trace.json"))
                                                 {
-                                                    string _json = line;
+                                                    string _json = line; 
+                                                      
                                                     if (_json.EndsWith(","))
                                                         _json = _json.Substring(0, _json.Length - 1);
 
@@ -239,7 +248,7 @@
                                                         {
                                                             if (_l.EventName == "")
                                                                 _l.Element = "(Platform)";
-
+                                                             
                                                             var g = new logxGenericLogElement()
                                                             {
                                                                 Item = _l.Element,
@@ -249,8 +258,16 @@
                                                                 TimeStamp = _l.TimeStamp
                                                             };
 
-                                                            g.EventDataXML = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.XmlSerializeToString(_l);
-                                                            _ret.AddEvent(g);
+                                                            try
+                                                            {
+                                                                g.EventDataXML = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.XmlSerializeToString(_l);
+                                                                _ret.AddEvent(g);
+                                                            }
+                                                            catch (Exception _innerex)
+                                                            {
+                                                                Console.WriteLine("Error Processing xml: '" + g.EventDataXML + "' - Details: " + _innerex.Message);
+                                                            }
+                                                            
                                                         }
 
                                                     } 
@@ -438,6 +455,8 @@
                 }
 
                 _ret.UpdateRelativeTimes();
+                _ret.CreateLookup();
+
 
                 if (ParsedCommandLineArguments.Transform_OutputStata.Trim() != "")
                 {

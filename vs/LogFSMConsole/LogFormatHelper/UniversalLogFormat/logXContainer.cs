@@ -45,7 +45,8 @@
         public Dictionary<string, List<logxLogDataRow>> logDataTables { get; set; }
         public Dictionary<string, List<string>> logDataTableColnames { get; set; }
 
-        public Dictionary<string, List<string>> uniqueValues = new Dictionary<string, List<string>>();
+        public Dictionary<string, Dictionary<string,int>> uniqueValues = new Dictionary<string, Dictionary<string,int>>();
+        public Dictionary<string, Dictionary<int, string>> uniqueValuesLookup = new Dictionary<string, Dictionary<int, string>>();
 
         public List<string> ExportErrors = new List<string>();
 
@@ -72,17 +73,30 @@
             PersonIdentifierName = "PersonIdentifier";
 
             if (!uniqueValues.ContainsKey("PersonIdentifier"))
-                uniqueValues.Add("PersonIdentifier", new List<string>());
+                uniqueValues.Add("PersonIdentifier", new Dictionary<string, int>());
             if (!uniqueValues.ContainsKey("Element"))
-                uniqueValues.Add("Element", new List<string>());
+                uniqueValues.Add("Element", new Dictionary<string, int>());
             if (!uniqueValues.ContainsKey("Path"))
-                uniqueValues.Add("Path", new List<string>());
+                uniqueValues.Add("Path", new Dictionary<string, int>());
             if (!uniqueValues.ContainsKey("ParentPath"))
-                uniqueValues.Add("ParentPath", new List<string>());
+                uniqueValues.Add("ParentPath", new Dictionary<string, int>());
             if (!uniqueValues.ContainsKey("EventName"))
-                uniqueValues.Add("EventName", new List<string>());
+                uniqueValues.Add("EventName", new Dictionary<string, int>());
 
             CondordanceTable = new Dictionary<string, string>();
+        }
+
+        public void CreateLookup()
+        {
+            foreach (string table in uniqueValues.Keys)
+            {
+                uniqueValuesLookup.Add(table, new Dictionary<int, string>());
+                foreach (string key in uniqueValues[table].Keys)
+                {
+                    uniqueValuesLookup[table].Add(uniqueValues[table][key], key);
+                }
+
+            }
         }
 
         public void AddResults(logxGenericResultElement element)
@@ -100,10 +114,10 @@
             long _personIdentifier = -1;
             if (!PersonIdentifierIsNumber)
             {
-                if (!uniqueValues["PersonIdentifier"].Contains(element.PersonIdentifier))
-                    uniqueValues["PersonIdentifier"].Add(element.PersonIdentifier);
+                if (!uniqueValues["PersonIdentifier"].ContainsKey(element.PersonIdentifier))
+                    uniqueValues["PersonIdentifier"].Add(element.PersonIdentifier, uniqueValues["PersonIdentifier"].Count);
 
-                _personIdentifier = uniqueValues["PersonIdentifier"].IndexOf(element.PersonIdentifier);
+                _personIdentifier = uniqueValues["PersonIdentifier"][element.PersonIdentifier];
             }
             else
             {
@@ -153,10 +167,10 @@
         {
             string path = "Results";
             if (!uniqueValues.ContainsKey(name))
-                uniqueValues.Add(name, new List<string>());
+                uniqueValues.Add(name, new Dictionary<string,int>());
 
-            if (!uniqueValues[name].Contains(value))
-                uniqueValues[name].Add(value);
+            if (!uniqueValues[name].ContainsKey(value))
+                uniqueValues[name].Add(value, uniqueValues[name].Count);
 
             if (!logDataTableColnames.ContainsKey(path))
                 logDataTableColnames.Add(path, new List<string>());
@@ -164,7 +178,7 @@
             if (!logDataTableColnames[path].Contains(name)) 
                 logDataTableColnames[path].Add(name);
 
-            row.AttributValues.Add(new Tuple<int, int>(logDataTableColnames[path].IndexOf(name), uniqueValues[name].IndexOf(value)));
+            row.AttributValues.Add(new Tuple<int, int>(logDataTableColnames[path].IndexOf(name), uniqueValues[name][value]));
 
         }
          
@@ -178,25 +192,25 @@
                     element.PersonIdentifier = CondordanceTable[element.PersonIdentifier];
             }
 
-            if (!uniqueValues["Element"].Contains(element.Item))
-                uniqueValues["Element"].Add(element.Item);
+            if (!uniqueValues["Element"].ContainsKey(element.Item))
+                uniqueValues["Element"].Add(element.Item, uniqueValues["Element"].Count);
 
-            if (!uniqueValues["Path"].Contains(rootLogName))
-                uniqueValues["Path"].Add(rootLogName);
+            if (!uniqueValues["Path"].ContainsKey(rootLogName))
+                uniqueValues["Path"].Add(rootLogName, uniqueValues["Path"].Count);
 
-            if (!uniqueValues["ParentPath"].Contains("(no parent)"))
-                uniqueValues["ParentPath"].Add("(no parent)");
+            if (!uniqueValues["ParentPath"].ContainsKey("(no parent)"))
+                uniqueValues["ParentPath"].Add("(no parent)", uniqueValues["ParentPath"].Count);
 
-            if (!uniqueValues["EventName"].Contains(element.EventName))
-                uniqueValues["EventName"].Add(element.EventName);
+            if (!uniqueValues["EventName"].ContainsKey(element.EventName))
+                uniqueValues["EventName"].Add(element.EventName, uniqueValues["EventName"].Count);
 
             long _personIdentifier = -1;
             if (!PersonIdentifierIsNumber)
             {
-                if (!uniqueValues["PersonIdentifier"].Contains(element.PersonIdentifier))
-                    uniqueValues["PersonIdentifier"].Add(element.PersonIdentifier);
+                if (!uniqueValues["PersonIdentifier"].ContainsKey(element.PersonIdentifier))
+                    uniqueValues["PersonIdentifier"].Add(element.PersonIdentifier, uniqueValues["PersonIdentifier"].Count);
 
-                _personIdentifier = uniqueValues["PersonIdentifier"].IndexOf(element.PersonIdentifier);
+                _personIdentifier = uniqueValues["PersonIdentifier"][element.PersonIdentifier];
             }
             else
             {
@@ -224,14 +238,14 @@
             logxLogDataRow rootParentLine = new logxLogDataRow()
             {
                 PersonIdentifier = _personIdentifier,
-                Element = uniqueValues["Element"].IndexOf(element.Item),
+                Element = uniqueValues["Element"][element.Item],
                 TimeStamp = element.TimeStamp,
                 RelativeTime = _relativeTimeSpan,
                 ParentEventID = -1,
-                Path = uniqueValues["Path"].IndexOf(rootLogName),
-                ParentPath = uniqueValues["ParentPath"].IndexOf("(no parent)"),
+                Path = uniqueValues["Path"][rootLogName],
+                ParentPath = uniqueValues["ParentPath"]["(no parent)"],
                 EventID = element.EventID,
-                EventName = uniqueValues["EventName"].IndexOf(element.EventName),
+                EventName = uniqueValues["EventName"][element.EventName],
 
                 AttributValues = new List<Tuple<int, int>>(),
 
@@ -241,6 +255,7 @@
 
             if (element.EventDataXML != "")
             {
+                element.EventDataXML = element.EventDataXML.Replace("´&#x8;", "");
                 using (TextReader tr = new StringReader(element.EventDataXML))
                 {
                     XDocument doc = XDocument.Load(tr);
@@ -261,11 +276,11 @@
             if (split > 0)
                 parentPath = path.Substring(0, split);
 
-            if (!uniqueValues["Path"].Contains(path))
-                uniqueValues["Path"].Add(path);
+            if (!uniqueValues["Path"].ContainsKey(path))
+                uniqueValues["Path"].Add(path, uniqueValues["Path"].Count);
 
-            if (!uniqueValues["ParentPath"].Contains(parentPath))
-                uniqueValues["ParentPath"].Add(parentPath);
+            if (!uniqueValues["ParentPath"].ContainsKey(parentPath))
+                uniqueValues["ParentPath"].Add(parentPath, uniqueValues["ParentPath"].Count);
 
             logxLogDataRow newChildLine = new logxLogDataRow()
             {
@@ -275,8 +290,8 @@
                 RelativeTime = parentLine.RelativeTime,
                 ParentEventID = parentLine.EventID,
                 EventID = id,
-                Path = uniqueValues["Path"].IndexOf(path),
-                ParentPath = uniqueValues["ParentPath"].IndexOf(parentPath),
+                Path = uniqueValues["Path"][path],
+                ParentPath = uniqueValues["ParentPath"][parentPath],
                 EventName = parentLine.EventName,
                 AttributValues = new List<Tuple<int, int>>()
             };
@@ -311,10 +326,10 @@
                 _localPath = path + "." + _localPath;
 
             if (!uniqueValues.ContainsKey(name))
-                uniqueValues.Add(name, new List<string>());
+                uniqueValues.Add(name, new Dictionary<string, int>());
 
-            if (!uniqueValues[name].Contains(value))
-                uniqueValues[name].Add(value);
+            if (!uniqueValues[name].ContainsKey(value))
+                uniqueValues[name].Add(value, uniqueValues[name].Count);
 
             if (!logDataTableColnames.ContainsKey(path))
                 logDataTableColnames.Add(path, new List<string>());
@@ -323,7 +338,7 @@
 
                 logDataTableColnames[path].Add(name);
 
-            row.AttributValues.Add(new Tuple<int, int>(logDataTableColnames[path].IndexOf(name), uniqueValues[name].IndexOf(value)));
+            row.AttributValues.Add(new Tuple<int, int>(logDataTableColnames[path].IndexOf(name), uniqueValues[name][value]));
 
         }
 
@@ -371,7 +386,7 @@
                 if (!listOfLabelContainers.ContainsKey(k))
                     listOfLabelContainers.Add(k, "l_" + listOfLabelContainers.Count);
 
-                foreach (var c in uniqueValues[k])
+                foreach (var c in uniqueValues[k].Keys)
                 {
                     if (c == null)
                         continue;
@@ -432,7 +447,7 @@
                     if (!PersonIdentifierIsNumber)
                     {
                         for (int _i = 0; _i < uniqueValues["PersonIdentifier"].Count; _i++)
-                            _dtaFile.AddValueLabel("l_" + "PersonIdentifier", _i, uniqueValues["PersonIdentifier"][_i]);
+                            _dtaFile.AddValueLabel("l_" + "PersonIdentifier", _i, uniqueValuesLookup["PersonIdentifier"][_i]);
                     }
 
                     int id = 0;
@@ -472,7 +487,7 @@
                                     {
                                         if (p.Item1 == _i)
                                         {
-                                            _value = uniqueValues[logDataTableColnames[_id][_i]][p.Item2];
+                                            _value = uniqueValuesLookup[logDataTableColnames[_id][_i]][p.Item2];
                                             break;
                                         }
                                     }
@@ -505,7 +520,7 @@
                     foreach (string _labelSetName in new string[] { "Element", "Path", "ParentPath", "EventName" })
                     {
                         for (int _i = 0; _i < uniqueValues[_labelSetName].Count; _i++)
-                            _dtaFile.AddValueLabel("l_" + _labelSetName, _i, uniqueValues[_labelSetName][_i]);
+                            _dtaFile.AddValueLabel("l_" + _labelSetName, _i, uniqueValuesLookup[_labelSetName][_i]);
                     }
 
                     if (logDataTableColnames.ContainsKey(_id))
@@ -515,7 +530,7 @@
                             if (listOfLabelContainers.ContainsKey(_colname))
                             { 
                                 for (int _i = 0; _i < uniqueValues[_colname].Count; _i++)
-                                    _dtaFile.AddValueLabel(listOfLabelContainers[_colname], _i, uniqueValues[_colname][_i]);
+                                    _dtaFile.AddValueLabel(listOfLabelContainers[_colname], _i, uniqueValuesLookup[_colname][_i]);
 
                                 _dtaFile.AddValueLabel("l_" + _colname, -1, "(attribute not defined)");
                             }                           
@@ -570,7 +585,7 @@
                     if (!PersonIdentifierIsNumber)
                     {
                         for (int _i = 0; _i < uniqueValues["PersonIdentifier"].Count; _i++)
-                            _dtaFile.AddValueLabel("l_" + "PersonIdentifier", _i, uniqueValues["PersonIdentifier"][_i]);
+                            _dtaFile.AddValueLabel("l_" + "PersonIdentifier", _i, uniqueValuesLookup["PersonIdentifier"][_i]);
                     }
 
                     // Data 
@@ -594,7 +609,7 @@
                                     {
                                         if (p.Item1 == _i)
                                         {
-                                            _value = uniqueValues[logDataTableColnames[_id][_i]][p.Item2];
+                                            _value = uniqueValuesLookup[logDataTableColnames[_id][_i]][p.Item2];
                                             break;
                                         }
                                     }
@@ -629,7 +644,7 @@
                             if (listOfLabelContainers.ContainsKey(_key))
                             {
                                 for (int _i = 0; _i < uniqueValues[_key].Count; _i++)
-                                    _dtaFile.AddValueLabel(listOfLabelContainers[_key], _i, uniqueValues[_key][_i]);
+                                    _dtaFile.AddValueLabel(listOfLabelContainers[_key], _i, uniqueValuesLookup[_key][_i]);
 
                                 _dtaFile.AddValueLabel(listOfLabelContainers[_key], -1, "(attribute not defined)");
                             }
@@ -659,7 +674,7 @@
                     labelContainers.Add(k, new Dictionary<double, string>()); ;
 
                 for (int i = 0; i < uniqueValues[k].Count; i++)
-                    labelContainers[k].Add((double)i, uniqueValues[k][i]);
+                    labelContainers[k].Add((double)i, uniqueValuesLookup[k][i]);
 
                 labelContainers[k].Add((double)(-1), "(attribute not defined)");
             }
@@ -746,7 +761,7 @@
                                             {
                                                 if (p.Item1 == _i)
                                                 {
-                                                    _value = double.Parse(uniqueValues[logDataTableColnames[_id][_i]][p.Item2]);
+                                                    _value = double.Parse(uniqueValuesLookup[logDataTableColnames[_id][_i]][p.Item2]);
                                                     break;
                                                 }
                                             }
@@ -840,7 +855,7 @@
                                             {
                                                 if (p.Item1 == _i)
                                                 {
-                                                    _value = double.Parse(uniqueValues[logDataTableColnames[_id][_i]][p.Item2]);
+                                                    _value = double.Parse(uniqueValuesLookup[logDataTableColnames[_id][_i]][p.Item2]);
                                                     break;
                                                 }
                                             }
@@ -886,6 +901,8 @@
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputtimestampformatstring"))
                 _outputTimeStampFormatString = ParsedCommandLineArguments.ParameterDictionary["outputtimestampformatstring"];
 
+            // TODO: Format Relative Time 
+
             string _outputRelativeTimeFormatString = "hh':'mm':'ss':'fff";
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputrelativetimeformatstring"))
                 _outputRelativeTimeFormatString = ParsedCommandLineArguments.ParameterDictionary["outputrelativetimeformatstring"];
@@ -915,16 +932,16 @@
                         foreach (var v in logDataTables[_id])
                         {
                             sw.Write(id);
-                            sw.Write(_sep + StringToCSVCell(uniqueValues["PersonIdentifier"][(int)v.PersonIdentifier]));
-                            sw.Write(_sep + StringToCSVCell(uniqueValues["Element"][v.Element])); 
+                            sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["PersonIdentifier"][(int)v.PersonIdentifier]));
+                            sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["Element"][v.Element])); 
                             sw.Write(_sep + StringToCSVCell(v.TimeStamp.ToString(_outputTimeStampFormatString)));  
                              
                             sw.Write(_sep + StringToCSVCell(Math.Round(v.RelativeTime.TotalMilliseconds,0).ToString()));  
                             sw.Write(_sep + StringToCSVCell(v.EventID.ToString()));
                             sw.Write(_sep + StringToCSVCell(v.ParentEventID.ToString()));
-                            sw.Write(_sep + StringToCSVCell(uniqueValues["Path"][v.Path]));
-                            sw.Write(_sep + StringToCSVCell(uniqueValues["ParentPath"][v.ParentPath]));
-                            sw.Write(_sep + StringToCSVCell(uniqueValues["EventName"][v.EventName]));
+                            sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["Path"][v.Path]));
+                            sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["ParentPath"][v.ParentPath]));
+                            sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["EventName"][v.EventName]));
 
                             if (logDataTableColnames.ContainsKey(_id))
                             {
@@ -945,7 +962,7 @@
                                     }
                                     else
                                     {
-                                        sw.Write(_sep + StringToCSVCell(uniqueValues[logDataTableColnames[_id][_i]][_value]));
+                                        sw.Write(_sep + StringToCSVCell(uniqueValuesLookup[logDataTableColnames[_id][_i]][_value]));
                                     }
                                 }
                             }
@@ -990,7 +1007,7 @@
                             if (PersonIdentifierIsNumber)
                                 sw.Write(id + _sep + resultDataTable[v].PersonIdentifier);
                             else
-                                sw.Write(id + _sep + uniqueValues["PersonIdentifier"][(int)resultDataTable[v].PersonIdentifier]);
+                                sw.Write(id + _sep + uniqueValuesLookup["PersonIdentifier"][(int)resultDataTable[v].PersonIdentifier]);
   
                             for (int _i = 0; _i < resultDataTableColnames.Count; _i++)
                             {
@@ -1012,7 +1029,7 @@
                                     }
                                     else
                                     {
-                                        sw.Write(_sep + StringToCSVCell(uniqueValues[logDataTableColnames[_id][_i]][_value]));
+                                        sw.Write(_sep + StringToCSVCell(uniqueValuesLookup[logDataTableColnames[_id][_i]][_value]));
                                     }
                                 }  
                             }
@@ -1039,6 +1056,8 @@
             string _outputTimeStampFormatString = "dd.MM.yyyy HH:mm:ss.fff";
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputtimestampformatstring"))
                 _outputTimeStampFormatString = ParsedCommandLineArguments.ParameterDictionary["outputtimestampformatstring"];
+
+            // TODO: Format Relative Time 
 
             string _outputRelativeTimeFormatString = "hh':'mm':'ss':'fff";
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputrelativetimeformatstring"))
@@ -1101,17 +1120,17 @@
                         }
                         else
                         {
-                            row.CreateCell(1).SetCellValue(uniqueValues["PersonIdentifier"][(int)v.PersonIdentifier]);
+                            row.CreateCell(1).SetCellValue(uniqueValuesLookup["PersonIdentifier"][(int)v.PersonIdentifier]);
                         }
                       
-                        row.CreateCell(2).SetCellValue(uniqueValues["Element"][v.Element]);
+                        row.CreateCell(2).SetCellValue(uniqueValuesLookup["Element"][v.Element]);
                         row.CreateCell(3).SetCellValue(v.TimeStamp.ToString());
-                        row.CreateCell(4).SetCellValue(Math.Round(v.RelativeTime.TotalMilliseconds,0));
-                        row.CreateCell(5).SetCellValue(v.EventID.ToString(_outputRelativeTimeFormatString));
+                        row.CreateCell(4).SetCellValue(Math.Round(v.RelativeTime.TotalMilliseconds,0).ToString());
+                        row.CreateCell(5).SetCellValue(v.EventID.ToString());
                         row.CreateCell(6).SetCellValue(v.ParentEventID.ToString());
-                        row.CreateCell(7).SetCellValue(uniqueValues["Path"][v.Path]);
-                        row.CreateCell(8).SetCellValue(uniqueValues["ParentPath"][v.ParentPath]);
-                        row.CreateCell(9).SetCellValue(uniqueValues["EventName"][v.EventName]);
+                        row.CreateCell(7).SetCellValue(uniqueValuesLookup["Path"][v.Path]);
+                        row.CreateCell(8).SetCellValue(uniqueValuesLookup["ParentPath"][v.ParentPath]);
+                        row.CreateCell(9).SetCellValue(uniqueValuesLookup["EventName"][v.EventName]);
                          
                         if (logDataTableColnames.ContainsKey(_id))
                         {
@@ -1133,7 +1152,7 @@
                                 }
                                 else
                                 {
-                                    string _stringValue = uniqueValues[logDataTableColnames[_id][_i]][_value];
+                                    string _stringValue = uniqueValuesLookup[logDataTableColnames[_id][_i]][_value];
                                     if (_stringValue.Length > 32766)
                                     {
                                         
@@ -1143,7 +1162,7 @@
                                         }
                                         else
                                         {
-                                            ExportErrors.Add("- XLSX: Shortened string of length " + _stringValue.Length + " for person identifier '" + uniqueValues["PersonIdentifier"][(int)v.PersonIdentifier] + "', in table  '" + _id + "', for column '" + logDataTableColnames[_id][_i] + "'");
+                                            ExportErrors.Add("- XLSX: Shortened string of length " + _stringValue.Length + " for person identifier '" + uniqueValuesLookup["PersonIdentifier"][(int)v.PersonIdentifier] + "', in table  '" + _id + "', for column '" + logDataTableColnames[_id][_i] + "'");
                                         } 
 
                                         _stringValue = _stringValue.Substring(0, 32766);
@@ -1197,7 +1216,7 @@
                         }
                         else
                         {
-                            row.CreateCell(1).SetCellValue(uniqueValues["PersonIdentifier"][(int)resultDataTable[v].PersonIdentifier]);
+                            row.CreateCell(1).SetCellValue(uniqueValuesLookup["PersonIdentifier"][(int)resultDataTable[v].PersonIdentifier]);
                         }
 
                         _colIndex = 2;
@@ -1221,7 +1240,7 @@
                                 }
                                 else
                                 {
-                                    string _stringValue = uniqueValues[logDataTableColnames[_id][_i]][_value];
+                                    string _stringValue = uniqueValuesLookup[logDataTableColnames[_id][_i]][_value];
                                     if (_stringValue.Length > 32766)
                                     {
 
@@ -1231,7 +1250,7 @@
                                         }
                                         else
                                         {
-                                            ExportErrors.Add("- XLSX: Shortened string of length " + _stringValue.Length + " for person identifier '" + uniqueValues["PersonIdentifier"][(int)resultDataTable[v].PersonIdentifier] + "', in table  '" + _id + "', for column '" + logDataTableColnames[_id][_i] + "'");
+                                            ExportErrors.Add("- XLSX: Shortened string of length " + _stringValue.Length + " for person identifier '" + uniqueValuesLookup["PersonIdentifier"][(int)resultDataTable[v].PersonIdentifier] + "', in table  '" + _id + "', for column '" + logDataTableColnames[_id][_i] + "'");
                                         }
 
                                         _stringValue = _stringValue.Substring(0, 32766);
@@ -1404,8 +1423,8 @@
                 {
                     object[] _line = new object[_varlist.Count];
 
-                    _line[0] = uniqueValues["PersonIdentifier"][_i].ToString();
-                    _line[1] = uniqueValues["PersonIdentifier"][_i].ToString();
+                    _line[0] = uniqueValuesLookup["PersonIdentifier"][_i].ToString();
+                    _line[1] = uniqueValuesLookup["PersonIdentifier"][_i].ToString();
                     _dtaFile.AppendDataLine(_line);
                 }
 
@@ -1423,7 +1442,7 @@
                     int sheet_concordance_index = addRowValues(sheet_concordance, 0, new string[] { "OldPersonIdentifier", "NewPersonIdentifier" });
                     for (int _i = 0; _i < uniqueValues["PersonIdentifier"].Count; _i++)
                     {
-                        sheet_concordance_index = addRowValues(sheet_concordance, sheet_concordance_index, new string[] { uniqueValues["PersonIdentifier"][_i].ToString(), uniqueValues["PersonIdentifier"][_i].ToString() });
+                        sheet_concordance_index = addRowValues(sheet_concordance, sheet_concordance_index, new string[] { uniqueValuesLookup["PersonIdentifier"][_i].ToString(), uniqueValuesLookup["PersonIdentifier"][_i].ToString() });
                     }
                     workbook.Write(fs);
                 }
@@ -1437,7 +1456,7 @@
                 {
                     for (int _i = 0; _i < uniqueValues["PersonIdentifier"].Count; _i++)
                     {
-                        var r = new List<object> { new { OldPersonIdentifier = uniqueValues["PersonIdentifier"][_i].ToString(), NewPersonIdentifier = uniqueValues["PersonIdentifier"][_i].ToString() }, };
+                        var r = new List<object> { new { OldPersonIdentifier = uniqueValuesLookup["PersonIdentifier"][_i].ToString(), NewPersonIdentifier = uniqueValuesLookup["PersonIdentifier"][_i].ToString() }, };
                         csv.WriteRecords(r);
                     }
 
@@ -2112,7 +2131,7 @@
             return _ret;
         }
     }
-
+     
     #endregion
 
 }

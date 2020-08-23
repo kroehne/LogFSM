@@ -119,6 +119,11 @@
 
                 }
 
+                // TODO: Check!
+                //_ret.UpdateRelativeTimes();
+
+                _ret.CreateLookup();
+
                 if (ParsedCommandLineArguments.Transform_OutputStata.Trim() != "")
                 {
                     if (ParsedCommandLineArguments.Verbose)

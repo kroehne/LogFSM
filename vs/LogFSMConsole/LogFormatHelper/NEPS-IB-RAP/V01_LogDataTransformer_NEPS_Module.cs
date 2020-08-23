@@ -58,6 +58,10 @@
                 logXContainer _ret = CreateGenericLogContainer(_listOfFiles, _personIdentifier, true, ParsedCommandLineArguments.ExcludedElements);
                 _ret.LoadCodebookDictionary(ParsedCommandLineArguments.Transform_Dictionary);
 
+                // TODO: Check!
+                //_ret.UpdateRelativeTimes();
+                _ret.CreateLookup();
+
                 if (ParsedCommandLineArguments.Transform_OutputStata.Trim() != "")
                 {
                     if (ParsedCommandLineArguments.Verbose)

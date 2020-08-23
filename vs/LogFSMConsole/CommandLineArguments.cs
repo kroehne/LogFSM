@@ -22,7 +22,7 @@ namespace LogFSMConsole
         /// Request detailed output (verbose = true).
         /// </summary>
         public const string _CMDA_verbose = "verbose";
-
+  
         /// <summary>
         /// Request experimental features
         /// </summary>
@@ -527,17 +527,15 @@ namespace LogFSMConsole
              
                 if (this.Transform_InputFolders.Count() == 0)
                 {
+                    // Error
                     Console.WriteLine("No input folder specified.");
                     _return = false;
                 }
                  
                 if (this.Transform_OutputStata.Trim() == ""  && this.Transform_OutputXLSX.Trim() == "" && this.Transform_OutputZCSV.Trim() ==  "" && this.Transform_OutputSPSS.Trim() == "")
                 {
-                    Console.WriteLine("No output format specified. Create output files in current directory as default.");
-                    this.Transform_OutputStata = Path.Combine("out_stata.zip");
-                    this.Transform_OutputXLSX  = Path.Combine("out_excel.xlsx");
-                    this.Transform_OutputZCSV = Path.Combine("out_csv.zip"); 
-                    this.Transform_OutputSPSS = Path.Combine("out_spss.zip");
+                    // Warning
+                    Console.WriteLine("No output format specified. "); 
                 }
                 #endregion
             }
