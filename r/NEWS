@@ -1,6 +1,11 @@
 CHANGE-LOG
 ==========
 
+
+2020-09-22 0.4.5.10
+
+* Fixed bug in handling of "excludedevents"
+
 2020-08-23 0.4.5.9
 
 * Optimized generation of Universal Log Format

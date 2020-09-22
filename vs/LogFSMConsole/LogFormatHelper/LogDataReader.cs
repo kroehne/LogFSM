@@ -354,20 +354,30 @@
                                         }
                                     }
 
-                                    if (_personIdentifier == PersonIdentifier)
+                                    bool _add = true;
+                                    if (_personIdentifier != PersonIdentifier)
+                                        _add = false;
+                                    else if (ParsedCommandLineArguments.Elements.Length != 0 && !ParsedCommandLineArguments.Elements.Contains<string>(_element))
+                                        _add = false;
+                                    else if (ParsedCommandLineArguments.Events.Length != 0 && !ParsedCommandLineArguments.Events.Contains<string>(_eventName))
+                                        _add = false;
+                                    else if (ParsedCommandLineArguments.ExcludedElements.Length != 0 && ParsedCommandLineArguments.ExcludedElements.Contains<string>(_element))
+                                        _add = false;
+                                    else if (ParsedCommandLineArguments.ExcludedEvents.Length != 0 && ParsedCommandLineArguments.ExcludedEvents.Contains<string>(_eventName))
+                                        _add = false;
+
+                                    if (_add)
                                     {
-                                        if (Elements.Length == 0 || Elements.Contains<string>(_element))
+                                        _return.Add(new EventData()
                                         {
-                                            _return.Add(new EventData()
-                                            {
-                                                Element = _element,
-                                                EventName = _eventName,
-                                                PersonIdentifier = _personIdentifier,
-                                                TimeStamp = _timeStamp,
-                                                EventValues = _eventValues
-                                            });
-                                        }
+                                            Element = _element,
+                                            EventName = _eventName,
+                                            PersonIdentifier = _personIdentifier,
+                                            TimeStamp = _timeStamp,
+                                            EventValues = _eventValues
+                                        });
                                     }
+                                     
                                 }
 
                             }
@@ -426,22 +436,30 @@
                                     }
 
 
-                                    if (_personIdentifier == PersonIdentifier)
+                                    bool _add = true;
+                                    if (_personIdentifier != PersonIdentifier)
+                                        _add = false;
+                                    else if (ParsedCommandLineArguments.Elements.Length != 0 && !ParsedCommandLineArguments.Elements.Contains<string>(_element))
+                                        _add = false;
+                                    else if (ParsedCommandLineArguments.Events.Length != 0 && !ParsedCommandLineArguments.Events.Contains<string>(_eventName))
+                                        _add = false;
+                                    else if (ParsedCommandLineArguments.ExcludedElements.Length != 0 && ParsedCommandLineArguments.ExcludedElements.Contains<string>(_element))
+                                        _add = false;
+                                    else if (ParsedCommandLineArguments.ExcludedEvents.Length != 0 && ParsedCommandLineArguments.ExcludedEvents.Contains<string>(_eventName))
+                                        _add = false;
+
+                                    if (_add)
                                     {
-                                        if (Elements.Length == 0 || Elements.Contains<string>(_element))
+                                        _return.Add(new EventData()
                                         {
-                                            _return.Add(new EventData()
-                                            {
-                                                Element = _element,
-                                                EventName = _eventName,
-                                                PersonIdentifier = _personIdentifier,
-                                                TimeStamp = _timeStamp,
-                                                EventValues = _eventValues
-                                            });
-                                        }
+                                            Element = _element,
+                                            EventName = _eventName,
+                                            PersonIdentifier = _personIdentifier,
+                                            TimeStamp = _timeStamp,
+                                            EventValues = _eventValues
+                                        });
                                     }
-
-
+                                      
                                 }
 
                             }
