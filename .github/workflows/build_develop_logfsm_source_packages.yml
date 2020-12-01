@@ -14,13 +14,13 @@ jobs:
     - uses: actions/checkout@v1
      
     - name: Read Version from R Package
-      run: echo "$(grep "Version:" ${{ github.workspace }}/r/DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')"  >> $LOGFSM_VERSION_ENV
-      shell: bash
- 
+      run: echo "{VERSION}={$(grep "Version:" r/DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')}" >> $GITHUB_ENV
+      shell: bash      
+
     - name: Determine Shortened Hash 
-      run: echo "$(git log --pretty=format:'%h' -n 1)" >> $LOGFSM_HASH_ENV  
-  
-    - run: echo "Building Version $LOGFSM_VERSION_ENV ($LOGFSM_HASH_ENV)"
+      run: echo "{HASH}={$(git log --pretty=format:'%h' -n 1)}" >> $GITHUB_ENV
+     
+    - run: echo "Building Version $VERSION ($HASH)"
       shell: bash
  
     - name: Setup .NET Core
@@ -29,7 +29,7 @@ jobs:
         dotnet-version: '3.1.100' 
       
     - name: Build Dotnet Worker 
-      run: dotnet build vs/LogFSMCore.sln -c "Release LogFSM" -p:Version=$LOGFSM_VERSION_ENV
+      run: dotnet build vs/LogFSMCore.sln -c "Release LogFSM" -p:Version=$VERSION
       
     - name: Prepare Folders 1
       run: mkdir $GITHUB_WORKSPACE/r/inst
@@ -62,7 +62,7 @@ jobs:
  
     - uses: actions/upload-artifact@v1
       with:
-        name: ${{format('Develop_Win_LogFSM_{0}_{1}.tar.gz', $LOGFSM_VERSION_ENV, $LOGFSM_HASH_ENV)}}
-        path: ${{ github.workspace }}/${{format('LogFSM_{0}.tar.gz', $LOGFSM_VERSION_ENV)}}
+        name: ${{format('Develop_Win_LogFSM_{0}_{1}.tar.gz', env.VERSION, env.HASH)}}
+        path: ${{ github.workspace }}/${{format('LogFSM_{0}.tar.gz', env.VERSION)}}
         
    
