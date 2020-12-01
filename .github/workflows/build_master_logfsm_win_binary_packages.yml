@@ -64,6 +64,6 @@ jobs:
       
     - uses: actions/upload-artifact@v1
       with:
-        name: ${{format('Win_Binary_LogFSM_{0}.zip', LOGFSM_VERSION_ENV)}}
-        path: ${{format('LogFSM_{0}.zip', LOGFSM_VERSION_ENV}}
+        name: ${{format('Win_Binary_LogFSM_{0}.zip', $LOGFSM_VERSION_ENV)}}
+        path: ${{format('LogFSM_{0}.zip', $LOGFSM_VERSION_ENV}}
  
