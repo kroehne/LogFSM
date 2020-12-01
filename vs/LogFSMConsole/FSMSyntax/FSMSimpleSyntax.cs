@@ -151,16 +151,13 @@
                             states.Add(_machineIndex - 1, new List<string>());
                         
                         foreach (string _trigger in _listOfTriggerStrings)
-                        {
+                        { 
                             FSMTrigger _fsmtrigger = new FSMTrigger(_trigger.Trim(), _parsedLine.Guard, _parsedLine.Operator, _machineIndex - 1, "");
-
-                            /*
-                            if (!triggers.ContainsKey(_fsmtrigger.ConditionString))
-                                triggers.Add(_fsmtrigger.ConditionString, _fsmtrigger); 
-                            */
 
                             if (!triggers.ContainsKey(_fsmtrigger.GetTriggerName))
                                 triggers.Add(_fsmtrigger.GetTriggerName, _fsmtrigger);
+                            else
+                                _fsmtrigger = triggers[_fsmtrigger.GetTriggerName];
 
                             foreach (string _from in _listOfFromStates)
                             {

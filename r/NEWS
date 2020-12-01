@@ -1,6 +1,9 @@
 CHANGE-LOG
 ==========
 
+2020-12-01 0.4.5.11
+
+* Fixed bug in handling of identical triggers in different transitions
 
 2020-09-22 0.4.5.10
 
