@@ -1,6 +1,6 @@
 rmarkdown::render_site(encoding = 'UTF-8', input="www")
 
-current_version <- '0.4.5.10'
+current_version <- '0.4.5.11'
   
 install_script <- c(paste0("cat('LogFSM - Install Version ",current_version, "\\n\\n')"),
                     paste0("current_version <- '",current_version,"'"),
