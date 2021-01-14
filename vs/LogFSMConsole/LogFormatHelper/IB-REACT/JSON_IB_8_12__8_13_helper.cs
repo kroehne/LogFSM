@@ -118,20 +118,37 @@
                 if (entry.Type == "TasksViewVisible")
                 {
                     #region TasksViewVisible
-                    TasksViewVisible details = new TasksViewVisible()
+
+                    if (entry.Details.ContainsKey("settings"))
                     {
-                        Element = _element,
-                        EventID = int.Parse(entry.EntryId),
-                        EventName = entry.Type,
-                        PersonIdentifier = _personIdentifier,
-                        TimeStamp = DateTime.Parse(entry.Timestamp),
+                        var _s = entry.Details["settings"];
+                        TasksViewVisible details = new TasksViewVisible()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp)
+                        };
+
+                        if (_s.Contains("AllowScoreDebugging"))
+                             details.AllowScoreDebugging = bool.Parse(_s["AllowScoreDebugging"].ToString());
+
+                        if (_s.Contains("AllowFSMDebugging"))
+                            details.AllowFSMDebugging = bool.Parse(_s["AllowFSMDebugging"].ToString());
+
+                        if (_s.Contains("AllowTraceDebugging"))
+                            details.AllowTraceDebugging = bool.Parse(_s["AllowTraceDebugging"].ToString());
                          
-                        AllowScoreDebugging = bool.Parse(entry.Details["settings"]["AllowScoreDebugging"].ToString()),
-                        AllowFSMDebugging = bool.Parse(entry.Details["settings"]["AllowFSMDebugging"].ToString()),
-                        AllowTraceDebugging = bool.Parse(entry.Details["settings"]["AllowTraceDebugging"].ToString()),
-                        ShowTaskNavigationBars = bool.Parse(entry.Details["settings"]["ShowTaskNavigationBars"].ToString()),
-                    };
-                    _ret.Add(details);
+                        if (_s.Contains("ShowTaskNavigationBars"))
+                            details.ShowTaskNavigationBars = bool.Parse(_s["ShowTaskNavigationBars"].ToString());
+                       
+                        _ret.Add(details);
+
+
+
+                    }
+                     
                     #endregion
 
                     // Info: 'headerButtons', 'upperHeaderMenu', 'lowerHeaderMenu' ignored
@@ -1664,6 +1681,10 @@
                     // TODO: Implement with example data (or ignore!?)
                 }
                 else if (entry.Type == "Recommend")
+                {
+                    // TODO: Implement with example data
+                }
+                else if (entry.Type == "Rectangle")
                 {
                     // TODO: Implement with example data
                 }
