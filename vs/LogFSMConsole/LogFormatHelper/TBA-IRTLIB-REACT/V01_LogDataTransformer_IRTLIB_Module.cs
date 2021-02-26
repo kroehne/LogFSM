@@ -386,6 +386,10 @@
                                                 {
                                                     // TODO: Process 
                                                 }
+                                                else if (entry.FileName.StartsWith("Session.json"))
+                                                {
+                                                    // TODO: Process 
+                                                }
                                                 else if (entry.FileName.StartsWith("Log.json"))
                                                 {                                              
                                                     string _json = line;

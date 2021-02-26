@@ -1688,6 +1688,14 @@
                 {
                     // TODO: Implement with example data
                 }
+                else if (entry.Type == "VideoPlayerControl")
+                {
+                    // TODO: Implement with example data
+                }
+                else if (entry.Type == "ApplicationFullScreen")
+                {
+                    // TODO: Implement with example data
+                }
                 else
                 {
 

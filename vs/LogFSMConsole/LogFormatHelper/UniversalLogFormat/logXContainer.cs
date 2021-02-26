@@ -918,7 +918,7 @@
                 foreach (string _id in logDataTables.Keys)
                 {
                     string _tmpfile = GetTempFileName("csv");
-                    using (StreamWriter sw = new StreamWriter(_tmpfile))
+                    using (StreamWriter sw = new StreamWriter(new FileStream(_tmpfile, FileMode.OpenOrCreate), Encoding.UTF8))
                     {
                         sw.Write("Line" + _sep + "PersonIdentifier" + _sep + "Element" + _sep + "TimeStamp" + _sep + "RelativeTime" + _sep + "EventID" + _sep + "ParentEventID" + _sep + "Path" + _sep + "ParentPath" + _sep + "EventName");
                         if (logDataTableColnames.ContainsKey(_id))
@@ -984,7 +984,7 @@
                 {
                     string _id = "Results";
                     string _tmpfile = GetTempFileName("csv");
-                    using (StreamWriter sw = new StreamWriter(_tmpfile))
+                    using (StreamWriter sw = new StreamWriter(new FileStream(_tmpfile, FileMode.OpenOrCreate), Encoding.UTF8))
                     {
                         // Head
                         sw.Write("LINE" + _sep + "PersonIdentifier");

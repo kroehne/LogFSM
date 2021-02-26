@@ -83,7 +83,16 @@ namespace TransformToUniversalLogFormat
                 args = new string[] { "--help" };
 
 #if DEBUG
-
+args = new string[] {"--i",@"",
+                                 "--w", @"",
+                                 "--k", @"",
+                                 "--o", @"",
+                                 "--s", @"",
+                                 "--z", @"",
+                                 "--x", @"",
+                                 "--c", @"",
+                                 "--r", "irtlibv01a",
+                                 "--v"};
 #endif
 
             try

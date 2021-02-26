@@ -434,6 +434,8 @@ namespace StataLib
 
         private Stream st;
 
+        private Encoding env = Encoding.GetEncoding(1252);
+
         private IList<StataVariable> vars;
 
         private UInt32 dataCount = 0;
@@ -723,7 +725,7 @@ namespace StataLib
                     case StataVariable.StataVarType.FixedString:
                         {
                             string s = data[i].ToString().PadRight(item.FixedStringLength, (char)0x00).Substring(0, item.FixedStringLength);
-                            writeData.Add(new Action(() => bw.Write(s)));
+                            writeData.Add(new Action(() => bw.Write(env.GetString(Encoding.Default.GetBytes(s)))));
                         }
                         break;
                     #endregion
@@ -731,7 +733,7 @@ namespace StataLib
                     #region GSO Strings
                     case StataVariable.StataVarType.String:
                         {
-                            string s = data[i].ToString();
+                            string s = env.GetString(Encoding.Default.GetBytes(data[i].ToString()));
 
                             UInt32 v = 0;
                             UInt32 o = 0;
@@ -853,8 +855,8 @@ namespace StataLib
                     bw.Write((UInt32)item.Key);
                 }
                 foreach (var item in VLItem.Value)
-                {
-                    bw.Write(item.Value);
+                { 
+                    bw.Write(env.GetString(Encoding.Default.GetBytes(item.Value)));
                     bw.Write((byte)0x00);
                 }
                 var totalDataSize = bw.BaseStream.Position - fpos;
