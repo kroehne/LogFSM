@@ -10,6 +10,7 @@
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Text;
+    using System.Text.Json;
     using System.Xml;
     using System.Xml.Serialization;
     #endregion
@@ -27,14 +28,15 @@
             if (_trace.Log == null)
                 return _ret;
 
-            string _element ="";
+            string _element = "";
             string _test = "";
             string _task = "";
             string _bookklet = "";
             string _preview = "";
+            int _traceId = -1;
 
-            if (_trace.Context!= null)
-            { 
+            if (_trace.Context != null)
+            {
                 if (_trace.Context.Item != null)
                     _element = _trace.Context.Item;
                 if (_trace.Context.Test != null)
@@ -45,12 +47,12 @@
                     _bookklet = _trace.Context.Booklet;
                 if (_trace.Context.Preview != null)
                     _preview = _trace.Context.Preview;
-                  
-            } 
+                _traceId = _trace.TraceID;
 
-            // Hint: Timestamp is currently UTC
-             
-                _ret.Add(new PlatformTraceLog() { Trigger = _trace.Trigger, Log = _trace.Log, Sender = _trace.Sender, TimeStamp = _trace.Timestamp.AddHours(UTCOffset), SessonId = _trace.SessionId , Element = _element, EventName = nameof(PlatformTraceLog) , Booklet = _bookklet, Preview  = _preview});
+            }
+
+            // Hint: Timestamp is currently UTC 
+            _ret.Add(new PlatformTraceLog() { Trigger = _trace.Trigger, Log = _trace.Log, Sender = _trace.Sender, TimeStamp = _trace.Timestamp.AddHours(UTCOffset), SessonId = _trace.SessionId, Element = _element, EventName = nameof(PlatformTraceLog), Booklet = _bookklet, Preview = _preview, TraceId = _traceId });
 
             return _ret;
         }
@@ -63,24 +65,36 @@
             string _element = "";
             string _test = "";
             string _task = "";
+            int _tracId = -1;
+
             if (source == "IRTlibPlayer_V01")
             {
-                var _trace = JsonConvert.DeserializeObject<LogDataTransformer_IRTlibPlayer_V01.TraceEvent>(line);
-                if (_trace.Trace == null)
-                    return _ret;
+                try
+                {
+                    var _trace = JsonConvert.DeserializeObject<LogDataTransformer_IRTlibPlayer_V01.TraceEvent>(line);
+                    if (_trace.Trace == null)
+                        return _ret;
 
-                 _element = _trace.Context.Item;
-                 _test = _trace.Context.Test;
-                 _task = _trace.Context.Task;
+                    _element = _trace.Context.Item;
+                    _test = _trace.Context.Test;
+                    _task = _trace.Context.Task;
+                    _tracId = _trace.TraceID;
 
-                _IBTraceJSON = _trace.Trace;
+                    _IBTraceJSON = _trace.Trace;
+                }
+                catch (Exception _innerException1)
+                {
+                    Console.WriteLine(_innerException1.ToString());
+                }
+
             }
             else if (source == "IBSD_V01")
             {
                 _IBTraceJSON = line;
-            } 
-
-            var logFragment = JsonConvert.DeserializeObject<json_IB_8_12__8_13>(_IBTraceJSON); 
+            }
+             
+            json_IB_8_12__8_13 logFragment = JsonConvert.DeserializeObject<json_IB_8_12__8_13>(_IBTraceJSON.ToString(), new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Ignore });
+             
             string _personIdentifier = logFragment.metaData.userId;
 
             foreach (var entry in logFragment.logEntriesList)
@@ -94,7 +108,7 @@
                     string ret = entry.Details["indexPath"].ToString();
                     string[] parts = ret.Split("/", StringSplitOptions.RemoveEmptyEntries);
                     _test = parts[0].Replace("test=", "");
-                    
+
                     if (parts.Length > 1)
                         _element = parts[1].Replace("item=", "");
                     if (parts.Length > 2)
@@ -109,11 +123,8 @@
 
                 if (_element == null)
                 {
-
+                    Console.WriteLine("Not implemented: No Element specified");
                 }
-                // TODO: Add page, task, pageAreaType and pageAreaName to EventDetails!
-
-                // TODO: Add Item to TasksViewVisible / ItemSwitch / TaskSwitch
 
                 if (entry.Type == "TasksViewVisible")
                 {
@@ -128,27 +139,30 @@
                             EventID = int.Parse(entry.EntryId),
                             EventName = entry.Type,
                             PersonIdentifier = _personIdentifier,
-                            TimeStamp = DateTime.Parse(entry.Timestamp)
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType
                         };
 
                         if (_s.Contains("AllowScoreDebugging"))
-                             details.AllowScoreDebugging = bool.Parse(_s["AllowScoreDebugging"].ToString());
+                            details.AllowScoreDebugging = bool.Parse(_s["AllowScoreDebugging"].ToString());
 
                         if (_s.Contains("AllowFSMDebugging"))
                             details.AllowFSMDebugging = bool.Parse(_s["AllowFSMDebugging"].ToString());
 
                         if (_s.Contains("AllowTraceDebugging"))
                             details.AllowTraceDebugging = bool.Parse(_s["AllowTraceDebugging"].ToString());
-                         
+
                         if (_s.Contains("ShowTaskNavigationBars"))
                             details.ShowTaskNavigationBars = bool.Parse(_s["ShowTaskNavigationBars"].ToString());
-                       
+
                         _ret.Add(details);
-
-
-
                     }
-                     
+
                     #endregion
 
                     // Info: 'headerButtons', 'upperHeaderMenu', 'lowerHeaderMenu' ignored
@@ -163,6 +177,12 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         user = entry.Details["user"].ToString(),
                         loginTimestamp = entry.Details["loginTimestamp"].ToString(),
@@ -182,6 +202,12 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         name = entry.Details["item"]["name"].ToString(),
                     };
@@ -194,7 +220,7 @@
 
                     if (entry.Details.ContainsKey("newTask"))
                         _element = entry.Details["newItem"].ToString();
-                     
+
                     TaskSwitch details = new TaskSwitch()
                     {
                         Element = _element,
@@ -202,6 +228,12 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         newTask = entry.Details["newTask"].ToString(),
                         newItem = entry.Details["newItem"].ToString(),
@@ -215,16 +247,8 @@
                     if (entry.Details.ContainsKey("oldTest"))
                         details.oldTest = entry.Details["oldTest"].ToString();
 
-
                     if (entry.Details.ContainsKey("taskResult"))
                     {
-                        // TaskSwitch not contains results!
-
-                        string foo = entry.Details["taskResult"].ToString();
-                        if (foo != "{}")
-                        {
-
-                        }
                         JObject taskResult = (entry.Details["taskResult"] as JObject);
 
                         if (taskResult.ContainsKey("hitsAccumulated"))
@@ -284,7 +308,7 @@
                         details.HitList = taskResultDict.Values.ToArray<HitList>();
                     }
 
-                    
+
                     _ret.Add(details);
                     #endregion
                 }
@@ -298,9 +322,15 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
-                        pageAreaType = entry.Details["pageAreaType"].ToString(),
-                        pageAreaName = entry.Details["pageAreaName"].ToString(),
+                        newPageAreaType = entry.Details["pageAreaType"].ToString(),
+                        newPageAreaName = entry.Details["pageAreaName"].ToString(),
                         newPageName = entry.Details["newPageName"].ToString(),
                     };
                     _ret.Add(details);
@@ -316,6 +346,12 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         newPageName = entry.Details["newPageName"].ToString(),
@@ -340,27 +376,19 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
+
                     if (entry.Details.ContainsKey("subtype"))
                         details.subtype = entry.Details["subtype"].ToString();
 
@@ -377,27 +405,18 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
 
                     _ret.Add(details);
                     #endregion
@@ -412,27 +431,18 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
 
                     _ret.Add(details);
                     #endregion
@@ -447,27 +457,18 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
 
                     _ret.Add(details);
                     #endregion
@@ -482,26 +483,17 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
 
                     _ret.Add(details);
                     #endregion
@@ -516,26 +508,17 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
 
                     _ret.Add(details);
                     #endregion
@@ -555,26 +538,17 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
 
                     _ret.Add(details);
                     #endregion
@@ -589,26 +563,17 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
 
                     _ret.Add(details);
                     #endregion
@@ -623,26 +588,17 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
 
                     _ret.Add(details);
                     #endregion
@@ -657,28 +613,20 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         oldSelected = int.Parse(entry.Details["oldSelected"].ToString()),
                         newSelected = int.Parse(entry.Details["newSelected"].ToString()),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
+
                     if (entry.Details.ContainsKey("oldSelectedUserDefId"))
                         details.oldSelectedUserDefId = entry.Details["oldSelectedUserDefId"].ToString();
                     if (entry.Details.ContainsKey("newSelectedUserDefId"))
@@ -697,28 +645,20 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         row = int.Parse(entry.Details["row"].ToString()),
                         column = int.Parse(entry.Details["column"].ToString()),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
+
                     if (entry.Details.ContainsKey("tableUserDefIdPath"))
                         details.tableUserDefIdPath = entry.Details["tableUserDefIdPath"].ToString();
                     if (entry.Details.ContainsKey("tableUserDefId"))
@@ -739,6 +679,12 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         row = int.Parse(entry.Details["row"].ToString()),
@@ -748,22 +694,8 @@
                         newValue = entry.Details["newValue"].ToString(),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
+
                     if (entry.Details.ContainsKey("tableUserDefIdPath"))
                         details.tableUserDefIdPath = entry.Details["tableUserDefIdPath"].ToString();
                     if (entry.Details.ContainsKey("tableUserDefId"))
@@ -788,28 +720,19 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         tab = entry.Details["tab"].ToString(),
                         page = entry.Details["page"].ToString(),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
 
                     _ret.Add(details);
                     #endregion
@@ -824,26 +747,17 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
 
                     _ret.Add(details);
                     #endregion
@@ -858,27 +772,18 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
 
                     _ret.Add(details);
                     #endregion
@@ -893,27 +798,18 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         currentTextValue = entry.Details["currentTextValue"].ToString(),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
 
                     _ret.Add(details);
                     #endregion
@@ -928,6 +824,12 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         oldTextValue = entry.Details["oldTextValue"].ToString(),
@@ -935,22 +837,8 @@
                         origin = entry.Details["origin"].ToString(),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
+
                     if (entry.Details.ContainsKey("validationPattern"))
                         details.validationPattern = entry.Details["validationPattern"].ToString();
                     if (entry.Details.ContainsKey("invalidTextValue"))
@@ -969,27 +857,18 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         currentTextValue = entry.Details["currentTextValue"].ToString(),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
 
                     _ret.Add(details);
                     #endregion
@@ -1004,6 +883,12 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         oldTextValue = entry.Details["oldTextValue"].ToString(),
@@ -1011,22 +896,8 @@
                         origin = entry.Details["origin"].ToString(),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
+
                     if (entry.Details.ContainsKey("validationPattern"))
                         details.validationPattern = entry.Details["validationPattern"].ToString();
                     if (entry.Details.ContainsKey("invalidTextValue"))
@@ -1054,7 +925,7 @@
                 else if (entry.Type == "ValueDisplay")
                 {
                     #region ValueDisplay
-                     
+
                     ValueDisplay details = new ValueDisplay()
                     {
                         Element = _element,
@@ -1062,27 +933,18 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         displayType = entry.Details["displayType"].ToString(),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
 
                     _ret.Add(details);
                     #endregion
@@ -1097,26 +959,17 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
 
                     _ret.Add(details);
                     #endregion
@@ -1131,40 +984,24 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
 
                     _ret.Add(details);
                     #endregion
                 }
-                else if (entry.Type == "RichText" || entry.Type == "RichTextField")
+                else if (entry.Type == "RichText" || entry.Type == "RichTextField") // Note: "RichTextField" is outdated
                 {
-                    // TODO: Check with PL and nagarro
-                    /*
-                    if (entry.Type == "RichTextField")
-                    {
-                        Console.WriteLine("Waring: Event Type 'RichTextField' expected as 'RechText': " + entry.Details.ToString());
-                    }
-                    */
 
                     #region RichText 
                     RichText details = new RichText()
@@ -1174,27 +1011,18 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
                     };
 
-                    if (entry.Details.ContainsKey("userDefIdPath"))
-                        details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
-                    if (entry.Details.ContainsKey("userDefId"))
-                        details.userDefIdPath = entry.Details["userDefId"].ToString();
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
 
                     _ret.Add(details);
                     #endregion
@@ -1209,10 +1037,17 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                     };
 
+                    // TODO 
                     if (entry.Details.ContainsKey("clientX"))
                         details.clientX = long.Parse(entry.Details["clientX"].ToString());
                     if (entry.Details.ContainsKey("clientY"))
@@ -1230,7 +1065,7 @@
                     #endregion
                 }
                 else if (entry.Type == "RichTextHighlight")
-                { 
+                {
                     #region RichTextHighlight
                     RichTextHighlight details = new RichTextHighlight()
                     {
@@ -1239,6 +1074,12 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         userDefId = entry.Details["userDefId"].ToString(),
@@ -1246,7 +1087,7 @@
 
                     if (entry.Details.ContainsKey("oldSelections"))
                     {
-                        details.oldSelections = JsonConvert.DeserializeObject<List<RichTextHighlightFragment>>(entry.Details["oldSelections"].ToString());  
+                        details.oldSelections = JsonConvert.DeserializeObject<List<RichTextHighlightFragment>>(entry.Details["oldSelections"].ToString());
                     }
                     if (entry.Details.ContainsKey("newSelections"))
                     {
@@ -1269,6 +1110,12 @@
                             EventName = entry.Type,
                             PersonIdentifier = _personIdentifier,
                             TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
 
                             indexPath = entry.Details["indexPath"].ToString(),
                         };
@@ -1301,18 +1148,24 @@
 
                     #endregion
                 }
-                else if (entry.Type == "VideoPlayer")
+                else if (entry.Type == "VideoPlayer" || entry.Type == "VideoPlayerControl")
                 {
                     #region VideoPlayer
                     try
                     {
-                        VideoPlayer details = new VideoPlayer()
+                        VideoPlayerControl details = new VideoPlayerControl()
                         {
                             Element = _element,
                             EventID = int.Parse(entry.EntryId),
                             EventName = entry.Type,
                             PersonIdentifier = _personIdentifier,
                             TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
 
                             indexPath = entry.Details["indexPath"].ToString(),
                         };
@@ -1351,9 +1204,6 @@
                 }
                 else if (entry.Type == "ScrollbarMove")
                 {
-                    /* TODO: Is this still a valid event?
-                     * 
-                     **/
                     #region ScrollbarMove
                     ScrollbarMove details = new ScrollbarMove()
                     {
@@ -1362,6 +1212,12 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString()
                     };
@@ -1398,6 +1254,12 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString()
                     };
@@ -1431,6 +1293,12 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         orientation = entry.Details["orientation"].ToString(),
@@ -1449,12 +1317,12 @@
                 {
                     #region DragAndDropReceive
 
-                    if (entry.Details.ContainsKey("senderIndexPath")|| entry.Details.ContainsKey("receiverIndexPath"))
+                    if (entry.Details.ContainsKey("senderIndexPath") || entry.Details.ContainsKey("receiverIndexPath"))
                     {
-                        string ret = ""; 
+                        string ret = "";
                         if (entry.Details.ContainsKey("senderIndexPath"))
-                            ret =  entry.Details["senderIndexPath"].ToString();
-                        else  
+                            ret = entry.Details["senderIndexPath"].ToString();
+                        else
                             ret = entry.Details["receiverIndexPath"].ToString();
 
                         string[] parts = ret.Split("/", StringSplitOptions.RemoveEmptyEntries);
@@ -1471,7 +1339,7 @@
                         if (parts.Length > 5)
                             _page = parts[5].Replace("page=", "");
                     }
-                     
+
                     DragAndDropReceive details = new DragAndDropReceive()
                     {
                         Element = _element,
@@ -1479,18 +1347,24 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         senderIndexPath = entry.Details["senderIndexPath"].ToString(),
                         senderUserDefIdPath = entry.Details["senderUserDefIdPath"].ToString(),
                         senderUserDefId = entry.Details["senderUserDefId"].ToString(),
-                        receiverIndexPath = entry.Details["receiverIndexPath"].ToString(), 
+                        receiverIndexPath = entry.Details["receiverIndexPath"].ToString(),
                         receiverUserDefIdPath = entry.Details["receiverUserDefIdPath"].ToString(),
                         receiverUserDefId = entry.Details["receiverUserDefId"].ToString(),
                         sendingType = entry.Details["sendingType"].ToString(),
                         receivingType = entry.Details["receivingType"].ToString(),
                         operation = entry.Details["operation"].ToString(),
                     };
- 
+
                     _ret.Add(details);
                     #endregion
                 }
@@ -1504,6 +1378,12 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         indexPath = entry.Details["indexPath"].ToString(),
                         oldTextValue = entry.Details["oldTextValue"].ToString(),
@@ -1528,6 +1408,12 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         index = int.Parse(entry.Details["index"].ToString()),
                     };
@@ -1558,23 +1444,18 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         navigationType = entry.Details["navigationType"].ToString(),
                         navigationTarget = entry.Details["navigationTarget"].ToString(),
                     };
 
-                    if (entry.Details.ContainsKey("clientX"))
-                        details.clientX = long.Parse(entry.Details["clientX"].ToString());
-                    if (entry.Details.ContainsKey("clientY"))
-                        details.clientY = long.Parse(entry.Details["clientY"].ToString());
-                    if (entry.Details.ContainsKey("pageX"))
-                        details.pageX = long.Parse(entry.Details["pageX"].ToString());
-                    if (entry.Details.ContainsKey("pageY"))
-                        details.pageY = long.Parse(entry.Details["pageY"].ToString());
-                    if (entry.Details.ContainsKey("screenX"))
-                        details.screenX = long.Parse(entry.Details["screenX"].ToString());
-                    if (entry.Details.ContainsKey("screenY"))
-                        details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                    ExtrectEventDetials(entry, details);
 
                     _ret.Add(details);
                     #endregion
@@ -1589,6 +1470,12 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         origin = entry.Details["origin"].ToString(),
                     };
@@ -1615,11 +1502,17 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         actionType = entry.Details["actionType"].ToString(),
                         details = entry.Details["details"].ToString(),
-                    }; 
-                    
+                    };
+
                     _ret.Add(details);
                     #endregion
 
@@ -1646,6 +1539,12 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
 
                         type = entry.Details["type"].ToString(),
                         alternateStateDuration = double.Parse(entry.Details["alternateStateDuration"].ToString()),
@@ -1655,7 +1554,7 @@
                     #endregion
                 }
                 else if (entry.Type == "OperatorTraceText")
-                { 
+                {
                     #region OperatorTraceText
                     OperatorTraceText details = new OperatorTraceText()
                     {
@@ -1664,7 +1563,13 @@
                         EventName = entry.Type,
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = DateTime.Parse(entry.Timestamp),
-                         
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
+
                         text = entry.Details["text"].ToString(),
                     };
 
@@ -1688,29 +1593,60 @@
                 {
                     // TODO: Implement with example data
                 }
-                else if (entry.Type == "VideoPlayerControl")
-                {
-                    // TODO: Implement with example data
-                }
                 else if (entry.Type == "ApplicationFullScreen")
                 {
-                    // TODO: Implement with example data
+                    #region ApplicationFullScreen
+                    ApplicationFullScreen details = new ApplicationFullScreen()
+                    {
+                        Element = _element,
+                        EventID = int.Parse(entry.EntryId),
+                        EventName = entry.Type,
+                        PersonIdentifier = _personIdentifier,
+                        TimeStamp = DateTime.Parse(entry.Timestamp),
+                        TraceId = _tracId,
+                        Task = _task,
+                        Test = _test,
+                        PageAreaName = _pageAreaName,
+                        Page = _page,
+                        PageAreaType = _pageAreaType,
+
+                        type = entry.Details["type"].ToString(),
+                        alternateStateDuration = double.Parse(entry.Details["alternateStateDuration"].ToString()),
+                    };
+
+                    _ret.Add(details);
+                    #endregion
+
+
                 }
                 else
                 {
 
                 }
-
-               
-
             }
-
-
-      
 
             return _ret;
         }
 
+        private static void ExtrectEventDetials(logEntries_IB_B_12__8_13 entry, VisualEventBase details)
+        {
+            if (entry.Details.ContainsKey("userDefIdPath"))
+                details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
+            if (entry.Details.ContainsKey("userDefId"))
+                details.userDefIdPath = entry.Details["userDefId"].ToString();
+            if (entry.Details.ContainsKey("clientX"))
+                details.clientX = double.Parse(entry.Details["clientX"].ToString());
+            if (entry.Details.ContainsKey("clientY"))
+                details.clientY = double.Parse(entry.Details["clientY"].ToString());
+            if (entry.Details.ContainsKey("pageX"))
+                details.pageX = double.Parse(entry.Details["pageX"].ToString());
+            if (entry.Details.ContainsKey("pageY"))
+                details.pageY = double.Parse(entry.Details["pageY"].ToString());
+            if (entry.Details.ContainsKey("screenX"))
+                details.screenX = double.Parse(entry.Details["screenX"].ToString());
+            if (entry.Details.ContainsKey("screenY"))
+                details.screenY = double.Parse(entry.Details["screenY"].ToString());
+        }
 
         public static string XmlSerializeToString(this object objectInstance)
         {
@@ -1941,11 +1877,30 @@
 
     }
 
+    /*
+    #region 9.x
+    public class json_IB_9
+    {
+        public metaData metaData { get; set; }
+        public logEntries_IB_9[] logEntriesList { get; set; }
+    }
+
+    public class logEntries_IB_9
+    {
+        public string entryId { get; set; }
+        public string timestamp { get; set; }
+        public string type { get; set; }
+      //  public object[] details { get; set; }
+    }
+
+  
+    #endregion
+ */
 
     public class json_IB_8_12__8_13
     {
         public metaData metaData { get; set; }
-        public logEntries[] logEntriesList { get; set; }
+        public logEntries_IB_B_12__8_13[] logEntriesList { get; set; }
     }
 
     public class metaData
@@ -1963,7 +1918,7 @@
 
     }
 
-    public partial class logEntries
+    public partial class logEntries_IB_B_12__8_13
     {
         public string EntryId { get; set; }
         public string Timestamp { get; set; }
@@ -2022,7 +1977,15 @@
         [XmlIgnore] public int EventID { get; set; }
         [XmlIgnore] public string Element { get; set; }
         [XmlIgnore] public string EventName { get; set; }
-         
+
+        [XmlAttribute] public long TraceId { get; set; }
+        [XmlAttribute] public string Task { get; set; }
+        [XmlAttribute] public string Test { get; set; }
+        [XmlAttribute] public string PageAreaName { get; set; }
+        [XmlAttribute] public string Page { get; set; }
+        [XmlAttribute] public string PageAreaType { get; set; }
+
+
         public virtual new  string GetType() => nameof(Log_IB_8_12__8_13);
         public virtual Dictionary<string, string> GetPropertyList()
         {
@@ -2073,12 +2036,12 @@
          
         [XmlAttribute] public string userDefIdPath { get; set; }
         [XmlAttribute] public string userDefId { get; set; }
-        [XmlAttribute] public long clientX { get; set; }
-        [XmlAttribute] public long clientY { get; set; }
-        [XmlAttribute] public long pageX { get; set; }
-        [XmlAttribute] public long pageY { get; set; }
-        [XmlAttribute] public long screenX { get; set; }
-        [XmlAttribute] public long screenY { get; set; }
+        [XmlAttribute] public double clientX { get; set; }
+        [XmlAttribute] public double clientY { get; set; }
+        [XmlAttribute] public double pageX { get; set; }
+        [XmlAttribute] public double pageY { get; set; }
+        [XmlAttribute] public double screenX { get; set; }
+        [XmlAttribute] public double screenY { get; set; }
 
         public override string GetType() => nameof(VisualEventBase);
         public override Dictionary<string, string> GetPropertyList()
@@ -2517,7 +2480,7 @@
             return result;
         }
     }
-    public class VideoPlayer : Log_IB_8_12__8_13
+    public class VideoPlayerControl : Log_IB_8_12__8_13
     {
         [XmlAttribute] public string indexPath { get; set; }
         [XmlAttribute] public string userDefIdPath { get; set; }
@@ -2530,7 +2493,7 @@
         [XmlAttribute] public double volumeLevel { get; set; }
         [XmlAttribute] public bool isStatemachineTriggered { get; set; }
 
-        public override string GetType() => nameof(VideoPlayer);
+        public override string GetType() => nameof(VideoPlayerControl);
         public override Dictionary<string, string> GetPropertyList()
         {
             var result = base.GetPropertyList();
@@ -2646,16 +2609,16 @@
 
     public class PageSwitchTopLevel : Log_IB_8_12__8_13
     {
-        [XmlAttribute] public string pageAreaType { get; set; }
-        [XmlAttribute] public string pageAreaName { get; set; }
+        [XmlAttribute] public string newPageAreaType { get; set; }
+        [XmlAttribute] public string newPageAreaName { get; set; }
         [XmlAttribute] public string newPageName { get; set; }
 
         public override string GetType() => nameof(PageSwitchTopLevel);
         public override Dictionary<string, string> GetPropertyList()
         {
             var result = base.GetPropertyList();
-            result.Add(nameof(pageAreaType), pageAreaType);
-            result.Add(nameof(pageAreaName), pageAreaName);
+            result.Add(nameof(newPageAreaType), newPageAreaType);
+            result.Add(nameof(newPageAreaName), newPageAreaName);
             result.Add(nameof(newPageName), newPageName);
             return result;
         }
@@ -2718,6 +2681,22 @@
         {
             var result = base.GetPropertyList();
             result.Add(nameof(text), text); 
+            return result;
+        }
+    }
+ 
+
+    public class ApplicationFullScreen : Log_IB_8_12__8_13
+    {
+        [XmlAttribute] public string type { get; set; }
+        [XmlAttribute] public double alternateStateDuration { get; set; }
+
+        public override string GetType() => nameof(ApplicationFullScreen);
+        public override Dictionary<string, string> GetPropertyList()
+        {
+            var result = base.GetPropertyList();
+            result.Add(nameof(type), type);
+            result.Add(nameof(alternateStateDuration), alternateStateDuration.ToString());
             return result;
         }
     }

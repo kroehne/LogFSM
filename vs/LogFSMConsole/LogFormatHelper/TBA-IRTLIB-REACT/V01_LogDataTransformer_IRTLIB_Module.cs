@@ -235,12 +235,12 @@
                                                       
                                                     if (_json.EndsWith(","))
                                                         _json = _json.Substring(0, _json.Length - 1);
-
+                                                     
                                                     try
                                                     {
 
-                                                        List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log =
-                                                            LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(_json, "IRTlibPlayer_V01");
+                                                        List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(_json, "IRTlibPlayer_V01");
+                                                   
 
                                                         // TODO: Add flag to extract full name (project.task) vs. short name (project)
 
@@ -273,6 +273,7 @@
                                                     } 
                                                     catch (Exception _ex)
                                                     {
+                                                        
                                                         Console.WriteLine("Error processing file '" + entry.FileName + "' ('" + zfilename + "'): " + _ex.Message);
                                                      }
                                                 }

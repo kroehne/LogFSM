@@ -63,6 +63,7 @@
         /// </summary>
         public string Preview { get; set; }
 
+
         public override string ToString() => $"{Booklet} - {Test} - {Item} - {Task}";
     }
 
@@ -71,6 +72,8 @@
         public DateTime Timestamp { get; set; }
 
         public string SessionId { get; set; }
+ 
+        public int TraceID { get; set; }
 
         public SessionNavigationState Context { get; set; }
 

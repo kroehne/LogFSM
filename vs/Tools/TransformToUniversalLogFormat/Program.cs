@@ -79,20 +79,14 @@ namespace TransformToUniversalLogFormat
         { 
             // Register Code Page for Stata / SPSS  
             Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance); 
+           
+            // Show help if started without parameters
+
             if (args.Length == 0)
                 args = new string[] { "--help" };
 
 #if DEBUG
-args = new string[] {"--i",@"",
-                                 "--w", @"",
-                                 "--k", @"",
-                                 "--o", @"",
-                                 "--s", @"",
-                                 "--z", @"",
-                                 "--x", @"",
-                                 "--c", @"",
-                                 "--r", "irtlibv01a",
-                                 "--v"};
+
 #endif
 
             try
