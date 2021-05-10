@@ -404,7 +404,7 @@
                 #region Log Data
 
                 foreach (string _id in logDataTables.Keys)
-                {
+                { 
                     var _varlist = new List<StataVariable>();
                     _varlist.Add(new StataVariable() { Name = "Line", VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%12.0g", Description = CodebookDictionary.GetColumnNameDescription("Line", language) });
 
@@ -528,9 +528,11 @@
                         foreach (var _colname in logDataTableColnames[_id])
                         {
                             if (listOfLabelContainers.ContainsKey(_colname))
-                            { 
+                            {
+                                // TODO: Check for other special characters
+
                                 for (int _i = 0; _i < uniqueValues[_colname].Count; _i++)
-                                    _dtaFile.AddValueLabel(listOfLabelContainers[_colname], _i, uniqueValuesLookup[_colname][_i]);
+                                    _dtaFile.AddValueLabel(listOfLabelContainers[_colname], _i, uniqueValuesLookup[_colname][_i].Replace("ë", "e"));
 
                                 _dtaFile.AddValueLabel("l_" + _colname, -1, "(attribute not defined)");
                             }                           

@@ -64,7 +64,7 @@
                         foreach (var entry in zip)
                         {
                             if (CommandLineArguments.FitsMask(entry.FileName, mask)) 
-                                 entry.Extract(folder);
+                                 entry.Extract(folder, ExtractExistingFileAction.OverwriteSilently);
                         }
                     }
                 }
@@ -136,8 +136,7 @@
                 {
                     return;
                 }
-
-
+                 
                 // Iterate over all input filters
 
                 foreach (string inFolder in ParsedCommandLineArguments.Transform_InputFolders)
