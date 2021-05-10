@@ -108,8 +108,7 @@
         }
   
         public static void ProcessLogFilesOnly(Stopwatch Watch, CommandLineArguments ParsedCommandLineArguments)
-        {
-             
+        { 
             try
             {
                 bool _personIdentifierIsNumber = false;
@@ -135,8 +134,7 @@
                     PersonIdentifierName = _personIdentifierColumnName,
                     PersonIdentifierIsNumber = _personIdentifierIsNumber
                 };
-
-              
+                 
                 _ret.LoadCodebookDictionary(ParsedCommandLineArguments.Transform_Dictionary);
 
                 if (ParsedCommandLineArguments.Transform_ConcordanceTable.Trim() != "")
@@ -186,7 +184,7 @@
 
                 // Iterate over all input filters
 
-                    foreach (string inFolder in ParsedCommandLineArguments.Transform_InputFolders)
+                foreach (string inFolder in ParsedCommandLineArguments.Transform_InputFolders)
                 {
                     if (!Directory.Exists(inFolder))
                     {

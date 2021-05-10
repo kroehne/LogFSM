@@ -6,13 +6,77 @@
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Net;
     using LogFSM_LogX2019;
     using LogFSMConsole;
     using StataLib;
+    using Ionic.Zip;
     #endregion
 
     public class LogDataTransformer_IBSD_Module_V01
     {
+        public static void UpdateFiles(string web, string username, string password, string folder, string mask)
+        {
+            if (!Directory.Exists(folder))
+            {
+                Console.WriteLine(" Error - Specified directory '" + folder + "' not found");
+            }
+            else
+            { 
+                bool _error = false;
+                string tmpfile = Path.GetTempFileName();
+                try
+                {
+                    Console.Write(" - Download from '" + web + "' --> ");
+                    WebClient _client = new WebClient();
+                    if (username.Trim() != "" || password.Trim() != "")
+                    {
+                        string credentials = Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes(username + ":" + password));
+                        _client.Headers[HttpRequestHeader.Authorization] = string.Format("Basic {0}", credentials);
+                    }
+
+                    _client.DownloadProgressChanged += delegate (object sender, DownloadProgressChangedEventArgs e)
+                     {
+                         Console.Write(".");
+                     };
+                     
+                    _client.DownloadFile(web, tmpfile);
+                    FileInfo _fi = new FileInfo(tmpfile);
+                    Console.WriteLine(_fi.Length);
+
+                }
+                catch (System.Net.WebException _fnf)
+                {
+                    Console.WriteLine(" Error - " + _fnf.Status + "");
+                    _error = true;
+
+                }
+                catch (Exception _ex)
+                {
+                    Console.WriteLine(" Unknown Error - " + _ex.ToString());
+                }
+
+                // Unzip files 
+                try
+                {
+                    using (ZipFile zip = ZipFile.Read(tmpfile))
+                    {
+                        foreach (var entry in zip)
+                        {
+                            if (CommandLineArguments.FitsMask(entry.FileName, mask)) 
+                                 entry.Extract(folder);
+                        }
+                    }
+                }
+                catch (Exception _ex)
+                {
+                    Console.WriteLine(" Unknown Error - " + _ex.ToString());
+                }
+            
+            }
+
+        }
+         
         public static void ProcessLogFilesOnly(Stopwatch Watch, CommandLineArguments ParsedCommandLineArguments)
         {
             try
@@ -38,6 +102,41 @@
                 };
 
                 _ret.LoadCodebookDictionary(ParsedCommandLineArguments.Transform_Dictionary);
+
+                // Update from Server if requested
+
+                string _web = "";
+                if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey(CommandLineArguments._CMDA_JOB_TRANSFORM_web))
+                    _web = ParsedCommandLineArguments.ParameterDictionary[CommandLineArguments._CMDA_JOB_TRANSFORM_web];
+
+                string _username = "";
+                if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey(CommandLineArguments._CMDA_JOB_TRANSFORM_user))
+                    _username = ParsedCommandLineArguments.ParameterDictionary[CommandLineArguments._CMDA_JOB_TRANSFORM_user];
+
+                string _password = "";
+                if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey(CommandLineArguments._CMDA_JOB_TRANSFORM_password))
+                    _password = ParsedCommandLineArguments.ParameterDictionary[CommandLineArguments._CMDA_JOB_TRANSFORM_password];
+
+                string _key = "";
+                if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey(CommandLineArguments._CMDA_JOB_TRANSFORM_key))
+                    _key = ParsedCommandLineArguments.ParameterDictionary[CommandLineArguments._CMDA_JOB_TRANSFORM_key];
+
+                string _mask = "";
+                if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey(CommandLineArguments._CMDA_mask))
+                    _mask = ParsedCommandLineArguments.ParameterDictionary[CommandLineArguments._CMDA_mask];
+
+                if (_web.Trim() != "")
+                {
+                   
+                    UpdateFiles( _web, _username, _password, ParsedCommandLineArguments.Transform_InputFolders[0], _mask);
+                }
+
+                if (ParsedCommandLineArguments.Transform_OutputStata.Trim() == "" && ParsedCommandLineArguments.Transform_OutputXLSX.Trim() == "" &&
+                    ParsedCommandLineArguments.Transform_OutputZCSV.Trim() == "" && ParsedCommandLineArguments.Transform_OutputSPSS.Trim() == "")
+                {
+                    return;
+                }
+
 
                 // Iterate over all input filters
 
