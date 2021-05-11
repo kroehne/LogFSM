@@ -17,6 +17,7 @@
     using StataLib;
     using CsvHelper;
     using System.Globalization;
+    using static LogFSM.EventDataListExtension;
     #endregion
 
     public static class LogDataReader
@@ -47,10 +48,16 @@
             }
 
             if (RelativeTime)
-                _return.ComputeTimedifferencePreviousWithRelativeTimes(Sort);
+            {
+                _return = EventDataListExtension.SortByRelativeTime(_return, Sort);
+                _return.ComputeTimedifferencePreviousWithRelativeTimes();
+            }
             else
-                _return.ComputeTimedifferencePrevious(Sort);
-
+            {
+                _return = EventDataListExtension.SortByTimeStamp(_return, Sort);
+                _return.ComputeTimedifferencePrevious();
+            }
+                          
             return _return;
         }
 
@@ -60,9 +67,15 @@
             List<EventData> _return = JsonConvert.DeserializeObject<List<EventData>>(_json);
 
             if (RelativeTime)
-                _return.ComputeTimedifferencePreviousWithRelativeTimes(Sort);
+            {
+                _return = EventDataListExtension.SortByRelativeTime(_return, Sort);
+                _return.ComputeTimedifferencePreviousWithRelativeTimes();
+            }
             else
-                _return.ComputeTimedifferencePrevious(Sort);
+            {
+                _return = EventDataListExtension.SortByTimeStamp(_return, Sort);
+                _return.ComputeTimedifferencePrevious();
+            }
 
             return _return;
         }
@@ -72,10 +85,16 @@
             List<EventData> _return = JsonConvert.DeserializeObject<List<EventData>>(JSON);
 
             if (RelativeTime)
-                _return.ComputeTimedifferencePreviousWithRelativeTimes(Sort);
+            {
+                _return = EventDataListExtension.SortByRelativeTime(_return, Sort);
+                _return.ComputeTimedifferencePreviousWithRelativeTimes();
+            }
             else
-                _return.ComputeTimedifferencePrevious(Sort);
-
+            {
+                _return = EventDataListExtension.SortByTimeStamp(_return, Sort);
+                _return.ComputeTimedifferencePrevious();
+            }
+                 
             return _return;
         }
 
@@ -112,9 +131,15 @@
             }
 
             if (RelativeTime)
-                _return.ComputeTimedifferencePreviousWithRelativeTimes(Sort);
+            {
+                _return = EventDataListExtension.SortByRelativeTime(_return, Sort);
+                _return.ComputeTimedifferencePreviousWithRelativeTimes();
+            }
             else
-                _return.ComputeTimedifferencePrevious(Sort);
+            {
+                _return = EventDataListExtension.SortByTimeStamp(_return, Sort);
+                _return.ComputeTimedifferencePrevious();
+            }
 
             return _return;
         }
@@ -593,12 +618,18 @@
                     #endregion
                 }
             }
-
-            if (RelativeTime)
-                _return.ComputeTimedifferencePreviousWithRelativeTimes(Sort);
-            else
-                _return.ComputeTimedifferencePrevious(Sort);
              
+            if (RelativeTime)
+            {
+                _return = EventDataListExtension.SortByRelativeTime(_return, Sort);
+                _return.ComputeTimedifferencePreviousWithRelativeTimes();
+            }
+            else
+            {
+                _return = EventDataListExtension.SortByTimeStamp(_return, Sort);
+                _return.ComputeTimedifferencePrevious();
+            }
+
             return _return;
         }
 

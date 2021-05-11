@@ -19,13 +19,28 @@
             ElementAndTime
         }
          
-        public static void ComputeTimedifferencePrevious(this IEnumerable<EventData> list, ESortType Sort)
+        public static List<EventData> SortByTimeStamp(List<EventData> List, ESortType Sort)
         {
             if (Sort == ESortType.ElementAndTime)
-                list = list.OrderBy(o => o.Element).ThenBy(o => o.TimeStamp).ToList();
+                return List.OrderBy(o => o.Element).ThenBy(o => o.TimeStamp).ToList();
             else if (Sort == ESortType.Time)
-                list = list.OrderBy(o => o.TimeStamp).ToList();
+                return List.OrderBy(o => o.TimeStamp).ToList();
+            else
+                return List;
+        }
 
+        public static List<EventData> SortByRelativeTime(List<EventData> List, ESortType Sort)
+        {
+            if (Sort == ESortType.ElementAndTime)
+                return List.OrderBy(o => o.Element).ThenBy(o => o.TimeStamp).ToList();
+            else if (Sort == ESortType.Time)
+                return List.OrderBy(o => o.TimeStamp).ToList();
+            else
+                return List;
+        }
+
+        public static void ComputeTimedifferencePrevious(this IEnumerable<EventData> list)
+        {
             DateTime _lastTimeStamp = DateTime.MinValue;
             foreach (var e in list)
             {
@@ -38,13 +53,8 @@
             }
         }
 
-        public static void ComputeTimedifferencePreviousWithRelativeTimes(this IEnumerable<EventData> list, ESortType Sort)
-        {
-            if (Sort == ESortType.ElementAndTime)
-                list = list.OrderBy(o => o.Element).ThenBy(o => o.RelativeTime).ToList();
-            else if (Sort == ESortType.Time)
-                list = list.OrderBy(o => o.RelativeTime);
-
+        public static void ComputeTimedifferencePreviousWithRelativeTimes(this IEnumerable<EventData> list)
+        { 
             TimeSpan _lastTimeStamp = TimeSpan.MinValue;
             foreach (var e in list)
             {

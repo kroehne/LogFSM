@@ -142,10 +142,16 @@ namespace LogFSMConsole
                                 {
                                     _numberOfStudents += 1;
                                     if (ParsedCommandLineArguments.RelativeTime)
-                                        _inMemoryTempDataEvents.ComputeTimedifferencePreviousWithRelativeTimes(sort);
+                                    {
+                                        _inMemoryTempDataEvents = EventDataListExtension.SortByRelativeTime(_inMemoryTempDataEvents, sort);
+                                        _inMemoryTempDataEvents.ComputeTimedifferencePreviousWithRelativeTimes();
+                                    }
                                     else
-                                        _inMemoryTempDataEvents.ComputeTimedifferencePrevious(sort);
-
+                                    {
+                                        _inMemoryTempDataEvents = EventDataListExtension.SortByTimeStamp(_inMemoryTempDataEvents, sort);
+                                        _inMemoryTempDataEvents.ComputeTimedifferencePrevious();
+                                    }
+                                     
                                     outputZipFile.AddEntry(_personIdentifier + ".json", JsonConvert.SerializeObject(_inMemoryTempDataEvents, Newtonsoft.Json.Formatting.Indented));
                                     _inMemoryTempDataEvents = new List<EventData>();
 
@@ -212,9 +218,15 @@ namespace LogFSMConsole
                 {
                     _numberOfStudents += 1;
                     if (ParsedCommandLineArguments.RelativeTime)
-                        _inMemoryTempDataEvents.ComputeTimedifferencePreviousWithRelativeTimes(sort);
+                    {
+                        _inMemoryTempDataEvents = EventDataListExtension.SortByRelativeTime(_inMemoryTempDataEvents, sort);
+                        _inMemoryTempDataEvents.ComputeTimedifferencePreviousWithRelativeTimes();
+                    }
                     else
-                        _inMemoryTempDataEvents.ComputeTimedifferencePrevious(sort);
+                    {
+                        _inMemoryTempDataEvents = EventDataListExtension.SortByTimeStamp(_inMemoryTempDataEvents, sort);
+                        _inMemoryTempDataEvents.ComputeTimedifferencePrevious();
+                    }
 
                     outputZipFile.AddEntry(_personIdentifier + ".json", JsonConvert.SerializeObject(_inMemoryTempDataEvents, Newtonsoft.Json.Formatting.Indented));
 
@@ -530,15 +542,15 @@ namespace LogFSMConsole
 
                     if (ParsedCommandLineArguments.RelativeTime)
                     {
-                        _l.ComputeTimedifferencePreviousWithRelativeTimes(sort);
-                        _l = _l.OrderBy(o => o.RelativeTime).ToList();
+                        _l = EventDataListExtension.SortByRelativeTime(_l, sort);
+                        _l.ComputeTimedifferencePreviousWithRelativeTimes();
                     }
                     else
                     {
-                        _l.ComputeTimedifferencePrevious(sort);
-                        _l = _l.OrderBy(o => o.TimeStamp).ToList();
+                        _l = EventDataListExtension.SortByTimeStamp(_l, sort);
+                        _l.ComputeTimedifferencePrevious();
                     }
-                        
+                     
                     string json = JsonConvert.SerializeObject(_l, Newtonsoft.Json.Formatting.Indented);
                     outzip.AddEntry(_personIdentifier + ".json", json);
 
@@ -662,10 +674,16 @@ namespace LogFSMConsole
                                 if (_inMemoryTempDataEvents.Count > 0)
                                 {
                                     if (ParsedCommandLineArguments.RelativeTime)
-                                        _inMemoryTempDataEvents.ComputeTimedifferencePreviousWithRelativeTimes(sort);
+                                    {
+                                        _inMemoryTempDataEvents = EventDataListExtension.SortByRelativeTime(_inMemoryTempDataEvents, sort);
+                                        _inMemoryTempDataEvents.ComputeTimedifferencePreviousWithRelativeTimes();
+                                    }
                                     else
-                                        _inMemoryTempDataEvents.ComputeTimedifferencePrevious(sort);
-                                    
+                                    {
+                                        _inMemoryTempDataEvents = EventDataListExtension.SortByTimeStamp(_inMemoryTempDataEvents, sort);
+                                        _inMemoryTempDataEvents.ComputeTimedifferencePrevious();
+                                    }
+
                                     outputZipFile.AddEntry(_PersonIdentifier + ".json", JsonConvert.SerializeObject(_inMemoryTempDataEvents, Newtonsoft.Json.Formatting.Indented));
                                 }
 
@@ -864,9 +882,15 @@ namespace LogFSMConsole
                                             {
                                                 numberOfStudents += 1;
                                                 if (ParsedCommandLineArguments.RelativeTime)
-                                                    _inMemoryTempDataEvents.ComputeTimedifferencePreviousWithRelativeTimes(sort);
+                                                {
+                                                    _inMemoryTempDataEvents = EventDataListExtension.SortByRelativeTime(_inMemoryTempDataEvents, sort);
+                                                    _inMemoryTempDataEvents.ComputeTimedifferencePreviousWithRelativeTimes();
+                                                }
                                                 else
-                                                    _inMemoryTempDataEvents.ComputeTimedifferencePrevious(sort);
+                                                {
+                                                    _inMemoryTempDataEvents = EventDataListExtension.SortByTimeStamp(_inMemoryTempDataEvents, sort);
+                                                    _inMemoryTempDataEvents.ComputeTimedifferencePrevious();
+                                                }
 
                                                 outputZipFile.AddEntry(_PersonIdentifier + ".json", JsonConvert.SerializeObject(_inMemoryTempDataEvents, Newtonsoft.Json.Formatting.Indented));
                                                 _inMemoryTempDataEvents = new List<EventData>();
@@ -998,10 +1022,15 @@ namespace LogFSMConsole
                                 {
                                     numberOfStudents += 1;
                                     if (ParsedCommandLineArguments.RelativeTime)
-                                        _inMemoryTempDataEvents.ComputeTimedifferencePreviousWithRelativeTimes(sort);
+                                    {
+                                        _inMemoryTempDataEvents = EventDataListExtension.SortByRelativeTime(_inMemoryTempDataEvents, sort);
+                                        _inMemoryTempDataEvents.ComputeTimedifferencePreviousWithRelativeTimes();
+                                    }
                                     else
-                                        _inMemoryTempDataEvents.ComputeTimedifferencePrevious(sort);
-
+                                    {
+                                        _inMemoryTempDataEvents = EventDataListExtension.SortByTimeStamp(_inMemoryTempDataEvents, sort);
+                                        _inMemoryTempDataEvents.ComputeTimedifferencePrevious();
+                                    }
                                     outputZipFile.AddEntry(_PersonIdentifier + ".json", JsonConvert.SerializeObject(_inMemoryTempDataEvents, Newtonsoft.Json.Formatting.Indented));
 
                                 }
@@ -1126,9 +1155,15 @@ namespace LogFSMConsole
                                 if (_inMemoryTempDataEvents.Count > 0 && _PreviousPersonIdentifier != "")
                                 {
                                     if (ParsedCommandLineArguments.RelativeTime)
-                                        _inMemoryTempDataEvents.ComputeTimedifferencePreviousWithRelativeTimes(sort);
+                                    {
+                                        _inMemoryTempDataEvents = EventDataListExtension.SortByRelativeTime(_inMemoryTempDataEvents, sort);
+                                        _inMemoryTempDataEvents.ComputeTimedifferencePreviousWithRelativeTimes();
+                                    }
                                     else
-                                        _inMemoryTempDataEvents.ComputeTimedifferencePrevious(sort);
+                                    {
+                                        _inMemoryTempDataEvents = EventDataListExtension.SortByTimeStamp(_inMemoryTempDataEvents, sort);
+                                        _inMemoryTempDataEvents.ComputeTimedifferencePrevious();
+                                    }
                                     outputZipFile.AddEntry(_PreviousPersonIdentifier + ".json", JsonConvert.SerializeObject(_inMemoryTempDataEvents, Newtonsoft.Json.Formatting.Indented));
                                 }
 
@@ -1227,9 +1262,16 @@ namespace LogFSMConsole
                                             if (_inMemoryTempDataEvents.Count > 0)
                                             {
                                                 if (ParsedCommandLineArguments.RelativeTime)
-                                                    _inMemoryTempDataEvents.ComputeTimedifferencePreviousWithRelativeTimes(sort);
+                                                {
+                                                    _inMemoryTempDataEvents = EventDataListExtension.SortByRelativeTime(_inMemoryTempDataEvents, sort);
+                                                    _inMemoryTempDataEvents.ComputeTimedifferencePreviousWithRelativeTimes();
+                                                }
                                                 else
-                                                    _inMemoryTempDataEvents.ComputeTimedifferencePrevious(sort);
+                                                {
+                                                    _inMemoryTempDataEvents = EventDataListExtension.SortByTimeStamp(_inMemoryTempDataEvents, sort);
+                                                    _inMemoryTempDataEvents.ComputeTimedifferencePrevious();
+                                                }
+                                                 
                                                 outputZipFile.AddEntry(_PersonIdentifier + ".json", JsonConvert.SerializeObject(_inMemoryTempDataEvents, Newtonsoft.Json.Formatting.Indented));
                                             }
 
@@ -1294,9 +1336,15 @@ namespace LogFSMConsole
                             if (_inMemoryTempDataEvents.Count > 0)
                             {
                                 if (ParsedCommandLineArguments.RelativeTime)
-                                    _inMemoryTempDataEvents.ComputeTimedifferencePreviousWithRelativeTimes(sort);
+                                {
+                                    _inMemoryTempDataEvents = EventDataListExtension.SortByRelativeTime(_inMemoryTempDataEvents, sort);
+                                    _inMemoryTempDataEvents.ComputeTimedifferencePreviousWithRelativeTimes();
+                                }
                                 else
-                                    _inMemoryTempDataEvents.ComputeTimedifferencePrevious(sort);
+                                {
+                                    _inMemoryTempDataEvents = EventDataListExtension.SortByTimeStamp(_inMemoryTempDataEvents, sort);
+                                    _inMemoryTempDataEvents.ComputeTimedifferencePrevious();
+                                }
                                 outputZipFile.AddEntry(_PersonIdentifier + ".json", JsonConvert.SerializeObject(_inMemoryTempDataEvents, Newtonsoft.Json.Formatting.Indented));
                             }
 
