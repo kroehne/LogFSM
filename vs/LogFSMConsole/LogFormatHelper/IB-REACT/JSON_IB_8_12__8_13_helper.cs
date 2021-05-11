@@ -218,8 +218,8 @@
                 {
                     #region TaskSwitch
 
-                    if (entry.Details.ContainsKey("newTask"))
-                        _element = entry.Details["newItem"].ToString();
+                    if (entry.Details.ContainsKey("oldItem"))
+                        _element = entry.Details["oldItem"].ToString();
 
                     TaskSwitch details = new TaskSwitch()
                     {

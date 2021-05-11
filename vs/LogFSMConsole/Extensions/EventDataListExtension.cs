@@ -18,14 +18,13 @@
             Time,
             ElementAndTime
         }
-
-        // TODO-TIME
+         
         public static void ComputeTimedifferencePrevious(this IEnumerable<EventData> list, ESortType Sort)
         {
             if (Sort == ESortType.ElementAndTime)
-                list = list.OrderBy(o => o.Element).ThenBy(o => o.RelativeTime).ToList();
+                list = list.OrderBy(o => o.Element).ThenBy(o => o.TimeStamp).ToList();
             else if (Sort == ESortType.Time)
-                list = list.OrderBy(o => o.RelativeTime);
+                list = list.OrderBy(o => o.TimeStamp);
 
             DateTime _lastTimeStamp = DateTime.MinValue;
             foreach (var e in list)
