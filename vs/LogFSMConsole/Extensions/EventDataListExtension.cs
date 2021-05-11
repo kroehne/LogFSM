@@ -24,7 +24,7 @@
             if (Sort == ESortType.ElementAndTime)
                 list = list.OrderBy(o => o.Element).ThenBy(o => o.TimeStamp).ToList();
             else if (Sort == ESortType.Time)
-                list = list.OrderBy(o => o.TimeStamp);
+                list = list.OrderBy(o => o.TimeStamp).ToList();
 
             DateTime _lastTimeStamp = DateTime.MinValue;
             foreach (var e in list)
