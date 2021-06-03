@@ -54,6 +54,13 @@
                 catch (Exception _ex)
                 {
                     Console.WriteLine(" Unknown Error - " + _ex.ToString());
+                    _error = true;
+                }
+
+
+                if (_error)
+                {
+                    Console.WriteLine(" Errors have occurred.");
                 }
 
                 // Unzip files 
@@ -63,8 +70,8 @@
                     {
                         foreach (var entry in zip)
                         {
-                            if (CommandLineArguments.FitsMask(entry.FileName, mask)) 
-                                 entry.Extract(folder, ExtractExistingFileAction.OverwriteSilently);
+                            if (CommandLineArguments.FitsMask(entry.FileName, mask))
+                                entry.Extract(folder, ExtractExistingFileAction.OverwriteSilently);
                         }
                     }
                 }
@@ -72,7 +79,7 @@
                 {
                     Console.WriteLine(" Unknown Error - " + _ex.ToString());
                 }
-            
+
             }
 
         }

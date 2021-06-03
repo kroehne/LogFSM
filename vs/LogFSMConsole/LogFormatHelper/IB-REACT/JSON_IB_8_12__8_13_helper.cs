@@ -2028,12 +2028,12 @@
     public class VisualEventBase : Log_IB_8_12__8_13
     {
         [XmlAttribute] public string indexPath { get; set; }
-          
+         /*
         [XmlAttribute] public string Task { get; set; }
         [XmlAttribute] public string PageAreaType { get; set; }
         [XmlAttribute] public string PageAreaName { get; set; }
         [XmlAttribute] public string Page { get; set; }
-         
+         */
         [XmlAttribute] public string userDefIdPath { get; set; }
         [XmlAttribute] public string userDefId { get; set; }
         [XmlAttribute] public double clientX { get; set; }
