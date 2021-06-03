@@ -8,6 +8,8 @@
     <FileVersion>0.0.0.0</FileVersion>
     <Version>0.0.0.0</Version>
     <ReleaseVersion>0.0.0.0</ReleaseVersion>
+    <PublishSingleFile>true</PublishSingleFile>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishTrimmed>false</PublishTrimmed>
     <Authors>Ulf Kroehne</Authors>
     <Company>DIPF | Leibniz Institute for Research and Information in Education</Company>
