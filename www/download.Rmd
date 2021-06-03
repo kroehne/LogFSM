@@ -20,6 +20,8 @@ source("http://logfsm.com/latest")
 
 This will trigger the download of the latest stable release from [github](https://github.com/kroehne/LogFSM/releases) and install the required dependencies using the [remotes](https://cran.r-project.org/package=remotes) package.  
 
+Note that pandoc must be available on the system to install LogFSM. 
+
 ### Previous Packages 
 
 Older versions of LogFSM can be installed using the remote package. Download the R package from the release section of https://github.com/kroehne/LogFSM/releases.

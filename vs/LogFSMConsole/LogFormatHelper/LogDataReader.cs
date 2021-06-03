@@ -233,6 +233,15 @@
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("columndelimiter"))
                 _columnDelimiter = ParsedCommandLineArguments.ParameterDictionary["columndelimiter"];
 
+            string _ignoretables = "Log;Results";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("ignoretables"))
+                _ignoretables = ParsedCommandLineArguments.ParameterDictionary["ignoretables"];
+
+            List<string> _listOfIgnoreTables = new List<string>();
+            foreach ( var t in _ignoretables.Split(";").ToArray<string>())
+            {
+                _listOfIgnoreTables.Add(t.Trim());
+            }
 
             List<string> _notEventSpecificValues = new List<string>();
             _notEventSpecificValues.Add(_columnNameElement);
@@ -255,8 +264,10 @@
             {
                 foreach (ZipEntry e in zip.Entries)
                 {
+                    string _filenameWithoutExt = Path.GetFileNameWithoutExtension(e.FileName);
+                    
                     #region STATA
-                    if (e.FileName.ToLower().EndsWith(".dta") && e.FileName != "Log.dta" && e.FileName != "Results.dta")
+                    if (e.FileName.ToLower().EndsWith(".dta") && !_listOfIgnoreTables.Contains(_filenameWithoutExt))
                     {
                         using (MemoryStream zipStream = new MemoryStream())
                         {
@@ -413,7 +424,7 @@
                     #endregion
 
                     #region CSV
-                    if (e.FileName.ToLower().EndsWith(".csv") && e.FileName != "Log.csv" && e.FileName != "Results.csv")
+                    if (e.FileName.ToLower().EndsWith(".csv") && !_listOfIgnoreTables.Contains(_filenameWithoutExt))
                     {
                         using (MemoryStream zipStream = new MemoryStream())
                         {
@@ -494,7 +505,7 @@
                     #endregion
                      
                     #region SPSS
-                    if (e.FileName.ToLower().EndsWith(".sav") && e.FileName != "Log.sav" && e.FileName != "Results.sav")
+                    if (e.FileName.ToLower().EndsWith(".sav") && !_listOfIgnoreTables.Contains(_filenameWithoutExt))
                     {
                         using (MemoryStream zipStream = new MemoryStream())
                         {
