@@ -96,6 +96,8 @@
             json_IB_8_12__8_13 logFragment = JsonConvert.DeserializeObject<json_IB_8_12__8_13>(_IBTraceJSON.ToString(), new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Ignore });
              
             string _personIdentifier = logFragment.metaData.userId;
+            if (_personIdentifier.Contains("\r"))
+                _personIdentifier = _personIdentifier.Replace("\r", "");
 
             foreach (var entry in logFragment.logEntriesList)
             {
