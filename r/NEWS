@@ -1,6 +1,10 @@
 CHANGE-LOG
 ==========
 
+2022-01-11 0.4.5.16
+
+* Fixed bug in processing IB logs 
+
 2021-06-03 0.4.5.15
 
 * Added optional parameter "ignoretables" to function RunLogFSMSyntax to specify tables from log data in the universal log format that should be ignored, specified as ;-separated table names as string argument (default: "Log;Results", i.e., the datasets Log.dta/Log.csv/Log.sav and Results.dta/Results.csv/Results.sav from the universal log format are ignored). 

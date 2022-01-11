@@ -238,8 +238,7 @@
                                                     {
 
                                                         List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(_json, "IRTlibPlayer_V01");
-                                                   
-
+                                                    
                                                         // TODO: Add flag to extract full name (project.task) vs. short name (project)
 
                                                         foreach (var _l in _log)
@@ -380,6 +379,26 @@
                                                         Console.WriteLine("Error processing ItemScore: " + _ex.ToString());
                                                     }
                                                      
+                                                }
+                                                else if (entry.FileName.StartsWith("browser.log"))
+                                                {
+                                                    // TODO: Process 
+                                                }
+                                                else if (entry.FileName.StartsWith("server.log"))
+                                                {
+                                                    // TODO: Process 
+                                                }
+                                                else if (entry.FileName.StartsWith("Results.csv"))
+                                                {
+                                                    // TODO: Process 
+                                                }
+                                                else if (entry.FileName.StartsWith("Results.sav"))
+                                                {
+                                                    // TODO: Process 
+                                                }
+                                                else if (entry.FileName.StartsWith("Results.dta"))
+                                                {
+                                                    // TODO: Process 
                                                 }
                                                 else if (entry.FileName.StartsWith("Snapshot.json"))
                                                 {

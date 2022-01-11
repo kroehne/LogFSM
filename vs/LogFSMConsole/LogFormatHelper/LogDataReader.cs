@@ -426,81 +426,41 @@
                     #region CSV
                     if (e.FileName.ToLower().EndsWith(".csv") && !_listOfIgnoreTables.Contains(_filenameWithoutExt))
                     {
-                        using (MemoryStream zipStream = new MemoryStream())
+                        if (ParsedCommandLineArguments.Verbose)
+                            Console.Write("- read: " + e.FileName + " (" + e.UncompressedSize + ")");
+
+                        // TODO: Compute exact limit for memory streams
+                       
+                        if (e.UncompressedSize > 2000000000)
                         {
-                            e.Extract(zipStream);
-                            zipStream.Position = 0;
+                            var fileName = Path.GetTempFileName();
+                            if (ParsedCommandLineArguments.Verbose)
+                                Console.WriteLine("--> temp file: " + fileName);
 
-                            int _lineCounter = 0;
-                            using (var reader = new StreamReader(zipStream))
-                            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+
+                            using (FileStream fileStream = File.OpenWrite(fileName))
                             {
-                                csv.Configuration.Delimiter = _columnDelimiter;
-                                csv.Configuration.BadDataFound = x =>
-                                {
-                                    Console.WriteLine($"Bad data (Line " + _lineCounter + "): <{x.RawRecord}>");
-                                };
-
-
-                                var _data_rows = csv.GetRecords<dynamic>();
-                                foreach (IDictionary<string, object> row in _data_rows)
-                                { 
-                                    string _personIdentifier = row[_columnNamePersonIdentifier].ToString();
-                                    string _eventName = row[_columnNameEventName].ToString();
-                                    string _element = row[_columnNameElement].ToString();
-                                    DateTime _timeStamp = DateTime.MinValue;
-                                    
-                                    if (!RelativeTime)
-                                        DateTime.TryParse(row[_columnNameTimeStamp].ToString(), out _timeStamp);
-                                    else
-                                    {
-                                        try
-                                        {
-                                            _timeStamp = dt1960.AddMilliseconds(double.Parse(row[_columnNameTimeStamp].ToString()));
-                                        }
-                                        catch
-                                        {
-                                            //TODO VERSION 0.3: Add a more proper check for invalid time stamps
-                                        }
-                                    }
-
-                                    var _eventValues = new Dictionary<string, string>();
-                                    foreach (var v in row.Keys)
-                                    {
-                                        if (!_notEventSpecificValues.Contains(v))
-                                            _eventValues.Add(v, row[v].ToString());
-                                    }
-
-
-                                    bool _add = true;
-                                    if (_personIdentifier != PersonIdentifier)
-                                        _add = false;
-                                    else if (ParsedCommandLineArguments.Elements.Length != 0 && !ParsedCommandLineArguments.Elements.Contains<string>(_element))
-                                        _add = false;
-                                    else if (ParsedCommandLineArguments.Events.Length != 0 && !ParsedCommandLineArguments.Events.Contains<string>(_eventName))
-                                        _add = false;
-                                    else if (ParsedCommandLineArguments.ExcludedElements.Length != 0 && ParsedCommandLineArguments.ExcludedElements.Contains<string>(_element))
-                                        _add = false;
-                                    else if (ParsedCommandLineArguments.ExcludedEvents.Length != 0 && ParsedCommandLineArguments.ExcludedEvents.Contains<string>(_eventName))
-                                        _add = false;
-
-                                    if (_add)
-                                    {
-                                        _return.Add(new EventData()
-                                        {
-                                            Element = _element,
-                                            EventName = _eventName,
-                                            PersonIdentifier = _personIdentifier,
-                                            TimeStamp = _timeStamp,
-                                            EventValues = _eventValues
-                                        });
-                                    }
-                                      
-                                }
-
+                                e.Extract(fileStream);
                             }
-
+                            using (FileStream fileStream = File.OpenRead(fileName))
+                            { 
+                                extracCSVStream_ReadLogUniversalLogFormat(PersonIdentifier, RelativeTime, ParsedCommandLineArguments, _columnNamePersonIdentifier, _columnNameEventName, _columnNameElement, _columnNameTimeStamp, _columnDelimiter, _notEventSpecificValues, dt1960, _return, fileStream);
+                            }
+                            File.Delete(fileName);
                         }
+                        else
+                        {
+                            if (ParsedCommandLineArguments.Verbose)
+                                Console.WriteLine("");
+
+                            using (MemoryStream zipStream = new MemoryStream())
+                            {
+                                e.Extract(zipStream);
+                                zipStream.Position = 0;
+                                extracCSVStream_ReadLogUniversalLogFormat(PersonIdentifier, RelativeTime, ParsedCommandLineArguments, _columnNamePersonIdentifier, _columnNameEventName, _columnNameElement, _columnNameTimeStamp, _columnDelimiter, _notEventSpecificValues, dt1960, _return, zipStream);
+                            }
+                        }
+                      
                     }
                     #endregion
                      
@@ -642,6 +602,78 @@
             }
 
             return _return;
+        }
+
+        private static void extracCSVStream_ReadLogUniversalLogFormat(string PersonIdentifier, bool RelativeTime, CommandLineArguments ParsedCommandLineArguments, string _columnNamePersonIdentifier, string _columnNameEventName, string _columnNameElement, string _columnNameTimeStamp, string _columnDelimiter, List<string> _notEventSpecificValues, DateTime dt1960, List<EventData> _return, Stream zipStream)
+        {
+            int _lineCounter = 0;
+            using (var reader = new StreamReader(zipStream))
+            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+            {
+                csv.Configuration.Delimiter = _columnDelimiter;
+                csv.Configuration.BadDataFound = x =>
+                {
+                    Console.WriteLine($"Bad data (Line " + _lineCounter + "): <{x.RawRecord}>");
+                };
+
+
+                var _data_rows = csv.GetRecords<dynamic>();
+                foreach (IDictionary<string, object> row in _data_rows)
+                {
+                    string _personIdentifier = row[_columnNamePersonIdentifier].ToString();
+                    string _eventName = row[_columnNameEventName].ToString();
+                    string _element = row[_columnNameElement].ToString();
+                    DateTime _timeStamp = DateTime.MinValue;
+
+                    if (!RelativeTime)
+                        DateTime.TryParse(row[_columnNameTimeStamp].ToString(), out _timeStamp);
+                    else
+                    {
+                        try
+                        {
+                            _timeStamp = dt1960.AddMilliseconds(double.Parse(row[_columnNameTimeStamp].ToString()));
+                        }
+                        catch
+                        {
+                            //TODO VERSION 0.3: Add a more proper check for invalid time stamps
+                        }
+                    }
+
+                    var _eventValues = new Dictionary<string, string>();
+                    foreach (var v in row.Keys)
+                    {
+                        if (!_notEventSpecificValues.Contains(v))
+                            _eventValues.Add(v, row[v].ToString());
+                    }
+
+
+                    bool _add = true;
+                    if (_personIdentifier != PersonIdentifier)
+                        _add = false;
+                    else if (ParsedCommandLineArguments.Elements.Length != 0 && !ParsedCommandLineArguments.Elements.Contains<string>(_element))
+                        _add = false;
+                    else if (ParsedCommandLineArguments.Events.Length != 0 && !ParsedCommandLineArguments.Events.Contains<string>(_eventName))
+                        _add = false;
+                    else if (ParsedCommandLineArguments.ExcludedElements.Length != 0 && ParsedCommandLineArguments.ExcludedElements.Contains<string>(_element))
+                        _add = false;
+                    else if (ParsedCommandLineArguments.ExcludedEvents.Length != 0 && ParsedCommandLineArguments.ExcludedEvents.Contains<string>(_eventName))
+                        _add = false;
+
+                    if (_add)
+                    {
+                        _return.Add(new EventData()
+                        {
+                            Element = _element,
+                            EventName = _eventName,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = _timeStamp,
+                            EventValues = _eventValues
+                        });
+                    }
+
+                }
+
+            }
         }
 
         private static void extractPersonIdentifierFromStataFile(string _columnNamePersonIdentifier, ZipFile zip, List<string> _ret, string TableName)

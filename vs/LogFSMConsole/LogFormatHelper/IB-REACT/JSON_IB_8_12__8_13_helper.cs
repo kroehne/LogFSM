@@ -236,12 +236,14 @@
                         PageAreaName = _pageAreaName,
                         Page = _page,
                         PageAreaType = _pageAreaType,
-
-                        newTask = entry.Details["newTask"].ToString(),
-                        newItem = entry.Details["newItem"].ToString(),
-                        newTest = entry.Details["newTest"].ToString(),
                     };
 
+                    if (entry.Details.ContainsKey("newTask"))
+                        details.newTask = entry.Details["newTask"].ToString();
+                    if (entry.Details.ContainsKey("newItem"))
+                        details.newItem = entry.Details["newItem"].ToString();
+                    if (entry.Details.ContainsKey("newTest"))
+                        details.newTest = entry.Details["newTest"].ToString();
                     if (entry.Details.ContainsKey("oldTask"))
                         details.oldTask = entry.Details["oldTask"].ToString();
                     if (entry.Details.ContainsKey("oldItem"))
