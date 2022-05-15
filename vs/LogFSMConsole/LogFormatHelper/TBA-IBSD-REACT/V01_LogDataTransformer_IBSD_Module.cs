@@ -31,8 +31,9 @@
                     WebClient _client = new WebClient();
                     if (username.Trim() != "" || password.Trim() != "")
                     {
-                        string credentials = Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes(username + ":" + password));
+                        string credentials = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(username + ":" + password));
                         _client.Headers[HttpRequestHeader.Authorization] = string.Format("Basic {0}", credentials);
+                        Console.Write(" (with authentification: " + credentials + ")");
                     }
 
                     _client.DownloadProgressChanged += delegate (object sender, DownloadProgressChangedEventArgs e)
@@ -47,7 +48,7 @@
                 }
                 catch (System.Net.WebException _fnf)
                 {
-                    Console.WriteLine(" Error - " + _fnf.Status + "");
+                    Console.WriteLine(" Error - " + _fnf.Status + " - " + _fnf.Message);
                     _error = true;
 
                 }
@@ -62,22 +63,26 @@
                 {
                     Console.WriteLine(" Errors have occurred.");
                 }
-
-                // Unzip files 
-                try
+                else
                 {
-                    using (ZipFile zip = ZipFile.Read(tmpfile))
+                     
+                    // Unzip files 
+                    try
                     {
-                        foreach (var entry in zip)
+                        using (ZipFile zip = ZipFile.Read(tmpfile))
                         {
-                            if (CommandLineArguments.FitsMask(entry.FileName, mask))
-                                entry.Extract(folder, ExtractExistingFileAction.OverwriteSilently);
+                            foreach (var entry in zip)
+                            {
+                                if (CommandLineArguments.FitsMask(entry.FileName, mask))
+                                    entry.Extract(folder, ExtractExistingFileAction.OverwriteSilently);
+                            }
                         }
                     }
-                }
-                catch (Exception _ex)
-                {
-                    Console.WriteLine(" Unknown Error - " + _ex.ToString());
+                    catch (Exception _ex)
+                    {
+                        Console.WriteLine(" Unknown Error - " + _ex.ToString());
+                    }
+
                 }
 
             }

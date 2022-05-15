@@ -9,6 +9,7 @@
     using System.Linq;
     using System.Net;
     using System.Runtime.InteropServices.WindowsRuntime;
+    using System.Text.Json;
     using System.Text.RegularExpressions;
     using Ionic.Zip;
     using LogFSM_LogX2019;
@@ -204,274 +205,336 @@
                                 Console.WriteLine("Info: Max number of cases reached.");
                             break;
                         }
-                         
+
                         if (ParsedCommandLineArguments.Verbose)
                             Console.Write("Info: Read Zip File  '" + zfilename + "' ");
-                          
-                        using (ZipFile zip = ZipFile.Read(zfilename))
+
+                        try
                         {
-                            foreach (var entry in zip)
+
+
+                            using (ZipFile zip = ZipFile.Read(zfilename))
                             {
-                                string _sessionFileName = Path.GetFileNameWithoutExtension(zip.Name);
-
-                                using (MemoryStream zipStream = new MemoryStream())
+                                foreach (var entry in zip)
                                 {
-                                    entry.ExtractWithPassword(zipStream, "");
-                                    zipStream.Position = 0;
-                                    try
-                                    { 
-                                        StreamReader sr = new StreamReader(zipStream);
-                                        string line;
-                                        int linecounter = 0;
-                                        while ((line = sr.ReadLine()) != null)
+                                    string _sessionFileName = Path.GetFileNameWithoutExtension(zip.Name);
+
+                                    using (MemoryStream zipStream = new MemoryStream())
+                                    {
+                                        entry.ExtractWithPassword(zipStream, "");
+                                        zipStream.Position = 0;
+                                        try
                                         {
-                                            if (ParsedCommandLineArguments.Transform_LogVersion == "default")
+                                            if (entry.FileName.StartsWith("browser.log"))
                                             {
-                                                if (entry.FileName.StartsWith("Trace.json"))
-                                                {
-                                                    string _json = line; 
-                                                      
-                                                    if (_json.EndsWith(","))
-                                                        _json = _json.Substring(0, _json.Length - 1);
-                                                     
-                                                    try
-                                                    {
-
-                                                        List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(_json, "IRTlibPlayer_V01");
-                                                    
-                                                        // TODO: Add flag to extract full name (project.task) vs. short name (project)
-
-                                                        foreach (var _l in _log)
-                                                        {
-                                                            if (_l.EventName == "")
-                                                                _l.Element = "(Platform)";
-                                                             
-                                                            var g = new logxGenericLogElement()
-                                                            {
-                                                                Item = _l.Element,
-                                                                EventID = _l.EventID,
-                                                                EventName = _l.EventName,
-                                                                PersonIdentifier = _l.PersonIdentifier,
-                                                                TimeStamp = _l.TimeStamp
-                                                            };
-
-                                                            try
-                                                            {
-                                                                g.EventDataXML = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.XmlSerializeToString(_l);
-                                                                _ret.AddEvent(g);
-                                                            }
-                                                            catch (Exception _innerex)
-                                                            {
-                                                                Console.WriteLine("Error Processing xml: '" + g.EventDataXML + "' - Details: " + _innerex.Message);
-                                                            }
-                                                            
-                                                        }
-
-                                                    } 
-                                                    catch (Exception _ex)
-                                                    {
-                                                        
-                                                        Console.WriteLine("Error processing file '" + entry.FileName + "' ('" + zfilename + "'): " + _ex.Message);
-                                                     }
-                                                }
-                                                else if (entry.FileName.StartsWith("Keyboard.json"))
-                                                {
-                                                    string _json = line;
-                                                    if (_json.EndsWith(","))
-                                                        _json = _json.Substring(0, _json.Length - 1);
-                                                     
-                                                    List<KeyStroke> _keyStrokes = JsonConvert.DeserializeObject<List<KeyStroke>>(_json);
-
-                                                    // TODO: Process 
-                                                }
-                                                else if (entry.FileName.StartsWith("Mouse.json"))
-                                                {
-                                                    string _json = line;
-                                                    if (_json.EndsWith(","))
-                                                        _json = _json.Substring(0, _json.Length - 1);
-
-                                                    var  _data = JsonConvert.DeserializeObject<MouseEvent[]>(_json);
-                                                    
-                                                    // TODO: Process 
-                                                }
-                                                else if (entry.FileName.StartsWith("ItemScore.json"))
-                                                { 
-                                                    string _json = line;
-                                                    if (_json.EndsWith(","))
-                                                        _json = _json.Substring(0, _json.Length - 1);
-
-                                                    try
-                                                    { 
-                                                        LogDataTransformer_IRTlibPlayer_V01.json_IRTlib_V01__ItemScore _itemScoreEvent = 
-                                                            JsonConvert.DeserializeObject<LogDataTransformer_IRTlibPlayer_V01.json_IRTlib_V01__ItemScore>(_json);
-
-                                                        string task = _itemScoreEvent.Context.Task;
-                                                        string item = _itemScoreEvent.Context.Item;
-                                                        string personIdentifier = _itemScoreEvent.SessionId;
-
-                                                        LogDataTransformer_IB_REACT_8_12__8_13.ItemScore_IB_8_12__8_13 _itemScore = 
-                                                            LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseItemScore(_itemScoreEvent.ItemScore, task, item, personIdentifier);
-                                                         
-                                                        logxGenericResultElement g = new logxGenericResultElement() { PersonIdentifier = personIdentifier };
-
-                                                        g.Results.Add(item + "." + task + "." + "hitsAccumulated", _itemScore.hitsAccumulated);
-                                                        g.Results.Add(item + "." + task + "." + "hitsCount", _itemScore.hitsCount);
-                                                        g.Results.Add(item + "." + task + "." + "missesAccumulated", _itemScore.missesAccumulated);
-                                                        g.Results.Add(item + "." + task + "." + "missesCount", _itemScore.missesCount);
-                                                        g.Results.Add(item + "." + task + "." + "classMaxWeighed", _itemScore.classMaxWeighed);
-                                                        g.Results.Add(item + "." + task + "." + "classMaxName", _itemScore.classMaxName);
-                                                        g.Results.Add(item + "." + task + "." + "totalResult", _itemScore.totalResult);
-                                                        g.Results.Add(item + "." + task + "." + "nbUserInteractions", _itemScore.nbUserInteractions);
-                                                        g.Results.Add(item + "." + task + "." + "nbUserInteractionsTotal", _itemScore.nbUserInteractionsTotal);
-                                                        g.Results.Add(item + "." + task + "." + "firstReactionTimeTotal", _itemScore.firstReactionTimeTotal);
-                                                        g.Results.Add(item + "." + task + "." + "taskExecutionTime", _itemScore.taskExecutionTime);
-                                                        g.Results.Add(item + "." + task + "." + "taskExecutionTimeTotal", _itemScore.taskExecutionTimeTotal);
-
-                                                        foreach (var hit in _itemScore.Hits)
-                                                        {
-                                                            if (!g.Results.ContainsKey(item + "." + task + "." + hit.Value.Name + ".Result"))
-                                                                g.Results.Add(item + "." + task + "." + hit.Value.Name + ".Result", hit.Value.IsTrue);
-                                                            else
-                                                                g.Results[item + "." + task + "." + hit.Value.Name + ".Result"] = hit.Value.IsTrue;
-
-                                                            if (!g.Results.ContainsKey(item + "." + task + "." + hit.Value.Name + ".Weight"))
-                                                                g.Results.Add(item + "." + task + "." + hit.Value.Name + ".Weight", hit.Value.Weight);
-                                                            else
-                                                                g.Results[item + "." + task + "." + hit.Value.Name + ".Weight"] = hit.Value.Weight;
-
-                                                            if (!g.Results.ContainsKey(item + "." + task + "." + hit.Value.Name + ".ResultText"))
-                                                                g.Results.Add(item + "." + task + "." + hit.Value.Name + ".ResultText", hit.Value.ResultText);
-                                                            else
-                                                                g.Results[item + "." + task + "." + hit.Value.Name + ".ResultText"] = hit.Value.ResultText;
-                                                        }
-
-                                                        foreach (var cls in _itemScore.ClassResults)
-                                                        {
-                                                            if (cls.Value != null)
-                                                            {
-                                                                if (!g.Results.ContainsKey(item + "." + task + "." + cls.Value.HitMissClass + ".Result"))
-                                                                    g.Results.Add(item + "." + task + "." + cls.Value.HitMissClass + ".Result", cls.Value.IsTrue);
-                                                                else
-                                                                    g.Results[item + "." + task + "." + cls.Value.HitMissClass + ".Result"] = cls.Value.IsTrue;
-
-                                                                if (!g.Results.ContainsKey(item + "." + task + "." + cls.Value.HitMissClass + ".HitMiss"))
-                                                                    g.Results.Add(item + "." + task + "." + cls.Value.HitMissClass + ".HitMiss", cls.Value.Name);
-                                                                else
-                                                                    g.Results[item + "." + task + "." + cls.Value.HitMissClass + ".HitMiss"] = cls.Value.Name;
-
-                                                                if (!g.Results.ContainsKey(item + "." + task + "." + cls.Value.HitMissClass + ".Weight"))
-                                                                    g.Results.Add(item + "." + task + "." + cls.Value.HitMissClass + ".Weight", cls.Value.Weight);
-                                                                else
-                                                                    g.Results[item + "." + task + "." + cls.Value.HitMissClass + ".Weight"] = cls.Value.Weight;
- 
-                                                                if (!g.Results.ContainsKey(item + "." + task + "." + cls.Value.HitMissClass + ".ResultText"))
-                                                                    g.Results.Add(item + "." + task + "." + cls.Value.HitMissClass + ".ResultText", cls.Value.ResultText);
-                                                                else
-                                                                    g.Results[item + "." + task + "." + cls.Value.HitMissClass + ".ResultText"] = cls.Value.ResultText;
-                                                                 
-                                                            }
-                                                        }
-
-                                                        _ret.AddResults(g);
-                                                         
-                                                    } catch (Exception _ex)
-                                                    {
-                                                        Console.WriteLine("Error processing ItemScore: " + _ex.ToString());
-                                                    }
-                                                     
-                                                }
-                                                else if (entry.FileName.StartsWith("browser.log"))
-                                                {
-                                                    // TODO: Process 
-                                                }
-                                                else if (entry.FileName.StartsWith("server.log"))
-                                                {
-                                                    // TODO: Process 
-                                                }
-                                                else if (entry.FileName.StartsWith("Results.csv"))
-                                                {
-                                                    // TODO: Process 
-                                                }
-                                                else if (entry.FileName.StartsWith("Results.sav"))
-                                                {
-                                                    // TODO: Process 
-                                                }
-                                                else if (entry.FileName.StartsWith("Results.dta"))
-                                                {
-                                                    // TODO: Process 
-                                                }
-                                                else if (entry.FileName.StartsWith("Snapshot.json"))
-                                                {
-                                                    // TODO: Process 
-                                                }
-                                                else if (entry.FileName.StartsWith("Session.json"))
-                                                {
-                                                    // TODO: Process 
-                                                }
-                                                else if (entry.FileName.StartsWith("Log.json"))
-                                                {                                              
-                                                    string _json = line;
-                                                    if (_json.EndsWith(","))
-                                                        _json = _json.Substring(0, _json.Length - 1);
-                                                    try
-                                                    {
-                                                         
-                                                        List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log =
-                                                          LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseTraceLogs(_json, _utcoffset);
-                                                         
-                                                        foreach (var _l in _log)
-                                                        {
-                                                            _l.PersonIdentifier = _sessionFileName;
-                                                            var g = new logxGenericLogElement()
-                                                            {
-                                                                Item = _l.Element,
-                                                                EventID = _l.EventID,
-                                                                EventName = _l.EventName,
-                                                                PersonIdentifier = _l.PersonIdentifier,
-                                                                TimeStamp = _l.TimeStamp
-                                                            };
-
-                                                            g.EventDataXML = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.XmlSerializeToString(_l);
-                                                            _ret.AddEvent(g);
-                                                        }
-
-                                                    }
-                                                    catch (Exception _ex)
-                                                    {
-                                                        Console.WriteLine("Error processing file '" + entry.FileName + "' ('" + zfilename + "'): " + _ex.Message);
-                                                    }
-
-                                                }
-                                                else
-                                                {
-                                                    Console.WriteLine("Unknown file type: " + entry.FileName);
-                                                }
+                                                // TODO: Process 
+                                            }
+                                            else if (entry.FileName.StartsWith("server.log"))
+                                            {
+                                                // TODO: Process 
+                                            }
+                                            else if (entry.FileName.StartsWith("Results.csv"))
+                                            {
+                                                // TODO: Process 
+                                            }
+                                            else if (entry.FileName.StartsWith("Results.sav"))
+                                            {
+                                                // TODO: Process 
+                                            }
+                                            else if (entry.FileName.StartsWith("Results.dta"))
+                                            {
+                                                // TODO: Process 
+                                            }
+                                            else if (entry.FileName.StartsWith("Session.json"))
+                                            {
+                                                // TODO: Process 
                                             }
                                             else
                                             {
+
+                                                StreamReader sr = new StreamReader(zipStream);
+                                                string line;
+                                                int linecounter = 0;
+                                                while ((line = sr.ReadLine()) != null)
+                                                {
+                                                    if (ParsedCommandLineArguments.Transform_LogVersion == "default")
+                                                    {
+                                                        if (entry.FileName.StartsWith("Trace.json"))
+                                                        {
+                                                            string _json = line;
+
+                                                            if (_json.EndsWith(","))
+                                                                _json = _json.Substring(0, _json.Length - 1);
+
+                                                            try
+                                                            {
+
+                                                                List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(_json, "IRTlibPlayer_V01");
+
+                                                                // TODO: Add flag to extract full name (project.task) vs. short name (project)
+
+                                                                foreach (var _l in _log)
+                                                                {
+                                                                    if (_l.EventName == "")
+                                                                        _l.Element = "(Platform)";
+
+                                                                    var g = new logxGenericLogElement()
+                                                                    {
+                                                                        Item = _l.Element,
+                                                                        EventID = _l.EventID,
+                                                                        EventName = _l.EventName,
+                                                                        PersonIdentifier = _l.PersonIdentifier,
+                                                                        TimeStamp = _l.TimeStamp
+                                                                    };
+
+                                                                    try
+                                                                    {
+                                                                        g.EventDataXML = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.XmlSerializeToString(_l);
+                                                                        _ret.AddEvent(g);
+                                                                    }
+                                                                    catch (Exception _innerex)
+                                                                    {
+                                                                        Console.WriteLine("Error Processing xml: '" + g.EventDataXML + "' - Details: " + _innerex.Message);
+                                                                    }
+
+                                                                }
+
+                                                            }
+                                                            catch (Exception _ex)
+                                                            {
+
+                                                                Console.WriteLine("Error processing file '" + entry.FileName + "' ('" + zfilename + "'): " + _ex.Message);
+                                                            }
+                                                        }
+                                                        else if (entry.FileName.StartsWith("Keyboard.json"))
+                                                        {
+                                                            string _json = line;
+                                                            if (_json.EndsWith(","))
+                                                                _json = _json.Substring(0, _json.Length - 1);
+
+                                                            List<KeyStroke> _keyStrokes = JsonConvert.DeserializeObject<List<KeyStroke>>(_json);
+
+                                                            // TODO: Process 
+                                                        }
+                                                        else if (entry.FileName.StartsWith("Mouse.json"))
+                                                        {
+                                                            string _json = line;
+                                                            if (_json.EndsWith(","))
+                                                                _json = _json.Substring(0, _json.Length - 1);
+
+                                                            var _data = JsonConvert.DeserializeObject<MouseEvent[]>(_json);
+
+                                                            // TODO: Process 
+                                                        }
+                                                        else if (entry.FileName.StartsWith("ItemScore.json"))
+                                                        {
+                                                            string _json = line;
+                                                            if (_json.EndsWith(","))
+                                                                _json = _json.Substring(0, _json.Length - 1);
+
+                                                            try
+                                                            {
+                                                                LogDataTransformer_IRTlibPlayer_V01.json_IRTlib_V01__ItemScore _itemScoreEvent =
+                                                                    JsonConvert.DeserializeObject<LogDataTransformer_IRTlibPlayer_V01.json_IRTlib_V01__ItemScore>(_json);
+
+                                                                string task = _itemScoreEvent.Context.Task;
+                                                                string item = _itemScoreEvent.Context.Item;
+                                                                string personIdentifier = _itemScoreEvent.SessionId;
+
+                                                                LogDataTransformer_IB_REACT_8_12__8_13.ItemScore_IB_8_12__8_13 _itemScore =
+                                                                    LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseItemScore(_itemScoreEvent.ItemScore, task, item, personIdentifier);
+
+                                                                logxGenericResultElement g = new logxGenericResultElement() { PersonIdentifier = personIdentifier };
+
+                                                                g.Results.Add(item + "." + task + "." + "hitsAccumulated", _itemScore.hitsAccumulated);
+                                                                g.Results.Add(item + "." + task + "." + "hitsCount", _itemScore.hitsCount);
+                                                                g.Results.Add(item + "." + task + "." + "missesAccumulated", _itemScore.missesAccumulated);
+                                                                g.Results.Add(item + "." + task + "." + "missesCount", _itemScore.missesCount);
+                                                                g.Results.Add(item + "." + task + "." + "classMaxWeighed", _itemScore.classMaxWeighed);
+                                                                g.Results.Add(item + "." + task + "." + "classMaxName", _itemScore.classMaxName);
+                                                                g.Results.Add(item + "." + task + "." + "totalResult", _itemScore.totalResult);
+                                                                g.Results.Add(item + "." + task + "." + "nbUserInteractions", _itemScore.nbUserInteractions);
+                                                                g.Results.Add(item + "." + task + "." + "nbUserInteractionsTotal", _itemScore.nbUserInteractionsTotal);
+                                                                g.Results.Add(item + "." + task + "." + "firstReactionTimeTotal", _itemScore.firstReactionTimeTotal);
+                                                                g.Results.Add(item + "." + task + "." + "taskExecutionTime", _itemScore.taskExecutionTime);
+                                                                g.Results.Add(item + "." + task + "." + "taskExecutionTimeTotal", _itemScore.taskExecutionTimeTotal);
+
+                                                                foreach (var hit in _itemScore.Hits)
+                                                                {
+                                                                    if (!g.Results.ContainsKey(item + "." + task + "." + hit.Value.Name + ".Result"))
+                                                                        g.Results.Add(item + "." + task + "." + hit.Value.Name + ".Result", hit.Value.IsTrue);
+                                                                    else
+                                                                        g.Results[item + "." + task + "." + hit.Value.Name + ".Result"] = hit.Value.IsTrue;
+
+                                                                    if (!g.Results.ContainsKey(item + "." + task + "." + hit.Value.Name + ".Weight"))
+                                                                        g.Results.Add(item + "." + task + "." + hit.Value.Name + ".Weight", hit.Value.Weight);
+                                                                    else
+                                                                        g.Results[item + "." + task + "." + hit.Value.Name + ".Weight"] = hit.Value.Weight;
+
+                                                                    if (!g.Results.ContainsKey(item + "." + task + "." + hit.Value.Name + ".ResultText"))
+                                                                        g.Results.Add(item + "." + task + "." + hit.Value.Name + ".ResultText", hit.Value.ResultText);
+                                                                    else
+                                                                        g.Results[item + "." + task + "." + hit.Value.Name + ".ResultText"] = hit.Value.ResultText;
+                                                                }
+
+                                                                foreach (var cls in _itemScore.ClassResults)
+                                                                {
+                                                                    if (cls.Value != null)
+                                                                    {
+                                                                        if (!g.Results.ContainsKey(item + "." + task + "." + cls.Value.HitMissClass + ".Result"))
+                                                                            g.Results.Add(item + "." + task + "." + cls.Value.HitMissClass + ".Result", cls.Value.IsTrue);
+                                                                        else
+                                                                            g.Results[item + "." + task + "." + cls.Value.HitMissClass + ".Result"] = cls.Value.IsTrue;
+
+                                                                        if (!g.Results.ContainsKey(item + "." + task + "." + cls.Value.HitMissClass + ".HitMiss"))
+                                                                            g.Results.Add(item + "." + task + "." + cls.Value.HitMissClass + ".HitMiss", cls.Value.Name);
+                                                                        else
+                                                                            g.Results[item + "." + task + "." + cls.Value.HitMissClass + ".HitMiss"] = cls.Value.Name;
+
+                                                                        if (!g.Results.ContainsKey(item + "." + task + "." + cls.Value.HitMissClass + ".Weight"))
+                                                                            g.Results.Add(item + "." + task + "." + cls.Value.HitMissClass + ".Weight", cls.Value.Weight);
+                                                                        else
+                                                                            g.Results[item + "." + task + "." + cls.Value.HitMissClass + ".Weight"] = cls.Value.Weight;
+
+                                                                        if (!g.Results.ContainsKey(item + "." + task + "." + cls.Value.HitMissClass + ".ResultText"))
+                                                                            g.Results.Add(item + "." + task + "." + cls.Value.HitMissClass + ".ResultText", cls.Value.ResultText);
+                                                                        else
+                                                                            g.Results[item + "." + task + "." + cls.Value.HitMissClass + ".ResultText"] = cls.Value.ResultText;
+
+                                                                    }
+                                                                }
+
+                                                                _ret.AddResults(g);
+
+                                                            }
+                                                            catch (Exception _ex)
+                                                            {
+                                                                Console.WriteLine("Error processing ItemScore: " + _ex.ToString());
+                                                            }
+
+                                                        }
+                                                        else if (entry.FileName.StartsWith("Snapshot.json"))
+                                                        {
+                                                            string _json = line;
+                                                            if (_json.EndsWith(","))
+                                                                _json = _json.Substring(0, _json.Length - 1);
+
+                                                            string personIdentifier = _sessionFileName;
+                                                            logxGenericResultElement g = new logxGenericResultElement() { PersonIdentifier = personIdentifier };
+
+                                                            JsonDocument doc = JsonDocument.Parse(_json);
+                                                            foreach (var jsonelement in doc.RootElement.EnumerateObject())
+                                                            {
+                                                                // Extract variable values from snapshots
+                                                                try
+                                                                {
+                                                                    if (jsonelement.Name == "variables")
+                                                                    {
+                                                                        foreach (var jsonchild in jsonelement.Value.EnumerateObject())
+                                                                        {
+                                                                            string element = jsonchild.Name;
+                                                                            string[] subelements = element.Split("/", StringSplitOptions.RemoveEmptyEntries);
+                                                                            string testname = subelements[0].Replace("test=", "");
+                                                                            string itemname = subelements[1].Replace("item=", "");
+                                                                            string taskname = subelements[2].Replace("task=", "");
+
+                                                                            foreach (var varelement in jsonchild.Value.EnumerateObject())
+                                                                            {
+                                                                                string varname = "";
+                                                                                string varvalue = "";
+                                                                                string vartype = "";
+
+                                                                                foreach (var part in varelement.Value.EnumerateObject())
+                                                                                {
+                                                                                    if (part.Name == "name")
+                                                                                        varname = part.Value.GetString();
+                                                                                    else if (part.Name == "value")
+                                                                                        varvalue = part.Value.ToString();
+                                                                                    else if (part.Name == "type")
+                                                                                        vartype = part.Value.ToString();
+                                                                                }
+
+                                                                                g.Results.Add(itemname + "." + taskname + ".var." + varname, varvalue);
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                                catch { }
+                                                            }
+
+                                                            _ret.AddResults(g);
+                                                        }
+                                                        else if (entry.FileName.StartsWith("Log.json"))
+                                                        {
+                                                            string _json = line;
+                                                            if (_json.EndsWith(","))
+                                                                _json = _json.Substring(0, _json.Length - 1);
+                                                            try
+                                                            {
+
+                                                                List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log =
+                                                                  LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseTraceLogs(_json, _utcoffset);
+
+                                                                foreach (var _l in _log)
+                                                                {
+                                                                    _l.PersonIdentifier = _sessionFileName;
+                                                                    var g = new logxGenericLogElement()
+                                                                    {
+                                                                        Item = _l.Element,
+                                                                        EventID = _l.EventID,
+                                                                        EventName = _l.EventName,
+                                                                        PersonIdentifier = _l.PersonIdentifier,
+                                                                        TimeStamp = _l.TimeStamp
+                                                                    };
+
+                                                                    g.EventDataXML = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.XmlSerializeToString(_l);
+                                                                    _ret.AddEvent(g);
+                                                                }
+
+                                                            }
+                                                            catch (Exception _ex)
+                                                            {
+                                                                Console.WriteLine("Error processing file '" + entry.FileName + "' ('" + zfilename + "'): " + _ex.Message);
+                                                            }
+
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("Unknown file type: " + entry.FileName);
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        if (ParsedCommandLineArguments.Verbose)
+                                                            Console.WriteLine("failed.");
+
+                                                        Console.WriteLine("Version '" + ParsedCommandLineArguments.Transform_LogVersion + "' not supported.");
+                                                        return;
+                                                    }
+                                                    linecounter++;
+                                                }
                                                 if (ParsedCommandLineArguments.Verbose)
-                                                    Console.WriteLine("failed.");
+                                                    Console.WriteLine(" ok ('" + linecounter + " lines).");
+                                                sr.Close();
 
-                                                Console.WriteLine("Version '" + ParsedCommandLineArguments.Transform_LogVersion + "' not supported.");
-                                                return;
                                             }
-                                            linecounter++;
+
                                         }
-                                        if (ParsedCommandLineArguments.Verbose)
-                                            Console.WriteLine(" ok ('" + linecounter + " lines).");
-                                        sr.Close();
+                                        catch (Exception _ex)
+                                        {
+                                            Console.WriteLine("Error processing file '" + entry.FileName + "': " + _ex.Message);
+                                            return;
+                                        }
                                     }
-                                    catch (Exception _ex)
-                                    {
-                                        Console.WriteLine("Error processing file '" + entry.FileName + "': " + _ex.Message);
-                                        return;
-                                    }
+
                                 }
-
                             }
-                        }
 
-                         
+                        }
+                        catch (Exception _ex)
+                        {
+                            Console.Write("Info: Read Zip Error  '" + zfilename + "' " + _ex.Message);
+                        }
                     }
 
                 }
