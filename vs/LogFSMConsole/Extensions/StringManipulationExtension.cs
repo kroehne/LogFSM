@@ -1,14 +1,14 @@
-﻿namespace LogFSM 
-{
-    #region using
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Text.RegularExpressions;
-    using System.Threading.Tasks;
-    #endregion
+﻿#region using
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+#endregion
 
+namespace LogFSM 
+{
     public static class StringManipulationExtension
     {
         public static string CreateValidEnumValue(this string str)

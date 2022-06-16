@@ -1,23 +1,25 @@
-﻿namespace LogFSM_LogX2019
-{
-    #region usings
-    using CsvHelper;
-    using Ionic.Zip;
-    using LogFSMConsole;
-    using NPOI.OpenXmlFormats.Dml;
-    using NPOI.SS.Formula.Functions;
-    using NPOI.SS.UserModel;
-    using NPOI.XSSF.UserModel;
-    using StataLib;
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    using System.Xml.Linq;
-    #endregion
+﻿#region usings
+using CsvHelper;
+using Ionic.Zip;
+using LogFSM;
+using LogFSMConsole;
+using LogFSMShared;
+using NPOI.OpenXmlFormats.Dml;
+using NPOI.SS.Formula.Functions;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
+using StataLib;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Xml.Linq;
+#endregion
 
+namespace LogFSM_LogX2019
+{
     public class logXContainer
     {
          
@@ -41,6 +43,7 @@
         #region Log Data 
 
         public const string rootLogName = "Log";
+        public bool flagIgnoreXSDandXSI = true;
 
         public Dictionary<string, List<logxLogDataRow>> logDataTables { get; set; }
         public Dictionary<string, List<string>> logDataTableColnames { get; set; }
@@ -158,9 +161,7 @@
                     _value = element.Results[_name].ToString();
 
                 AddValueToResultDataTable(_name, _value, resultDataTable[element.PersonIdentifier]);
-            }
- 
-
+            } 
         }
 
         private void AddValueToResultDataTable(string name, string value, logxResultDataRow row)
@@ -295,8 +296,7 @@
                 EventName = parentLine.EventName,
                 AttributValues = new List<Tuple<int, int>>()
             };
-
-
+             
             if (!logDataTables.ContainsKey(path))
             {
                 logDataTables.Add(path, new List<logxLogDataRow>());
@@ -308,7 +308,10 @@
                 AddValueToLogDataTable(path, xmlelement.Name.LocalName, xmlelement.Value, newChildLine);
              
             foreach (var a in xmlelement.Attributes())
-                AddValueToLogDataTable(path, a.Name.LocalName, a.Value, newChildLine);
+            {
+                if (!flagIgnoreXSDandXSI || (a.Name.LocalName != "xsi" && a.Name.LocalName != "xsd"))
+                    AddValueToLogDataTable(path, a.Name.LocalName, a.Value, newChildLine);
+            }
 
             int i = 0;
             foreach (XElement x in xmlelement.Elements())
@@ -339,7 +342,6 @@
                 logDataTableColnames[path].Add(name);
 
             row.AttributValues.Add(new Tuple<int, int>(logDataTableColnames[path].IndexOf(name), uniqueValues[name][value]));
-
         }
 
         public void UpdateRelativeTimes()
@@ -1272,6 +1274,122 @@
 
                 workbook.Write(fs);
             }
+        }
+
+        public void ExportXES(CommandLineArguments ParsedCommandLineArguments)
+        {
+            string filename = ParsedCommandLineArguments.Transform_OutputXES;
+            DateTime dt1960 = new DateTime(1960, 1, 1, 0, 0, 0, 0);
+
+            EventDataListExtension.ESortType sort = EventDataListExtension.ESortType.Time;
+            if (ParsedCommandLineArguments.Flags.Contains("DONT_ORDER_EVENTS"))
+                sort = EventDataListExtension.ESortType.None;
+            if (ParsedCommandLineArguments.Flags.Contains("ORDER_WITHIN_ELEMENTS"))
+                sort = EventDataListExtension.ESortType.ElementAndTime;
+             
+
+            Dictionary<string, List<EventData>> _inMemoryTempData = new Dictionary<string, List<EventData>>();
+             
+            List<string> _eventTables = logDataTables.Keys.ToList<string>();
+            _eventTables.Remove("Log");
+
+            foreach (string _eventName in _eventTables)
+            {
+                foreach (var v in logDataTables[_eventName])
+                {
+                    string _personIdentifier = uniqueValuesLookup["PersonIdentifier"][(int)v.PersonIdentifier];
+                    if (!_inMemoryTempData.ContainsKey(_personIdentifier))
+                        _inMemoryTempData.Add(_personIdentifier, new List<EventData>());
+
+                    string _element = uniqueValuesLookup["Element"][v.Element];
+                    DateTime _timeStamp = v.TimeStamp;
+
+                    var _eventValues = new Dictionary<string, string>();
+                    foreach (var p in v.AttributValues)
+                    {
+                        string _key = logDataTableColnames[_eventName][p.Item1];
+                        string _value = uniqueValuesLookup[logDataTableColnames[_eventName][p.Item1]][p.Item2];
+                        _eventValues.Add(_key, _value);
+                    }
+
+                    _inMemoryTempData[_personIdentifier].Add(new EventData()
+                    {
+                        Element = _element,
+                        EventName = _eventName,
+                        PersonIdentifier = _personIdentifier,
+                        TimeStamp = _timeStamp,
+                        EventValues = _eventValues
+                    });
+                }
+            }
+
+            OpenXesNet.factory.IXFactory factory = OpenXesNet.factory.XFactoryRegistry.Instance.CurrentDefault;
+            Stack<OpenXesNet.model.IXAttributable> attributableStack = new Stack<OpenXesNet.model.IXAttributable>();
+            Stack<OpenXesNet.model.XAttribute> attributeStack = new Stack<OpenXesNet.model.XAttribute>();
+
+            OpenXesNet.extension.XExtension ext_concept_name = OpenXesNet.extension.XExtensionManager.Instance.GetByPrefix("concept");
+            OpenXesNet.extension.XExtension ext_time_timestamp = OpenXesNet.extension.XExtensionManager.Instance.GetByPrefix("time");
+
+            OpenXesNet.model.XLog xesOutput = OpenXesNet.factory.XFactoryRegistry.Instance.CurrentDefault.CreateLog();
+            xesOutput.Version = "2.0";
+            xesOutput.Features = "nested-attributes";
+
+            List<string> _persons = _inMemoryTempData.Keys.ToList<string>();
+            foreach (string _personIdentifier in _persons)
+            {
+                // sort events by time stamp
+                 
+                var _l = _inMemoryTempData[_personIdentifier];
+
+                if (ParsedCommandLineArguments.RelativeTime)
+                {
+                    _l = EventDataListExtension.SortByRelativeTime(_l, sort);
+                    _l = EventDataListExtension.ComputeRelativeTimes(_l);
+                    _l.ComputeTimedifferencePreviousWithRelativeTimes();
+                }
+                else
+                {
+                    _l = EventDataListExtension.SortByTimeStamp(_l, sort);
+                    _l = EventDataListExtension.ComputeRelativeTimes(_l);
+                    _l.ComputeTimedifferencePrevious();
+                }
+                 
+                OpenXesNet.model.XTrace trace = OpenXesNet.factory.XFactoryRegistry.Instance.CurrentDefault.CreateTrace();
+                 
+                OpenXesNet.model.XAttribute attr = factory.CreateAttributeLiteral("concept:name", _personIdentifier, ext_concept_name);
+                attributeStack.Push(attr);
+                OpenXesNet.model.XAttributeMap m_trace = new OpenXesNet.model.XAttributeMap();
+                m_trace.Add(attr.Key, attr);
+
+                foreach (var e  in _l)
+                {
+                    OpenXesNet.model.XAttributeMap m_event = new OpenXesNet.model.XAttributeMap();
+                    m_event.Add("concept:name", factory.CreateAttributeLiteral("concept:name", e.EventName, ext_concept_name));
+                    m_event.Add("assessment:element", factory.CreateAttributeLiteral("assessment:element", e.Element, null)); 
+                    m_event.Add("assessment:relativetime", factory.CreateAttributeLiteral("assessment:relativetime", Math.Round(e.RelativeTime.TotalMilliseconds, 0).ToString(), null));
+                    m_event.Add("time:timestamp", factory.CreateAttributeTimestamp("time:timestamp", e.TimeStamp, ext_time_timestamp));
+                    foreach (var a in e.EventValues)
+                    {
+                        m_event.Add(a.Key, factory.CreateAttributeLiteral(a.Key, a.Value, null));
+                    }
+                     
+                    OpenXesNet.model.XEvent evt = OpenXesNet.factory.XFactoryRegistry.Instance.CurrentDefault.CreateEvent();
+                    evt.SetAttributes(m_event);
+                    trace.Add(evt);
+
+                }
+
+                trace.SetAttributes(m_trace);
+                xesOutput.Add(trace);
+
+            }
+             
+
+
+            OpenXesNet.io.XesXmlGZIPSerializer gzipSerializer = new OpenXesNet.io.XesXmlGZIPSerializer();           
+            FileStream fStream = File.Create(filename);
+            gzipSerializer.Serialize(xesOutput, fStream);
+             
         }
 
         public static string GetTempFileName(string extension)

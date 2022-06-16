@@ -1,15 +1,14 @@
-﻿namespace LogFSM
+﻿#region usings
+using LogFSMShared;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+# endregion
+
+namespace LogFSM
 {
-    #region usings
-    using LogFSMShared;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    #endregion
-
-
     public class FSMSimpleSyntax : IFSMSyntaxReader
     {
         public List<FSMIgnore> Ignores { get; }

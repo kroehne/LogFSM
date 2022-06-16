@@ -1,12 +1,12 @@
-﻿namespace LogDataTransformer_NEPS_V01
-{
-    #region usings
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-    using System.Xml.Serialization;
-    #endregion
+﻿#region usings
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Xml.Serialization;
+#endregion
 
+namespace LogDataTransformer_NEPS_V01
+{    
     public class TBAToolsLog { }
     public class TBAToolsTestStart : TBAToolsLog { }
     public class TBAToolsLotStart : TBAToolsLog { }

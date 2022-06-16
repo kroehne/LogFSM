@@ -1,25 +1,26 @@
-﻿namespace LogFSM
-{
-    #region usings
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using System.Xml;
-    using System.Xml.Linq;
-    using LogFSMShared;
-    using Newtonsoft.Json;
-    using System.Xml.Serialization;
-    using Ionic.Zip;
-    using LogFSMConsole;
-    using StataLib;
-    using CsvHelper;
-    using System.Globalization;
-    using static LogFSM.EventDataListExtension;
-    #endregion
+﻿#region usings
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Linq;
+using LogFSMShared;
+using Newtonsoft.Json;
+using System.Xml.Serialization;
+using Ionic.Zip;
+using LogFSMConsole;
+using StataLib;
+using CsvHelper;
+using System.Globalization;
+using static LogFSM.EventDataListExtension;
+#endregion
 
+
+namespace LogFSM
+{
     public static class LogDataReader
     { 
         public static List<EventData> ReadLogDataJsonLite(string FileName, bool RelativeTime, EventDataListExtension.ESortType Sort)

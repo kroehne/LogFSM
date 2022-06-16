@@ -18,20 +18,21 @@
     GNU General Public License for more details.
 */
 
+#region Usings
+using System;
+using System.CodeDom.Compiler;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using Microsoft.CSharp;
+using System.Collections;
+using System.Runtime.InteropServices;
+#endregion
+
 namespace StataLib
 {
-    #region Usings
-    using System;
-    using System.CodeDom.Compiler;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using System.Text;
-    using Microsoft.CSharp;
-    using System.Collections;
-    using System.Runtime.InteropServices;
-    #endregion
 
     #region StataMap
     internal class StataMap

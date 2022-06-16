@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+    <xs:element name="xesextension">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="log" type="AttributableType" minOccurs="0"/>
+                <xs:element name="trace" type="AttributableType" minOccurs="0"/>
+                <xs:element name="event" type="AttributableType" minOccurs="0"/>
+                <xs:element name="meta" type="AttributableType" minOccurs="0"/>
+            </xs:sequence>
+            <xs:attribute name="name" type="xs:NCName" use="required"/>
+            <xs:attribute name="prefix" type="xs:NCName" use="required"/>
+            <xs:attribute name="uri" type="xs:anyURI" use="required"/>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Attributes -->
+    <xs:complexType name="AttributableType">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="string" type="AttributeType"/>
+            <xs:element name="date" type="AttributeType"/>
+            <xs:element name="int" type="AttributeType"/>
+            <xs:element name="float" type="AttributeType"/>
+            <xs:element name="boolean" type="AttributeType"/>
+            <xs:element name="id" type="AttributeType"/>
+            <xs:element name="list" type="AttributeType"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <!-- Attribute -->
+    <xs:complexType name="AttributeType">
+        <xs:sequence>
+            <xs:element name="alias" type="AliasType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="key" type="xs:Name" use="required"/>
+    </xs:complexType>
+
+    <!-- Alias definition, defining a mapping alias for an attribute -->
+    <xs:complexType name="AliasType">
+        <xs:attribute name="mapping" type="xs:NCName" use="required"/>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+    </xs:complexType>
+    
+</xs:schema>

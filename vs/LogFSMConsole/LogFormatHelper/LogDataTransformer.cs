@@ -1,13 +1,14 @@
-﻿namespace LogFSMConsole
-{
-    #region usings
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.IO;
-    using System.Text;
-    #endregion
+﻿#region usings
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Text;
+#endregion
 
+
+namespace LogFSMConsole
+{
     public static class LogDataTransformer
     {
         public enum ERelativeTimeType
@@ -31,6 +32,12 @@
                 Console.WriteLine("Module: Transform 'IRTlib' log data to universal log format V01.");
 
                 LogDataTransformer_IRTlibPlayer_V01.LogDataTransformer_IRTLIB_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
+            }
+            else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_ibfirebase01a)
+            {
+                Console.WriteLine("Module: Transform 'FirebaseIB' log data to universal log format V01.");
+
+                LogDataTransformer_Firebase_V01.LogDataTransformer_Firebase_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
             }
             else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_nepsrawv01a)
             { 
@@ -64,6 +71,7 @@
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_ibsdraw01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_nepsrawv01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_irtlib01a + "', '" +
+                    CommandLineArguments._CMDA_JOB_TRANSFORM_input_ibfirebase01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01b + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01c + "' or '" + 

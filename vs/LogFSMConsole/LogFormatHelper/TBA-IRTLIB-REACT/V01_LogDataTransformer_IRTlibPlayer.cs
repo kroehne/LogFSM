@@ -1,11 +1,11 @@
-﻿namespace LogDataTransformer_IRTlibPlayer_V01
-{
-    #region usings
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-    #endregion
+﻿#region usings
+using System;
+using System.Collections.Generic;
+using System.Text;
+# endregion
 
+namespace LogDataTransformer_IRTlibPlayer_V01
+{
     public enum KeyStrokeDirection
     {
         Up,
@@ -34,8 +34,7 @@
         public DateTime Timestamp { get; set; }
         public MouseEventType Type { get; set; }
     }
-
-
+     
     public class SessionNavigationState
     {
         /// <summary>
@@ -62,8 +61,7 @@
         /// Gets or sets the preview.
         /// </summary>
         public string Preview { get; set; }
-
-
+         
         public override string ToString() => $"{Booklet} - {Test} - {Item} - {Task}";
     }
 

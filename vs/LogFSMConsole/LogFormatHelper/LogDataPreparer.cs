@@ -1,29 +1,30 @@
+#region usings
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Ionic.Zip;
+using LogFSMShared;
+using StataLib;
+using System.IO;
+using Newtonsoft.Json;
+using LogFSM;
+using System.Text.RegularExpressions;
+using System.Xml.Serialization;
+using System.Xml;
+using Ionic.Zlib;
+using System.Globalization;
+using LogDataTransformer_PIAAC_R1_V01;
+using CsvHelper;
+#endregion
+
+
 namespace LogFSMConsole
 {
-    #region usings
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using Ionic.Zip;
-    using LogFSMShared;
-    using StataLib;
-    using System.IO;
-    using Newtonsoft.Json;
-    using LogFSM;
-    using System.Text.RegularExpressions;
-    using System.Xml.Serialization;
-    using System.Xml;
-    using Ionic.Zlib; 
-    using System.Globalization;
-    using LogDataTransformer_PIAAC_R1_V01;
-    using CsvHelper;
-    #endregion
-
     public class LogDataPreparer
     {
 
-        #region Flat Log File 
+        #region Flat and sparse log data table
 
         public static void ReadLogDataFlatV01(string ZipFileName, string OutFileName, string[] Element, bool Verbose, int MaxNumberOfStudents, 
             CommandLineArguments ParsedCommandLineArguments)
@@ -126,9 +127,9 @@ namespace LogFSMConsole
                                 else
                                 {
                                     if (!row.Keys.Contains(_personIdentifierColumnName) ||
-                                    !row.Keys.Contains(_elementColumnName) ||
-                                    !row.Keys.Contains(_eventNameColumnName) ||
-                                    !row.Keys.Contains(_timeStampColumnName))
+                                        !row.Keys.Contains(_elementColumnName) ||
+                                        !row.Keys.Contains(_eventNameColumnName) ||
+                                        !row.Keys.Contains(_timeStampColumnName))
                                     { 
                                         Console.WriteLine("Required columns (" + _personIdentifierColumnName + ": " + row.Keys.Contains(_personIdentifierColumnName).ToString() + ", " +
                                                                                  _elementColumnName + ": " + row.Keys.Contains(_elementColumnName).ToString() +  ", " + 
@@ -311,7 +312,7 @@ namespace LogFSMConsole
 
         #endregion
 
-        #region Universal Log Format
+        #region Universal log format
         public static void ReadLogDataGenericV01(string ZipFileName, string OutFileName, string[] Elements, bool Verbose,
             CommandLineArguments ParsedCommandLineArguments)
         {
@@ -448,8 +449,7 @@ namespace LogFSMConsole
                             foreach (var _line in str)
                             {
                                 if (_selectedElements.Count == 0 ||_selectedElements.Contains(_line[_elementColumnIndex].ToString()))
-                                {
-
+                                { 
                                     string _eventName = _line[_eventNameColumnIndex].ToString();
                                     if (_eventNameValueLabelDict.Count > 0)
                                         _eventName = _eventNameValueLabelDict[int.Parse(_eventName)];
@@ -528,8 +528,7 @@ namespace LogFSMConsole
 
                 }
             }
-
-
+             
             using (ZipFile outzip = new ZipFile())
             {
                 List<string> _persons = _inMemoryTempData.Keys.ToList<string>();
@@ -632,6 +631,12 @@ namespace LogFSMConsole
             
             return true;
         }
+        #endregion
+
+        #region XES Format
+
+        // TODO
+
         #endregion
 
         #region PISA CA

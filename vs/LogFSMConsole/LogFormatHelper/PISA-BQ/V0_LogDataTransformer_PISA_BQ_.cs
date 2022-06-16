@@ -1,23 +1,23 @@
-﻿namespace LogDataTransformer_PISA_BQ_V01
-{
-    #region usings
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using LogFSM;
-    using LogFSM_LogX2019;
-    using LogFSMConsole;
-    using System.Xml;
-    using System.Xml.Linq;
-    using StataLib;
-    using Ionic.Zip;
-    using System.Text.RegularExpressions;
-    using System.Xml.Serialization;
-    #endregion
+﻿#region usings
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using LogFSM;
+using LogFSM_LogX2019;
+using LogFSMConsole;
+using System.Xml;
+using System.Xml.Linq;
+using StataLib;
+using Ionic.Zip;
+using System.Text.RegularExpressions;
+using System.Xml.Serialization;
+# endregion
 
+namespace LogDataTransformer_PISA_BQ_V01
+{
     public class LogDataTransformer_PISABQ_Module_V01
     {
         public static void ProcessLogFilesOnly(Stopwatch Watch, CommandLineArguments ParsedCommandLineArguments)

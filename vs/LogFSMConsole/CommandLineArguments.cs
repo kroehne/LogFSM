@@ -1,18 +1,19 @@
+#region usings
+using Ionic.Zip;
+using LogFSM;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+#endregion
+
+
 namespace LogFSMConsole
 {
-    #region usings
-    using Ionic.Zip;
-    using LogFSM;
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using System.Text;
-    using System.Text.RegularExpressions;
-    using System.Threading.Tasks;
-    #endregion
-
     public class CommandLineArguments
     {
 
@@ -32,7 +33,12 @@ namespace LogFSMConsole
         /// File filter mask.
         /// </summary>
         public const string _CMDA_mask = "mask";
-        
+
+        /// <summary>
+        /// Overwrite existing files.
+        /// </summary>
+        public const string _CMDA_overwrite = "overwrite";
+
         /// <summary>
         /// Excluded elements.
         /// </summary>
@@ -93,11 +99,17 @@ namespace LogFSMConsole
         /// Transform to SPSS format.
         /// </summary>
         public const string _CMDA_JOB_TRANSFORM_output_spss = "spssoutput";
-          
+         
         /// <summary>
         /// Transform to xlsx format.
         /// </summary>
         public const string _CMDA_JOB_TRANSFORM_output_xlsx = "xlsxoutput";
+
+
+        /// <summary>
+        /// Transform to xes format.
+        /// </summary>
+        public const string _CMDA_JOB_TRANSFORM_outputesx = "xesoutput";
 
         /// <summary>
         /// Transform to zcsv format.
@@ -170,6 +182,11 @@ namespace LogFSMConsole
         /// </summary>
         public const string _CMDA_JOB_TRANSFORM_input_irtlib01a = "irtlibv01a";
          
+        /// <summary>
+        /// ItemBuilder Firebase (tryout in 2022)
+        /// </summary>
+        public const string _CMDA_JOB_TRANSFORM_input_ibfirebase01a = "ibfirebase01a";
+
         /// <summary>
         /// RAP EE
         /// </summary>
@@ -272,6 +289,11 @@ namespace LogFSMConsole
         /// Create universal log format, format xlsx
         /// </summary>
         public string Transform_OutputXLSX = "";
+
+        /// <summary>
+        /// Create standardized XES format
+        /// </summary>
+        public string Transform_OutputXES = "";
 
         /// <summary>
         /// Create universal log format, format zipped csv files
@@ -861,6 +883,8 @@ namespace LogFSMConsole
 
             this.Transform_OutputStata = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_output_stata, "");
             this.Transform_OutputXLSX = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_output_xlsx, "");
+            this.Transform_OutputXES = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_outputesx, "");
+            
             this.Transform_OutputZCSV = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_output_zcsv, "");
             this.Transform_OutputSPSS = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_output_spss, "");
 

@@ -1,29 +1,26 @@
+#region usings
+using LogFSMShared;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Loader;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Stateless;
+using Stateless.Graph;
+using LogFSM;
+using System.Diagnostics;
+using System.Data;
+using Ionic.Zip;
+using Newtonsoft.Json;
+#endregion
+
 namespace LogFSM
 {
-
-    #region usings
-
-    using LogFSMShared;
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using System.Runtime.Loader;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp;
-    using Microsoft.CodeAnalysis.Emit;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
-    using Stateless;
-    using Stateless.Graph; 
-    using LogFSM;
-    using System.Diagnostics;
-    using System.Data;
-    using Ionic.Zip;
-    using Newtonsoft.Json;
-
-    #endregion
-
     public class FSMCompiler : IFSMProvider
     {
         private string sourceFileName { get; }

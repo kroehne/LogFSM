@@ -1,18 +1,18 @@
-﻿namespace LogDataTransformer_IBSD_V01
-{
-    #region usings
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using LogFSM_LogX2019;
-    using LogFSMConsole;
-    using StataLib;
-    using Ionic.Zip;
-    #endregion
+﻿#region usings
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net;
+using LogFSM_LogX2019;
+using LogFSMConsole;
+using StataLib;
+using Ionic.Zip;
+#endregion
 
+namespace LogDataTransformer_IBSD_V01
+{
     public class LogDataTransformer_IBSD_Module_V01
     {
         public static void UpdateFiles(string web, string username, string password, string folder, string mask)

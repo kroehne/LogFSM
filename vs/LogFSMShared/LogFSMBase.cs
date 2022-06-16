@@ -1,15 +1,15 @@
+#region usings
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+#endregion
+
 namespace LogFSMShared
-{
-    #region usings
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Security.Cryptography;
-    using System.Text;
-    using System.Threading.Tasks;
-    #endregion
- 
+{ 
     public interface ILogFSM
     {
         List<FSMTrigger> Triggers { get; set; }

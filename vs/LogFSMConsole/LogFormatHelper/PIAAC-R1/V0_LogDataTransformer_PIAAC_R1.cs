@@ -1,21 +1,21 @@
-﻿namespace LogDataTransformer_PIAAC_R1_V01
-{
-    #region usings
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using LogFSM;
-    using LogFSM_LogX2019;
-    using LogFSMConsole;
-    using System.Xml;
-    using System.Xml.Linq;
-    using StataLib;
-    using Ionic.Zip;
-    #endregion
+﻿#region usings
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using LogFSM;
+using LogFSM_LogX2019;
+using LogFSMConsole;
+using System.Xml;
+using System.Xml.Linq;
+using StataLib;
+using Ionic.Zip;
+#endregion
 
+namespace LogDataTransformer_PIAAC_R1_V01
+{
     public class LogDataTransformer_PIAACR1_Module_V01
     {
         public static void ProcessLogFilesOnly(Stopwatch Watch, CommandLineArguments ParsedCommandLineArguments)

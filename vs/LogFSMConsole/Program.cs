@@ -1,42 +1,33 @@
+#region usings
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Loader;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Stateless;
+using Stateless.Graph;
+using LogFSMShared;
+using LogFSM;
+using System.Diagnostics;
+using System.Data;
+using Ionic.Zip;
+using Newtonsoft.Json;
+using System.Threading.Tasks;
+using System.Globalization;
+#endregion
+
 namespace LogFSMConsole
 {
-
-    #region usings
-
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using System.Runtime.Loader;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp;
-    using Microsoft.CodeAnalysis.Emit;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
-    using Stateless;
-    using Stateless.Graph;
-    using LogFSMShared;
-    using LogFSM;
-    using System.Diagnostics;
-    using System.Data;
-    using Ionic.Zip;
-    using Newtonsoft.Json;
-    using System.Threading.Tasks;
-    using System.Globalization;
-
-    #endregion
-
     public class Program
     {
 
         public static void Main(string[] args)
         {
-
-#if DEBUG
-            args = new string[1];
-            args[0] = @"";
-#endif
-
             Stopwatch _watch = new Stopwatch();
             _watch.Start();
 
@@ -52,10 +43,8 @@ namespace LogFSMConsole
             }
 
 #if DEBUG
-
             _parsedCommandLineArguments.RuntimePath = @"C:\work\github\LogFSM\vs\bin\dist\win-x64\";
             _parsedCommandLineArguments.IsDebug = true;
-
 #endif
 
             _parsedCommandLineArguments.PrintWelcomeMessage();

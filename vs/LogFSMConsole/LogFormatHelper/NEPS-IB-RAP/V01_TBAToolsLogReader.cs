@@ -1,16 +1,16 @@
-﻿namespace LogDataTransformer_NEPS_V01
-{
-    #region usings
-    using Newtonsoft.Json;
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Text;
-    using System.Xml;
-    using System.Xml.Serialization;
-    using LogFSM_LogX2019;
-    #endregion
+﻿#region usings
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Xml;
+using System.Xml.Serialization;
+using LogFSM_LogX2019;
+#endregion
 
+namespace LogDataTransformer_NEPS_V01
+{
     public static class TBAToolsLogReader
     {
         public static string XmlSerializeToString(this object objectInstance)

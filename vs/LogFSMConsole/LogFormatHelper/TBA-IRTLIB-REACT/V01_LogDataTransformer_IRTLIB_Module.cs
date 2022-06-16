@@ -1,23 +1,22 @@
-﻿namespace LogDataTransformer_IRTlibPlayer_V01
-{
- 
-    #region usings
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Runtime.InteropServices.WindowsRuntime;
-    using System.Text.Json;
-    using System.Text.RegularExpressions;
-    using Ionic.Zip;
-    using LogFSM_LogX2019;
-    using LogFSMConsole;
-    using Newtonsoft.Json;
-    using StataLib;
-    #endregion
+﻿#region usings
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using Ionic.Zip;
+using LogFSM_LogX2019;
+using LogFSMConsole;
+using Newtonsoft.Json;
+using StataLib;
+# endregion
 
+namespace LogDataTransformer_IRTlibPlayer_V01
+{
     public class LogDataTransformer_IRTLIB_Module_V01
     {
 
@@ -41,10 +40,13 @@
 
             string reply = _client.DownloadString(web);
             var _ret = JsonConvert.DeserializeObject<List<json_IRTLib_V01__TokenLis>>(reply);
+
+            Console.Write(" - Found " + _ret.Count + " sessions at '" + web);
+
             return _ret; 
         }
 
-        public static void UpdateFiles(List<json_IRTLib_V01__TokenLis> _sessions, string web, string username, string password, string key, string folder, string mask)
+        public static void UpdateFiles(List<json_IRTLib_V01__TokenLis> _sessions, string web, string username, string password, string key, string folder, string mask, bool overwrite)
         {
             foreach (var _s in _sessions)
             {
@@ -53,12 +55,8 @@
                 if (mask != "" && mask != "*.*")
                     _selected = CommandLineArguments.FitsMask(_s.sessionId, mask);
 
-                // TODO: Necessary to download all files?
-
-                if (File.Exists(folder + _s.sessionId + ".zip"))
-                {
-                    // TODO: Check DateTimes in ZIP
-                }
+                if (File.Exists(folder + _s.sessionId + ".zip") && !overwrite)
+                    _selected = false;
 
                 if (_selected) 
                 {
@@ -171,10 +169,14 @@
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey(CommandLineArguments._CMDA_mask))
                     _mask = ParsedCommandLineArguments.ParameterDictionary[CommandLineArguments._CMDA_mask];
 
+                bool _override = false;
+                if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey(CommandLineArguments._CMDA_overwrite))
+                    bool.TryParse(ParsedCommandLineArguments.ParameterDictionary[CommandLineArguments._CMDA_overwrite], out _override);
+
                 if (_web.Trim() != "")
                 {
                     var _sessions = RetrieveListOfSessesions(_web, _username, _password, _key);
-                    UpdateFiles(_sessions, _web, _username, _password, _key, ParsedCommandLineArguments.Transform_InputFolders[0], _mask);
+                    UpdateFiles(_sessions, _web, _username, _password, _key, ParsedCommandLineArguments.Transform_InputFolders[0], _mask, _override);
                 }
 
                 if (ParsedCommandLineArguments.Transform_OutputStata.Trim() == "" && ParsedCommandLineArguments.Transform_OutputXLSX.Trim() == "" &&
@@ -183,7 +185,7 @@
                     return; 
                 }
 
-                // Iterate over all input filters
+                // Iterate over all input folders
 
                 foreach (string inFolder in ParsedCommandLineArguments.Transform_InputFolders)
                 {
@@ -210,9 +212,7 @@
                             Console.Write("Info: Read Zip File  '" + zfilename + "' ");
 
                         try
-                        {
-
-
+                        { 
                             using (ZipFile zip = ZipFile.Read(zfilename))
                             {
                                 foreach (var entry in zip)
@@ -250,8 +250,7 @@
                                                 // TODO: Process 
                                             }
                                             else
-                                            {
-
+                                            { 
                                                 StreamReader sr = new StreamReader(zipStream);
                                                 string line;
                                                 int linecounter = 0;
@@ -341,7 +340,7 @@
                                                                 string item = _itemScoreEvent.Context.Item;
                                                                 string personIdentifier = _itemScoreEvent.SessionId;
 
-                                                                LogDataTransformer_IB_REACT_8_12__8_13.ItemScore_IB_8_12__8_13 _itemScore =
+                                                                LogDataTransformer_IB_REACT_8_12__8_13.itemScore _itemScore =
                                                                     LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseItemScore(_itemScoreEvent.ItemScore, task, item, personIdentifier);
 
                                                                 logxGenericResultElement g = new logxGenericResultElement() { PersonIdentifier = personIdentifier };
@@ -542,6 +541,7 @@
                 _ret.UpdateRelativeTimes();
                 _ret.CreateLookup();
 
+                // Export
 
                 if (ParsedCommandLineArguments.Transform_OutputStata.Trim() != "")
                 {
@@ -565,6 +565,15 @@
                         Console.WriteLine("Create XLSX file.");
 
                     _ret.ExportXLSX(ParsedCommandLineArguments);
+
+                }
+
+                if (ParsedCommandLineArguments.Transform_OutputXES.Trim() != "")
+                {
+                    if (ParsedCommandLineArguments.Verbose)
+                        Console.WriteLine("Create XES file.");
+
+                    _ret.ExportXES(ParsedCommandLineArguments);
 
                 }
 

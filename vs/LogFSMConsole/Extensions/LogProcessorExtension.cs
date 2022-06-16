@@ -1,14 +1,14 @@
-﻿namespace LogFSM
-{
-    #region usings
-    using LogFSMShared;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    #endregion
+﻿#region usings
+using LogFSMShared;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+#endregion
 
+namespace LogFSM
+{    
     public static class LogProcessorExtension
     {
         public static void Process(this ILogFSM fsm, List<EventData> Data)
@@ -26,5 +26,4 @@
 
         }
     }
-
 }

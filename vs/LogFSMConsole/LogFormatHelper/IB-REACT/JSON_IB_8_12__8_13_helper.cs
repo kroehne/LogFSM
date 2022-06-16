@@ -1,20 +1,19 @@
-﻿namespace LogDataTransformer_IB_REACT_8_12__8_13
-{
- 
-    #region usings 
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Security.Cryptography.X509Certificates;
-    using System.Text;
-    using System.Text.Json;
-    using System.Xml;
-    using System.Xml.Serialization;
-    #endregion
+﻿#region usings 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Text.Json;
+using System.Xml;
+using System.Xml.Serialization;
+#endregion
 
+namespace LogDataTransformer_IB_REACT_8_12__8_13
+{
     #region Reader
 
     public static class JSON_IB_8_12__8_13_helper
@@ -61,7 +60,9 @@
         {
             List<Log_IB_8_12__8_13> _ret = new List<Log_IB_8_12__8_13>();
 
-            string _IBTraceJSON = "";
+            ItemBuilder_React_Runtime_trace logFragment = null;
+            string _personIdentifier = "";
+
             string _element = "";
             string _test = "";
             string _task = "";
@@ -80,24 +81,49 @@
                     _task = _trace.Context.Task;
                     _tracId = _trace.TraceID;
 
-                    _IBTraceJSON = _trace.Trace;
+                    logFragment = JsonConvert.DeserializeObject<ItemBuilder_React_Runtime_trace>(_trace.Trace, new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Ignore });
+
+                    _personIdentifier = logFragment.metaData.userId;
+                    if (_personIdentifier.Contains("\r"))
+                        _personIdentifier = _personIdentifier.Replace("\r", "");
+
                 }
                 catch (Exception _innerException1)
                 {
                     Console.WriteLine(_innerException1.ToString());
                 }
-
             }
             else if (source == "IBSD_V01")
             {
-                _IBTraceJSON = line;
+                logFragment = JsonConvert.DeserializeObject<ItemBuilder_React_Runtime_trace>(line, new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Ignore });
+              
+                _personIdentifier = logFragment.metaData.userId;
+                if (_personIdentifier.Contains("\r"))
+                    _personIdentifier = _personIdentifier.Replace("\r", "");
+
             }
-             
-            json_IB_8_12__8_13 logFragment = JsonConvert.DeserializeObject<json_IB_8_12__8_13>(_IBTraceJSON.ToString(), new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Ignore });
-             
-            string _personIdentifier = logFragment.metaData.userId;
-            if (_personIdentifier.Contains("\r"))
-                _personIdentifier = _personIdentifier.Replace("\r", "");
+            else if (source == "Firebase_V01")
+            {
+                try
+                { 
+                    var _trace = JsonConvert.DeserializeObject<LogDataTransformer_Firebase_V01.TraceDatePoint>(line);
+                    if (_trace.trace == null)
+                        return _ret;
+
+                    _element = _trace.item;
+                    _test = _trace.test;
+                    _task = _trace.task;
+
+                    ItemBuilder_React_Runtime_trace_package package = JsonConvert.DeserializeObject<ItemBuilder_React_Runtime_trace_package>(_trace.trace, new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Ignore });
+                    logFragment = package.traceLogData;
+
+                    _personIdentifier = _trace.code;
+                }
+                catch (Exception _innerException1)
+                {
+                    Console.WriteLine(_innerException1.ToString());
+                }
+            } 
 
             foreach (var entry in logFragment.logEntriesList)
             {
@@ -186,7 +212,7 @@
                         Page = _page,
                         PageAreaType = _pageAreaType,
 
-                        user = entry.Details["user"].ToString(),
+                        user = entry.Details.ContainsKey("Details") ? entry.Details["user"].ToString() : "",
                         loginTimestamp = entry.Details["loginTimestamp"].ToString(),
                         runtimeVersion = entry.Details["runtimeVersion"].ToString(),
                         webClientUserAgent = entry.Details["webClientUserAgent"].ToString(),
@@ -1632,7 +1658,7 @@
             return _ret;
         }
 
-        private static void ExtrectEventDetials(logEntries_IB_B_12__8_13 entry, VisualEventBase details)
+        private static void ExtrectEventDetials(ItemBuilder_React_Runtime_trace_element entry, VisualEventBase details)
         {
             if (entry.Details.ContainsKey("userDefIdPath"))
                 details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
@@ -1665,11 +1691,12 @@
             return sb.ToString();
         }
 
-        public static ItemScore_IB_8_12__8_13 ParseItemScore(string itemscorejson, string task, string item, string personIdentifier)
+        public static itemScore ParseItemScore(string itemscorejson, string task, string item, string personIdentifier)
         {
-            ItemScore_IB_8_12__8_13 _ret = new ItemScore_IB_8_12__8_13();
+            itemScore _ret = new itemScore();
 
             Dictionary<string, string> _rawDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(itemscorejson);
+
             Dictionary<string, List<hitEntry>> _classResults = new Dictionary<string, List<hitEntry>>();
 
             if  (_rawDict == null)
@@ -1880,31 +1907,18 @@
         }
 
     }
-
-    /*
-    #region 9.x
-    public class json_IB_9
+ 
+    public class ItemBuilder_React_Runtime_trace_package
     {
-        public metaData metaData { get; set; }
-        public logEntries_IB_9[] logEntriesList { get; set; }
+        public string eventType { get; set; }
+
+        public ItemBuilder_React_Runtime_trace traceLogData { get; set; }
     }
 
-    public class logEntries_IB_9
-    {
-        public string entryId { get; set; }
-        public string timestamp { get; set; }
-        public string type { get; set; }
-      //  public object[] details { get; set; }
-    }
-
-  
-    #endregion
- */
-
-    public class json_IB_8_12__8_13
+    public class ItemBuilder_React_Runtime_trace
     {
         public metaData metaData { get; set; }
-        public logEntries_IB_B_12__8_13[] logEntriesList { get; set; }
+        public ItemBuilder_React_Runtime_trace_element[] logEntriesList { get; set; }
     }
 
     public class metaData
@@ -1922,7 +1936,7 @@
 
     }
 
-    public partial class logEntries_IB_B_12__8_13
+    public partial class ItemBuilder_React_Runtime_trace_element
     {
         public string EntryId { get; set; }
         public string Timestamp { get; set; }
@@ -1930,7 +1944,14 @@
         public JObject Details { get; set; }
     }
 
-    public class ItemScore_IB_8_12__8_13
+    public class ItemBuilder_React_Runtime_itemscore_package
+    {
+        public string eventType { get; set; }
+
+        public JObject result { get; set; }
+    }
+
+    public class itemScore
     {
         public int hitsAccumulated { get; set; }
         public int hitsCount { get; set; }
@@ -1948,7 +1969,7 @@
 
         public Dictionary<string, hitEntry> ClassResults { get; set; }
 
-        public ItemScore_IB_8_12__8_13()
+        public itemScore()
         {
             // key: HitName
             Hits = new Dictionary<string, hitEntry>();

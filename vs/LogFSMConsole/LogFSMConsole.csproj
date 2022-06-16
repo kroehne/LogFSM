@@ -37,6 +37,7 @@
     <Compile Remove="generated.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\External\OpenXes.Net\OpenXes.Net.csproj" />
     <ProjectReference Include="..\External\SpssLib\SpssLib.csproj" />
     <ProjectReference Include="..\LogFSMShared\LogFSMShared.csproj" />
   </ItemGroup>

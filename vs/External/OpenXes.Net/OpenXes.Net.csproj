@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>OpenXesNet</RootNamespace>
+    <Authors>Alvaro Martinez Romero</Authors>
+    <Description>OpenXes implementation for .NET</Description>
+    <ReleaseVersion>1.0.1</ReleaseVersion>
+    <PackOnBuild>true</PackOnBuild>
+    <PackageId>openxesnet</PackageId>
+    <Owners>Sabien</Owners>
+    <PackageTags>xes open-xes processmining</PackageTags>
+    <PackageLicenseUrl>https://www.gnu.org/licenses/lgpl-3.0.html</PackageLicenseUrl>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageProjectUrl>https://bitbucket.org/sabien/openxes.net</PackageProjectUrl>
+    <Title>OpenXes.Net</Title>
+    <PackageVersion>$(ReleaseVersion)</PackageVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <DocumentationFile></DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="model\" />
+    <Folder Include="extension\" />
+    <Folder Include="classification\" />
+    <Folder Include="info\" />
+    <Folder Include="util\" />
+    <Folder Include="factory\" />
+    <Folder Include="id\" />
+    <Folder Include="logging\" />
+    <Folder Include="extension\std\" />
+    <Folder Include="extension\std\cost\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="model\ICloneable.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="extension\xesext-ieee-1849-2016.xsd" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="extension\xesext-ieee-1849-2016.xsd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="extension\xesext-ieee-1849-2016.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LogicalName>xesext-ieee-1849-2016</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NuGet.Build.Packaging" Version="0.2.2" />
+  </ItemGroup>
+</Project>

@@ -1,19 +1,19 @@
-﻿namespace LogDataTransformer_EE_RAP_V01
-{
-    #region usings
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.IO;
-    using System.Linq;
-    using System.Xml;
-    using System.Xml.Linq;
-    using Ionic.Zip;
-    using LogFSM_LogX2019;
-    using LogFSMConsole;
-    using StataLib;
-    #endregion
+﻿#region usings
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
+using Ionic.Zip;
+using LogFSM_LogX2019;
+using LogFSMConsole;
+using StataLib;
+#endregion
 
+namespace LogDataTransformer_EE_RAP_V01
+{
     public class LogDataTransformer_EE_RAP_Module_V01
     {
         public static void ProcessLogFilesOnly(Stopwatch Watch, CommandLineArguments ParsedCommandLineArguments)
