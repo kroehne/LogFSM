@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -6,7 +6,7 @@
     <Authors>Alvaro Martinez Romero</Authors>
     <Description>OpenXes implementation for .NET</Description>
     <ReleaseVersion>1.0.1</ReleaseVersion>
-    <PackOnBuild>true</PackOnBuild>
+    <PackOnBuild>false</PackOnBuild>
     <PackageId>openxesnet</PackageId>
     <Owners>Sabien</Owners>
     <PackageTags>xes open-xes processmining</PackageTags>
