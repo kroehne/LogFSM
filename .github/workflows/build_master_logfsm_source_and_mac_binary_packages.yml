@@ -125,9 +125,9 @@ jobs:
       with:
         name: ${{format('Linux_LogFSM_{0}.tar.gz', env.VERSION)}}
         path: ${{ github.workspace }}/${{format('LogFSM_{0}.tar.gz', env.VERSION)}}
-        
+
     - uses: "marvinpinto/action-automatic-releases@latest"
-        with:
+      with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "${{ env.VERSION}}"
           prerelease: true
