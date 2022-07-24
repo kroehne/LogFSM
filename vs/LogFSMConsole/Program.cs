@@ -30,7 +30,7 @@ namespace LogFSMConsole
         {
             Stopwatch _watch = new Stopwatch();
             _watch.Start();
-
+             
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
              
             string[] _assemblyFullName = Assembly.GetExecutingAssembly().FullName.Split(',');
@@ -219,7 +219,7 @@ namespace LogFSMConsole
                 else if (ParsedCommandLineArguments.DataFileTypeIsJsonLite)
                 {
                     _logData = LogDataReader.ReadLogDataJsonLite(ParsedCommandLineArguments.DataFileName, ParsedCommandLineArguments.RelativeTime, sort);
-                }
+                }                 
                 _temporaryResultFiles.AddRange(ProcessLogData(ParsedCommandLineArguments, _myGeneratedFSM, _logData));
             }
             else if (ParsedCommandLineArguments.DataFileTypeIsUniversalLogFormat)
@@ -499,8 +499,7 @@ namespace LogFSMConsole
             }
 
             #endregion
-
-
+             
             #region Post Process UML Charts
             try
             {
@@ -684,28 +683,33 @@ namespace LogFSMConsole
             string _outputRelativeTimeFormatString = "hh':'mm':'ss':'fff";
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputrelativetimeformatstring"))
                 _outputRelativeTimeFormatString = ParsedCommandLineArguments.ParameterDictionary["outputrelativetimeformatstring"];
-             
+    
             foreach (var _data in _groupdLogData)
-            {
-               
+            { 
                 List<EventData> _logData = _data.ToList<EventData>();
                 List<string> _PersonIdentifiers = _logData.Select(x => x.PersonIdentifier).Distinct().ToList<string>();
                 string _personIdentifier = _PersonIdentifiers[0];
-                 
+                  
                 if (ParsedCommandLineArguments.MaxNumberOfCases > 0)
                 {
                     if (ParsedCommandLineArguments.currentNumberOfPersons >= ParsedCommandLineArguments.MaxNumberOfCases)
                         break;
                     else
-                        Console.Write(" - PersonIdentifier '" + _personIdentifier + "' (", ParsedCommandLineArguments.currentNumberOfPersons, "/", ParsedCommandLineArguments.MaxNumberOfCases, "): ");
+                    {
+                        if (ParsedCommandLineArguments.Verbose)
+                            Console.Write(" - PersonIdentifier '" + _personIdentifier + "' (", ParsedCommandLineArguments.currentNumberOfPersons, "/", ParsedCommandLineArguments.MaxNumberOfCases, "): ");
+                    }
+                        
                 }
                 else
                 {
-                    Console.Write(" - PersonIdentifier '" + _personIdentifier + "': ");
+                    if (ParsedCommandLineArguments.Verbose)
+                        Console.Write(" - PersonIdentifier '" + _personIdentifier + "': ");
                 }
-                    
-                 
-                _myGeneratedFSM.Process(_logData);
+                     
+                _myGeneratedFSM.Process(_logData, ParsedCommandLineArguments.Verbose);
+
+                // Process Results
 
                 LogFSMResultJSON _resultJsonObject = new LogFSMResultJSON();
 
@@ -737,7 +741,9 @@ namespace LogFSMConsole
                     }
                 }
 
-                Console.WriteLine(" (number of machines: '" + (_numberOfProccessedMachines) + "')");
+                if (ParsedCommandLineArguments.Verbose)
+                    Console.WriteLine(" (number of machines: " + (_numberOfProccessedMachines) + ")");
+
                 ParsedCommandLineArguments.currentNumberOfPersons += 1;
 
                 #endregion
@@ -1340,6 +1346,8 @@ namespace LogFSMConsole
                 }
 
                 #endregion
+                  
+                #region Store Results
 
                 string _newfile = Path.Combine(ParsedCommandLineArguments.TempPath, _personIdentifier) + ".json";
                 using (StreamWriter file = File.CreateText(_newfile))
@@ -1348,15 +1356,12 @@ namespace LogFSMConsole
                     serializer.Serialize(file, _resultJsonObject);
                 }
 
-                /*
-                string json = JsonConvert.SerializeObject(_resultJsonObject, Newtonsoft.Json.Formatting.Indented);
-                string _file = Path.Combine(ParsedCommandLineArguments.TempPath, _personIdentifier) + ".json";
-                File.WriteAllText(_file, json);
-                */
-
                 _tmpReturn.Add(_newfile);
+
+                #endregion
+ 
             }
-             
+
             return _tmpReturn;
         }
 

@@ -11,19 +11,21 @@ namespace LogFSM
 {    
     public static class LogProcessorExtension
     {
-        public static void Process(this ILogFSM fsm, List<EventData> Data)
+        public static void Process(this ILogFSM fsm, List<EventData> Data, bool Verbose)
         {
-            Console.Write(" (Process " + Data.Count + " events: ");
+            if (Verbose)
+                Console.Write(" (Process " + Data.Count + " events: ");
+
             for (int i=0; i< Data.Count; i++)
             {
                 fsm.UpdateVariables(Data, i);
                 fsm.ProcessEvent(Data, i);
-                if (i % 100 == 0)
-                    Console.Write(".");
+                if (Verbose)
+                    if (i % 100 == 0)
+                        Console.Write(".");
             }
-            Console.Write(")");
-
-
+            if (Verbose)
+                Console.Write(")");
         }
     }
 }
