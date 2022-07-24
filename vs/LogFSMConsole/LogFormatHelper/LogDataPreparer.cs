@@ -16,6 +16,8 @@ using Ionic.Zlib;
 using System.Globalization;
 using LogDataTransformer_PIAAC_R1_V01;
 using CsvHelper;
+using NPOI.SS.Formula.Functions;
+using CsvHelper.Configuration;
 #endregion
 
 
@@ -85,7 +87,17 @@ namespace LogFSMConsole
 
             int _numberOfStudents = 0;
             string _personIdentifier = "";
-
+            int _lineCounter = 0;
+            var _csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                Delimiter = _columnDelimiter,
+                ReadingExceptionOccurred = args =>
+                {
+                    Console.WriteLine($"Bad data (Line " + _lineCounter + "): <{x.RawRecord}>");
+                    return true;
+                }
+            };
+             
             using (ZipFile outputZipFile = new ZipFile())
             {
                 using (Stream fileStream = File.OpenRead(ZipFileName),
@@ -93,15 +105,9 @@ namespace LogFSMConsole
                 {
                     using (var reader = new StreamReader(zippedStream))
                     {
-                        int _lineCounter = 0;
-                        using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
-                        {
-                            csv.Configuration.Delimiter = _columnDelimiter;
-                            csv.Configuration.BadDataFound = x =>
-                            {
-                                Console.WriteLine($"Bad data (Line " + _lineCounter + "): <{x.RawRecord}>");
-                            };
-
+                        _lineCounter = 0;
+                        using (var csv = new CsvReader(reader, _csvConfig))
+                        {  
                             // prepare reader
 
                             var _data_rows = csv.GetRecords<dynamic>();
@@ -255,9 +261,12 @@ namespace LogFSMConsole
                     {
                         using (var reader = new StreamReader(zippedStream))
                         {
-                            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                            var _csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
                             {
-                                csv.Configuration.Delimiter = ColumnDelimiter;
+                                Delimiter = ColumnDelimiter
+                            }; 
+                            using (var csv = new CsvReader(reader, _csvConfig))
+                            { 
                                 var _data_rows = csv.GetRecords<dynamic>();
                                 return _data_rows.Count() > 0;
                             }
@@ -1301,10 +1310,7 @@ namespace LogFSMConsole
                                     }
                                 }
                             }
-                        }
-
-
-
+                        } 
                     }
                 }
 
@@ -1329,15 +1335,38 @@ namespace LogFSMConsole
             {
                 using (var outerInputZipFile = ZipFile.Read(ZipFileName))
                 {
+                    var totalFiles = outerInputZipFile.Count; 
+                    var currentFile = 0;
+                    int percent = 0;
+
                     foreach (var outerInputZipEntry in outerInputZipFile.Entries)
-                    {
+{
+                        if ((int)Math.Round((double)currentFile / (double)totalFiles * 100, 0) > percent + 9)
+                        {
+                            percent = (int)Math.Round((double)currentFile / (double)totalFiles * 100, 0);
+                            Console.WriteLine(percent + "% processed, " + numberOfPersonss + " persons found.");
+                        }
+
                         if (outerInputZipEntry.FileName.EndsWith("-log.xml") && outerInputZipEntry.UncompressedSize != 0)
                         {
                             numberOfPersonss += 1;
 
-                            string _PersonIdentifier = Path.GetFileName(outerInputZipEntry.FileName).Replace("-log.xml", "");
-                            Console.WriteLine(_PersonIdentifier + " -- " + numberOfPersonss);
+                            string _PersonIdentifier = Path.GetFileName(outerInputZipEntry.FileName).Replace("-log.xml", "");                          
+                            _inMemoryTempDataEvents = new List<EventData>();
 
+                            using (MemoryStream innerZIPEntryMemoryStream = new MemoryStream())
+                            {
+                                outerInputZipEntry.Password = Password;
+                                outerInputZipEntry.Extract(innerZIPEntryMemoryStream);
+                                innerZIPEntryMemoryStream.Position = 0;
+
+                                var _sr = new StreamReader(innerZIPEntryMemoryStream);
+                                var _xml = CleanInvalidXmlChars(_sr.ReadToEnd());
+
+                                processPISA_BQ_single_XML(Element, dt1970, _inMemoryTempDataEvents, logSerializer, _PersonIdentifier, _xml);
+
+                            }
+                             
                             if (_inMemoryTempDataEvents.Count > 0)
                             {
                                 if (ParsedCommandLineArguments.RelativeTime)
@@ -1353,28 +1382,15 @@ namespace LogFSMConsole
                                 outputZipFile.AddEntry(_PersonIdentifier + ".json", JsonConvert.SerializeObject(_inMemoryTempDataEvents, Newtonsoft.Json.Formatting.Indented));
                             }
 
-                            _inMemoryTempDataEvents = new List<EventData>();
-
-                            using (MemoryStream innerZIPEntryMemoryStream = new MemoryStream())
-                            {
-                                outerInputZipEntry.Password = Password;
-                                outerInputZipEntry.Extract(innerZIPEntryMemoryStream);
-                                innerZIPEntryMemoryStream.Position = 0;
-
-                                var _sr = new StreamReader(innerZIPEntryMemoryStream);
-                                var _xml = CleanInvalidXmlChars(_sr.ReadToEnd());
-
-                                processPISA_BQ_single_XML(Element, dt1970, _inMemoryTempDataEvents, logSerializer, _PersonIdentifier, _xml);
-
-                            }
 
                         }
 
                         if (max >= 1 && numberOfPersonss >= max)
                             break;
-                    }
-                }
 
+                        currentFile++;
+                    }
+                } 
                 outputZipFile.Save(OutFileName);
             }
         }
@@ -1399,7 +1415,9 @@ namespace LogFSMConsole
                 DateTime _PreviousEvent = DateTime.MaxValue;
                 if (_log.User != _PersonIdentifier)
                 {
-                    throw new Exception("Person identifier missmatch.");
+                   Console.WriteLine("Person identifier missmatch (Found " + _log.User + " and expected " + _PersonIdentifier);
+                   Console.WriteLine("--> Data ignored.");
+                    return;
                 }
 
                 int _EventID = 0;

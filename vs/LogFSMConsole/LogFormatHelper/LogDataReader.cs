@@ -16,6 +16,7 @@ using StataLib;
 using CsvHelper;
 using System.Globalization;
 using static LogFSM.EventDataListExtension;
+using CsvHelper.Configuration;
 #endregion
 
 
@@ -609,71 +610,76 @@ namespace LogFSM
         {
             int _lineCounter = 0;
             using (var reader = new StreamReader(zipStream))
-            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
             {
-                csv.Configuration.Delimiter = _columnDelimiter;
-                csv.Configuration.BadDataFound = x =>
+                var _csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
                 {
-                    Console.WriteLine($"Bad data (Line " + _lineCounter + "): <{x.RawRecord}>");
+                    Delimiter = _columnDelimiter,
+                    ReadingExceptionOccurred = args =>
+                    {
+                        Console.WriteLine($"Bad data (Line " + _lineCounter + "): <{x.RawRecord}>");
+                        return true;
+                    }
                 };
 
-
-                var _data_rows = csv.GetRecords<dynamic>();
-                foreach (IDictionary<string, object> row in _data_rows)
-                {
-                    string _personIdentifier = row[_columnNamePersonIdentifier].ToString();
-                    string _eventName = row[_columnNameEventName].ToString();
-                    string _element = row[_columnNameElement].ToString();
-                    DateTime _timeStamp = DateTime.MinValue;
-
-                    if (!RelativeTime)
-                        DateTime.TryParse(row[_columnNameTimeStamp].ToString(), out _timeStamp);
-                    else
+                using (var csv = new CsvReader(reader, _csvConfig))
+                { 
+                    var _data_rows = csv.GetRecords<dynamic>();
+                    foreach (IDictionary<string, object> row in _data_rows)
                     {
-                        try
+                        string _personIdentifier = row[_columnNamePersonIdentifier].ToString();
+                        string _eventName = row[_columnNameEventName].ToString();
+                        string _element = row[_columnNameElement].ToString();
+                        DateTime _timeStamp = DateTime.MinValue;
+
+                        if (!RelativeTime)
+                            DateTime.TryParse(row[_columnNameTimeStamp].ToString(), out _timeStamp);
+                        else
                         {
-                            _timeStamp = dt1960.AddMilliseconds(double.Parse(row[_columnNameTimeStamp].ToString()));
+                            try
+                            {
+                                _timeStamp = dt1960.AddMilliseconds(double.Parse(row[_columnNameTimeStamp].ToString()));
+                            }
+                            catch
+                            {
+                                //TODO VERSION 0.3: Add a more proper check for invalid time stamps
+                            }
                         }
-                        catch
+
+                        var _eventValues = new Dictionary<string, string>();
+                        foreach (var v in row.Keys)
                         {
-                            //TODO VERSION 0.3: Add a more proper check for invalid time stamps
+                            if (!_notEventSpecificValues.Contains(v))
+                                _eventValues.Add(v, row[v].ToString());
                         }
-                    }
-
-                    var _eventValues = new Dictionary<string, string>();
-                    foreach (var v in row.Keys)
-                    {
-                        if (!_notEventSpecificValues.Contains(v))
-                            _eventValues.Add(v, row[v].ToString());
-                    }
 
 
-                    bool _add = true;
-                    if (_personIdentifier != PersonIdentifier)
-                        _add = false;
-                    else if (ParsedCommandLineArguments.Elements.Length != 0 && !ParsedCommandLineArguments.Elements.Contains<string>(_element))
-                        _add = false;
-                    else if (ParsedCommandLineArguments.Events.Length != 0 && !ParsedCommandLineArguments.Events.Contains<string>(_eventName))
-                        _add = false;
-                    else if (ParsedCommandLineArguments.ExcludedElements.Length != 0 && ParsedCommandLineArguments.ExcludedElements.Contains<string>(_element))
-                        _add = false;
-                    else if (ParsedCommandLineArguments.ExcludedEvents.Length != 0 && ParsedCommandLineArguments.ExcludedEvents.Contains<string>(_eventName))
-                        _add = false;
+                        bool _add = true;
+                        if (_personIdentifier != PersonIdentifier)
+                            _add = false;
+                        else if (ParsedCommandLineArguments.Elements.Length != 0 && !ParsedCommandLineArguments.Elements.Contains<string>(_element))
+                            _add = false;
+                        else if (ParsedCommandLineArguments.Events.Length != 0 && !ParsedCommandLineArguments.Events.Contains<string>(_eventName))
+                            _add = false;
+                        else if (ParsedCommandLineArguments.ExcludedElements.Length != 0 && ParsedCommandLineArguments.ExcludedElements.Contains<string>(_element))
+                            _add = false;
+                        else if (ParsedCommandLineArguments.ExcludedEvents.Length != 0 && ParsedCommandLineArguments.ExcludedEvents.Contains<string>(_eventName))
+                            _add = false;
 
-                    if (_add)
-                    {
-                        _return.Add(new EventData()
+                        if (_add)
                         {
-                            Element = _element,
-                            EventName = _eventName,
-                            PersonIdentifier = _personIdentifier,
-                            TimeStamp = _timeStamp,
-                            EventValues = _eventValues
-                        });
+                            _return.Add(new EventData()
+                            {
+                                Element = _element,
+                                EventName = _eventName,
+                                PersonIdentifier = _personIdentifier,
+                                TimeStamp = _timeStamp,
+                                EventValues = _eventValues
+                            });
+                        }
+
                     }
 
                 }
-
             }
         }
 
@@ -753,24 +759,30 @@ namespace LogFSM
 
                 int _lineCounter = 0;
                 using (var reader = new StreamReader(zipStream))
-                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                 {
-                    csv.Configuration.Delimiter = _columnDelimiter;
-                    csv.Configuration.BadDataFound = x =>
+                    var _csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
                     {
-                        Console.WriteLine($"Bad data (Line " + _lineCounter + "): <{x.RawRecord}>");
-                    };
-                     
-                    var _data_rows = csv.GetRecords<dynamic>();
-                    foreach (IDictionary<string, object> row in _data_rows)
-                    {
-                        if (row.ContainsKey(_columnNamePersonIdentifier))
+                        Delimiter = _columnDelimiter,
+                        ReadingExceptionOccurred = args =>
                         {
-                            string _personIdentifier = row[_columnNamePersonIdentifier].ToString();
-                            if (!_ret.Contains(_personIdentifier))
-                                _ret.Add(_personIdentifier);
+                            Console.WriteLine($"Bad data (Line " + _lineCounter + "): <{x.RawRecord}>");
+                            return true;
                         }
+                    };
 
+                    using (var csv = new CsvReader(reader, _csvConfig))
+                    { 
+                        var _data_rows = csv.GetRecords<dynamic>();
+                        foreach (IDictionary<string, object> row in _data_rows)
+                        {
+                            if (row.ContainsKey(_columnNamePersonIdentifier))
+                            {
+                                string _personIdentifier = row[_columnNamePersonIdentifier].ToString();
+                                if (!_ret.Contains(_personIdentifier))
+                                    _ret.Add(_personIdentifier);
+                            }
+
+                        }
                     }
                 }
             }

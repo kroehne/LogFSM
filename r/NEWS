@@ -1,6 +1,10 @@
 CHANGE-LOG
 ==========
 
+2022-07-24 0.4.5.19
+
+* Nuget package updates
+
 2022-06-15 0.4.5.18
 
 * Added support for experimental Firebase administration of CBA ItemBuilder tasks

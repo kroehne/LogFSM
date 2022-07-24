@@ -101,7 +101,7 @@ namespace LogDataTransformer_Firebase_V01
                             }
                             catch (Exception _ex)
                             {
-
+                                Console.WriteLine("Exception: " + _ex.ToString());
                             }
 
                             #endregion
@@ -171,7 +171,7 @@ namespace LogDataTransformer_Firebase_V01
                             }
                             catch (Exception _ex)
                             {
-
+                                Console.WriteLine("Exception: " + _ex.ToString());
                             }
 
                             #endregion
@@ -224,7 +224,7 @@ namespace LogDataTransformer_Firebase_V01
                             }
                             catch (Exception _ex)
                             {
-
+                                Console.WriteLine("Exception: " + _ex.ToString());
                             }
 
                             #endregion
