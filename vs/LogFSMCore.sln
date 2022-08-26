@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29509.3
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32611.2
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogFSMConsole", "LogFSMConsole\LogFSMConsole.csproj", "{96A19ABE-F8A0-4AEF-BD17-4AAF3BEC7A19}"
 EndProject
@@ -27,7 +27,6 @@ Global
 		{96A19ABE-F8A0-4AEF-BD17-4AAF3BEC7A19}.Release LogFSM|Any CPU.ActiveCfg = Release|Any CPU
 		{96A19ABE-F8A0-4AEF-BD17-4AAF3BEC7A19}.Release LogFSM|Any CPU.Build.0 = Release|Any CPU
 		{96A19ABE-F8A0-4AEF-BD17-4AAF3BEC7A19}.Release TransformToUniversalLogForamt|Any CPU.ActiveCfg = Release TransformToUniversalLogForamt|Any CPU
-		{96A19ABE-F8A0-4AEF-BD17-4AAF3BEC7A19}.Release TransformToUniversalLogForamt|Any CPU.Build.0 = Release TransformToUniversalLogForamt|Any CPU
 		{96A19ABE-F8A0-4AEF-BD17-4AAF3BEC7A19}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96A19ABE-F8A0-4AEF-BD17-4AAF3BEC7A19}.Release|Any CPU.Build.0 = Release|Any CPU
 		{561740F7-C349-4CD8-907F-92D6E5E848E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -35,7 +34,6 @@ Global
 		{561740F7-C349-4CD8-907F-92D6E5E848E5}.Release LogFSM|Any CPU.ActiveCfg = Release|Any CPU
 		{561740F7-C349-4CD8-907F-92D6E5E848E5}.Release LogFSM|Any CPU.Build.0 = Release|Any CPU
 		{561740F7-C349-4CD8-907F-92D6E5E848E5}.Release TransformToUniversalLogForamt|Any CPU.ActiveCfg = Release TransformToUniversalLogForamt|Any CPU
-		{561740F7-C349-4CD8-907F-92D6E5E848E5}.Release TransformToUniversalLogForamt|Any CPU.Build.0 = Release TransformToUniversalLogForamt|Any CPU
 		{561740F7-C349-4CD8-907F-92D6E5E848E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{561740F7-C349-4CD8-907F-92D6E5E848E5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E2687B37-3B85-41E6-8473-81BAE315DB90}.Debug|Any CPU.ActiveCfg = Release TransformToUniversalLogForamt|Any CPU
@@ -51,7 +49,6 @@ Global
 		{B5A59CAB-5341-46E5-AE12-CBF820106553}.Release LogFSM|Any CPU.ActiveCfg = Release|Any CPU
 		{B5A59CAB-5341-46E5-AE12-CBF820106553}.Release LogFSM|Any CPU.Build.0 = Release|Any CPU
 		{B5A59CAB-5341-46E5-AE12-CBF820106553}.Release TransformToUniversalLogForamt|Any CPU.ActiveCfg = Release TransformToUniversalLogForamt|Any CPU
-		{B5A59CAB-5341-46E5-AE12-CBF820106553}.Release TransformToUniversalLogForamt|Any CPU.Build.0 = Release TransformToUniversalLogForamt|Any CPU
 		{B5A59CAB-5341-46E5-AE12-CBF820106553}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B5A59CAB-5341-46E5-AE12-CBF820106553}.Release|Any CPU.Build.0 = Release|Any CPU
 		{179712C3-9E20-44E2-9D2C-CC439A2E172C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -59,7 +56,6 @@ Global
 		{179712C3-9E20-44E2-9D2C-CC439A2E172C}.Release LogFSM|Any CPU.ActiveCfg = Release|Any CPU
 		{179712C3-9E20-44E2-9D2C-CC439A2E172C}.Release LogFSM|Any CPU.Build.0 = Release|Any CPU
 		{179712C3-9E20-44E2-9D2C-CC439A2E172C}.Release TransformToUniversalLogForamt|Any CPU.ActiveCfg = Release|Any CPU
-		{179712C3-9E20-44E2-9D2C-CC439A2E172C}.Release TransformToUniversalLogForamt|Any CPU.Build.0 = Release|Any CPU
 		{179712C3-9E20-44E2-9D2C-CC439A2E172C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{179712C3-9E20-44E2-9D2C-CC439A2E172C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection

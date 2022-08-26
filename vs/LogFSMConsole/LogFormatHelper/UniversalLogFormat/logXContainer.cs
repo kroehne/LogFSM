@@ -917,7 +917,7 @@ namespace LogFSM_LogX2019
 
             using (ZipFile zip = new ZipFile())
             { 
-                #region Log Data
+                #region Log Data / Universal Format
 
                 foreach (string _id in logDataTables.Keys)
                 {
@@ -981,6 +981,9 @@ namespace LogFSM_LogX2019
                 }
 
                 #endregion
+
+                #region Log Data / Flat and Sparse Log Data Table 
+                #endregion 
 
                 #region Result Data
 
@@ -1284,10 +1287,10 @@ namespace LogFSM_LogX2019
             EventDataListExtension.ESortType sort = EventDataListExtension.ESortType.Time;
             if (ParsedCommandLineArguments.Flags.Contains("DONT_ORDER_EVENTS"))
                 sort = EventDataListExtension.ESortType.None;
+
             if (ParsedCommandLineArguments.Flags.Contains("ORDER_WITHIN_ELEMENTS"))
                 sort = EventDataListExtension.ESortType.ElementAndTime;
-             
-
+              
             Dictionary<string, List<EventData>> _inMemoryTempData = new Dictionary<string, List<EventData>>();
              
             List<string> _eventTables = logDataTables.Keys.ToList<string>();
@@ -1384,8 +1387,7 @@ namespace LogFSM_LogX2019
 
             }
              
-
-
+             
             OpenXesNet.io.XesXmlGZIPSerializer gzipSerializer = new OpenXesNet.io.XesXmlGZIPSerializer();           
             FileStream fStream = File.Create(filename);
             gzipSerializer.Serialize(xesOutput, fStream);
@@ -1692,6 +1694,81 @@ namespace LogFSM_LogX2019
             for (int i = 0; i < row.Length; i++)
                 sheet_head_row.CreateCell(i).SetCellValue(row[i]);
             return sheet_head_index;
+        }
+
+        public static void ExportLogXContainerData(CommandLineArguments ParsedCommandLineArguments, logXContainer _ret)
+        {
+
+            string _language = "ENG";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("language"))
+                _language = ParsedCommandLineArguments.ParameterDictionary["language"];
+
+            _ret.UpdateRelativeTimes();
+            _ret.CreateLookup();
+
+            // Export
+
+            if (ParsedCommandLineArguments.Transform_OutputStata.Trim() != "")
+            {
+                if (ParsedCommandLineArguments.Verbose)
+                    Console.WriteLine("Create ZIP archive with Stata file(s).");
+
+                _ret.ExportStata(ParsedCommandLineArguments.Transform_OutputStata, _language);
+            }
+
+            if (ParsedCommandLineArguments.Transform_OutputSPSS.Trim() != "")
+            {
+                if (ParsedCommandLineArguments.Verbose)
+                    Console.WriteLine("Create ZIP archive with SPSS file(s).");
+
+                _ret.ExportSPSS(ParsedCommandLineArguments.Transform_OutputSPSS, _language);
+            }
+
+            if (ParsedCommandLineArguments.Transform_OutputXLSX.Trim() != "")
+            {
+                if (ParsedCommandLineArguments.Verbose)
+                    Console.WriteLine("Create XLSX file.");
+
+                _ret.ExportXLSX(ParsedCommandLineArguments);
+
+            }
+
+            if (ParsedCommandLineArguments.Transform_OutputXES.Trim() != "")
+            {
+                if (ParsedCommandLineArguments.Verbose)
+                    Console.WriteLine("Create XES file.");
+
+                _ret.ExportXES(ParsedCommandLineArguments);
+
+            }
+
+            if (ParsedCommandLineArguments.Transform_OutputZCSV.Trim() != "")
+            {
+                if (ParsedCommandLineArguments.Verbose)
+                    Console.WriteLine("Create ZIP archive with CSV file(s).");
+
+                _ret.ExportCSV(ParsedCommandLineArguments);
+            }
+
+            if (ParsedCommandLineArguments.Transform_Codebook.Trim() != "")
+            {
+                if (ParsedCommandLineArguments.Verbose)
+                    Console.WriteLine("Create Codebook File.");
+
+                _ret.CreateCodebook(ParsedCommandLineArguments.Transform_Codebook, _language);
+            }
+
+            if (_ret.ExportErrors.Count > 0)
+            {
+                Console.WriteLine(_ret.ExportErrors.Count + " error(s) creating output files.");
+                if (ParsedCommandLineArguments.Verbose)
+                {
+                    for (int i = 0; i < _ret.ExportErrors.Count; i++)
+                    {
+                        Console.WriteLine(_ret.ExportErrors[i]);
+                    } 
+                }
+            }
         }
     }
 

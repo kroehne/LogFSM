@@ -165,8 +165,7 @@ namespace LogFSMConsole
         #endregion
 
         #region Input File Formats (Constants) 
-
-
+         
         /// <summary>
         /// IBSD
         /// </summary>
@@ -193,11 +192,15 @@ namespace LogFSMConsole
         public const string _CMDA_JOB_TRANSFORM_input_eeibraprawv01a = "eeibraprawv01a";
 
         /// <summary>
-        /// RAP EE
+        /// PIAAC R1
         /// </summary>
         public const string _CMDA_JOB_TRANSFORM_input_piiacr1txtv01a = "piaacr1txt01a";
 
-
+        /// <summary>
+        /// TAO PCI 
+        /// </summary>
+        public const string _CMDA_JOB_TRANSFORM_input_taopci01a = "taopci01a";
+         
         /// <summary>
         /// 
         /// </summary>
@@ -212,16 +215,14 @@ namespace LogFSMConsole
         /// 
         /// </summary>
         public const string _CMDA_JOB_TRANSFORM_input_pisabqzip01c = "pisabqzip01c";
-
-
+         
         /// <summary>
         /// 
         /// </summary>
         public const string _CMDA_JOB_TRANSFORM_input_pisacazip01a = "pisacazip01a";
 
         #endregion
-
-
+         
         #region ParsedConfiguration
 
         public Dictionary<string, string> ParameterDictionary = new Dictionary<string, string>();

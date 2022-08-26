@@ -123,7 +123,12 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                 {
                     Console.WriteLine(_innerException1.ToString());
                 }
-            } 
+            }
+            else if (source == "TAOPCI_V01")
+            {
+                logFragment = JsonConvert.DeserializeObject<ItemBuilder_React_Runtime_trace>(line, new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Ignore });
+                _personIdentifier = logFragment.metaData.userId;
+            }
 
             foreach (var entry in logFragment.logEntriesList)
             {
@@ -1919,6 +1924,11 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
     {
         public metaData metaData { get; set; }
         public ItemBuilder_React_Runtime_trace_element[] logEntriesList { get; set; }
+    }
+
+    public class ItemBuilder_React_Runtime_trace_collection
+    {
+        public ItemBuilder_React_Runtime_trace[] logs { get; set; }
     }
 
     public class metaData

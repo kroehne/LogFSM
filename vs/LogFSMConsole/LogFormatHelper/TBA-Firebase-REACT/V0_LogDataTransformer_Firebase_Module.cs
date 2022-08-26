@@ -253,11 +253,7 @@ namespace LogDataTransformer_Firebase_V01
                 string _personIdentifierColumnName = "PersonIdentifier";
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("personidentifier"))
                     _personIdentifierColumnName = ParsedCommandLineArguments.ParameterDictionary["personidentifier"];
-
-                string _language = "ENG";
-                if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("language"))
-                    _language = ParsedCommandLineArguments.ParameterDictionary["language"];
-
+                  
                 double _utcoffset = 0;
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("utcoffset"))
                     _utcoffset = double.Parse(ParsedCommandLineArguments.ParameterDictionary["utcoffset"]);
@@ -282,7 +278,7 @@ namespace LogDataTransformer_Firebase_V01
                         _ret.ReadConcordanceTable(ParsedCommandLineArguments.Transform_ConcordanceTable);
                     }
                 }
-                 
+
                 // Update from Server if requested
 
                 string _web = "";
@@ -405,7 +401,6 @@ namespace LogDataTransformer_Firebase_V01
                                                                 {
                                                                     Console.WriteLine("Error Processing xml: '" + g.EventDataXML + "' - Details: " + _innerex.Message);
                                                                 }
-
                                                             }
 
                                                         }
@@ -414,7 +409,7 @@ namespace LogDataTransformer_Firebase_V01
 
                                                             Console.WriteLine("Error processing file '" + entry.FileName + "' ('" + zfilename + "'): " + _ex.Message);
                                                         }
-                                                    }                                                     
+                                                    }
                                                     else if (entry.FileName.StartsWith("ItemScore.json"))
                                                     {
                                                         string _json = line;
@@ -429,8 +424,8 @@ namespace LogDataTransformer_Firebase_V01
                                                             string task = _itemScoreEvent.task;
                                                             string item = _itemScoreEvent.item;
                                                             string personIdentifier = _itemScoreEvent.personidentifier;
-                                                            
-                                                            var _itemScorePackage = JsonConvert.DeserializeObject<LogDataTransformer_IB_REACT_8_12__8_13.ItemBuilder_React_Runtime_itemscore_package> (_itemScoreEvent.json);
+
+                                                            var _itemScorePackage = JsonConvert.DeserializeObject<LogDataTransformer_IB_REACT_8_12__8_13.ItemBuilder_React_Runtime_itemscore_package>(_itemScoreEvent.json);
 
                                                             if (_itemScorePackage.result != null)
                                                             {
@@ -557,7 +552,7 @@ namespace LogDataTransformer_Firebase_V01
                                                         }
 
                                                         _ret.AddResults(g);
-                                                    }                                                      
+                                                    }
                                                     else if (entry.FileName.StartsWith("ItemScore_All.json"))
                                                     {
                                                         // Ignore this file
@@ -600,80 +595,15 @@ namespace LogDataTransformer_Firebase_V01
                     }
 
                 }
-
-                _ret.UpdateRelativeTimes();
-                _ret.CreateLookup();
-
-                // Export
-
-                if (ParsedCommandLineArguments.Transform_OutputStata.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create ZIP archive with Stata file(s).");
-
-                    _ret.ExportStata(ParsedCommandLineArguments.Transform_OutputStata, _language);
-                }
-
-                if (ParsedCommandLineArguments.Transform_OutputSPSS.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create ZIP archive with SPSS file(s).");
-
-                    _ret.ExportSPSS(ParsedCommandLineArguments.Transform_OutputSPSS, _language);
-                }
-
-                if (ParsedCommandLineArguments.Transform_OutputXLSX.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create XLSX file.");
-
-                    _ret.ExportXLSX(ParsedCommandLineArguments);
-
-                }
-
-                if (ParsedCommandLineArguments.Transform_OutputXES.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create XES file.");
-
-                    _ret.ExportXES(ParsedCommandLineArguments);
-
-                }
-
-                if (ParsedCommandLineArguments.Transform_OutputZCSV.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create ZIP archive with CSV file(s).");
-
-                    _ret.ExportCSV(ParsedCommandLineArguments);
-                }
-
-                if (ParsedCommandLineArguments.Transform_Codebook.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create Codebook File.");
-
-                    _ret.CreateCodebook(ParsedCommandLineArguments.Transform_Codebook, _language);
-                }
-
-                if (_ret.ExportErrors.Count > 0)
-                {
-                    Console.WriteLine(_ret.ExportErrors.Count + " error(s) creating output files.");
-                    if (ParsedCommandLineArguments.Verbose)
-                    {
-                        for (int i = 0; i < _ret.ExportErrors.Count; i++)
-                        {
-                            Console.WriteLine(_ret.ExportErrors[i]);
-                        }
-
-                    }
-                }
+                 
+                logXContainer.ExportLogXContainerData(ParsedCommandLineArguments, _ret);
             }
             catch (Exception _ex)
             {
                 Console.WriteLine("Error transforming log data. Details: " + Environment.NewLine + _ex.ToString());
             }
         }
+         
     }
 
 

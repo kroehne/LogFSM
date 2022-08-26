@@ -57,6 +57,12 @@ namespace LogFSMConsole
 
                 LogDataTransformer_PIAAC_R1_V01.LogDataTransformer_PIAACR1_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
             }
+            else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_taopci01a)
+            {
+                Console.WriteLine("Module: Transform 'TAOPCI (CSV files exported from TAO)' data to universal log format V01.");
+
+                LogDataTransformer_TAOPCI_V01.LogDataTransformer_TAOPCI_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
+            }
             else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01a ||
                 ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01b ||
                 ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01c)
@@ -72,6 +78,7 @@ namespace LogFSMConsole
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_nepsrawv01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_irtlib01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_ibfirebase01a + "', '" +
+                    CommandLineArguments._CMDA_JOB_TRANSFORM_input_taopci01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01b + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01c + "' or '" + 
