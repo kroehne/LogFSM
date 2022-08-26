@@ -80,7 +80,7 @@ jobs:
       uses: thedoctor0/zip-release@main
       with:
          type: 'zip'
-         filename: ${{format('TransformToUniversalLogFormat_multi_os_{0}.zip', env.VERSION)}}
+         filename: ${{format('TransformToUniversalLogFormat_Command_Line_Tools_Multi_OS_{0}.zip', env.VERSION)}}
          path: 'transform/' 
    
     - name: Setup R Environment
@@ -113,7 +113,7 @@ jobs:
           title: "${{ env.VERSION}} (${{ env.HASH}})"
           files: |
             ${{ github.workspace }}/${{format('LogFSM_{0}.tar.gz', env.VERSION)}}
-            ${{format('TransformToUniversalLogFormat_multi_os_{0}.zip', env.VERSION)}}
+            ${{format('TransformToUniversalLogFormat_Command_Line_Tools_Multi_OS_{0}.zip', env.VERSION)}}
           
     - name: 'Create Temp Folder'      
       run: mkdir $GITHUB_WORKSPACE/tmp_worker
