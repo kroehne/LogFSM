@@ -81,7 +81,7 @@ jobs:
       with:
          type: 'zip'
          filename: ${{format('TransformToUniversalLogFormat_multi_os_{0}.zip', env.VERSION)}}
-         path: '$${{ github.workspace }}/transform/' 
+         path: 'transform/' 
    
     - name: Setup R Environment
       uses: r-lib/actions/setup-r@v1
