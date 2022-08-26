@@ -76,12 +76,12 @@ jobs:
     - name: 'Move Mac TransformToUniversalLogFormat'      
       run: mv $GITHUB_WORKSPACE/r/inst/extdata/win-x64/TransformToUniversalLogFormat.exe $GITHUB_WORKSPACE/transform/mac  
  
-    - name: 'Creat ZIP Archive with TransformToUniversalLogFormat-Tools'      
+    - name: 'Create ZIP Archive with TransformToUniversalLogFormat-Tools'  
       uses: thedoctor0/zip-release@main
       with:
-        type: 'zip'
-        filename: '${{format('TransformToUniversalLogFormat_multi_os_{0}.zip', env.VERSION)}}'
-        path: '$${{ github.workspace }}/transform/' 
+         type: 'zip'
+         filename: ${{format('TransformToUniversalLogFormat_multi_os_{0}.zip', env.VERSION)}}
+         path: '$${{ github.workspace }}/transform/' 
    
     - name: Setup R Environment
       uses: r-lib/actions/setup-r@v1
