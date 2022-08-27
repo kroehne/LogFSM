@@ -4,19 +4,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using LogFSM;
 using LogFSM_LogX2019;
 using LogFSMConsole;
-using System.Xml;
-using System.Xml.Linq;
-using StataLib;
-using Ionic.Zip;
 using CsvHelper;
-using NPOI.SS.Formula.Functions;
-using Org.BouncyCastle.Bcpg.OpenPgp;
 using LZStringCSharp;
-using NPOI.POIFS.FileSystem;
 using LogDataTransformer_IB_REACT_8_12__8_13;
 using Newtonsoft.Json;
 #endregion
@@ -29,6 +20,10 @@ namespace LogDataTransformer_TAOPCI_V01
         {
             try
             {
+                bool _relativeTimesAreSeconds = false;
+                if (ParsedCommandLineArguments.Flags.Contains("RELATIVETIMESARESECONDS"))
+                    _relativeTimesAreSeconds = true;
+
                 bool _personIdentifierIsNumber = false;
                 if (ParsedCommandLineArguments.Flags.Contains("NUMERICPERSONIDENTIFIER"))
                     _personIdentifierIsNumber = true;
@@ -36,22 +31,11 @@ namespace LogDataTransformer_TAOPCI_V01
                 string _personIdentifier = "PersonIdentifier";
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("personidentifier"))
                     _personIdentifier = ParsedCommandLineArguments.ParameterDictionary["personidentifier"];
+                  
+                string _mask = "";
+                if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey(CommandLineArguments._CMDA_mask))
+                    _mask = ParsedCommandLineArguments.ParameterDictionary[CommandLineArguments._CMDA_mask];
 
-                string _language = "ENG";
-                if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("language"))
-                    _language = ParsedCommandLineArguments.ParameterDictionary["language"];
-
-                if (!ParsedCommandLineArguments.RelativeTime)
-                {
-                    ParsedCommandLineArguments.RelativeTime = true;
-                    Console.Write("Note: Changed to relative times. ");
-                }
-
-                EventDataListExtension.ESortType sort = EventDataListExtension.ESortType.ElementAndTime;
-                if (ParsedCommandLineArguments.Flags.Contains("DONT_ORDER_EVENTS"))
-                    sort = EventDataListExtension.ESortType.None;
-
-              
                 #region Search Source Files
 
                 List<string> _listOfCSVFiles = new List<string>();
@@ -70,7 +54,7 @@ namespace LogDataTransformer_TAOPCI_V01
                         if (!Directory.Exists(inFolder))
                         {
                             if (ParsedCommandLineArguments.Verbose)
-                                Console.WriteLine("Warning: Directory not exists: '" + inFolder + "'.");
+                                Console.WriteLine(" - Warning: Directory not exists: '" + inFolder + "'.");
 
                             continue;
                         }
@@ -81,124 +65,113 @@ namespace LogDataTransformer_TAOPCI_V01
                             _listOfCSVFiles.Add(s);
                          
                     }
-
                 }
 
                 #endregion
 
                 #region Process Source Files
 
-                logXContainer _ret = new logXContainer() { PersonIdentifierIsNumber = _personIdentifierIsNumber, PersonIdentifierName = _personIdentifier };
+                logXContainer _ret = new logXContainer() { PersonIdentifierIsNumber = _personIdentifierIsNumber, PersonIdentifierName = _personIdentifier, RelativeTimesAreSeconds = _relativeTimesAreSeconds };
                 _ret.LoadCodebookDictionary(ParsedCommandLineArguments.Transform_Dictionary);
-
-                int _logcounter = 0;
-             
-                
-                foreach (string txtFile in _listOfCSVFiles)
+                foreach (string csvFile in _listOfCSVFiles)
                 {
-                    if (ParsedCommandLineArguments.MaxNumberOfCases > 0 && _ret.GetNumberOfPersons >= ParsedCommandLineArguments.MaxNumberOfCases)
-                    {
-                        if (ParsedCommandLineArguments.Verbose)
-                            Console.WriteLine("Info: Max number of cases reached.");
-                        break;
-                    }
-                      
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Info: Read File  '" + Path.GetFileName(txtFile) + "' ");
+                    if (CommandLineArguments.FitsMask(csvFile, _mask)) {
 
-                    try
-                    { 
-                        string _taoColumnNamePersonIdentifier = "Test Taker";
-
-                        using (var reader = new StreamReader(txtFile))
-                        using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                        if (ParsedCommandLineArguments.MaxNumberOfCases > 0 && _ret.GetNumberOfPersons >= ParsedCommandLineArguments.MaxNumberOfCases)
                         {
-                            var _data_rows = csv.GetRecords<dynamic>();
-                             
-                            foreach (IDictionary<string, object> row in _data_rows)
+                            if (ParsedCommandLineArguments.Verbose)
+                                Console.WriteLine(" - Info: Max number of cases reached.");
+                            break;
+                        }
+
+                        if (ParsedCommandLineArguments.Verbose)
+                            Console.WriteLine(" - Info: Read File  '" + Path.GetFileName(csvFile) + "' ");
+
+                        try
+                        {
+                            string _taoColumnNamePersonIdentifier = "Test Taker";
+
+                            using (var reader = new StreamReader(csvFile))
+                            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                             {
-                                if (row.ContainsKey(_taoColumnNamePersonIdentifier))
+                                var _data_rows = csv.GetRecords<dynamic>();
+                                int _row = 1;
+                                foreach (IDictionary<string, object> row in _data_rows)
                                 {
-                                    _personIdentifier = row[_taoColumnNamePersonIdentifier].ToString();
-
-                                    // TODO: Mask Person Identifiers
-
-                                    foreach (var c in row)
+                                    if (row.ContainsKey(_taoColumnNamePersonIdentifier))
                                     {
-                                        if (c.Key.EndsWith("-RESPONSE"))
-                                        {
-                                            string _itemName = c.Key.Substring(0, c.Key.Length - 9);
-                                            string _json = c.Value.ToString();
-                                            try
-                                            {
-                                                _json = LZString.DecompressFromBase64(_json);
+                                        _personIdentifier = row[_taoColumnNamePersonIdentifier].ToString();
 
+                                        int _col = 0;
+                                        foreach (var c in row)
+                                        {
+                                            if (c.Key.EndsWith("-RESPONSE"))
+                                            {
+                                                string _itemName = c.Key.Substring(0, c.Key.Length - 9);
+                                                string _json = c.Value.ToString();
                                                 try
                                                 {
+                                                    _json = LZString.DecompressFromBase64(_json);
 
-                                                    var _collection = JsonConvert.DeserializeObject<ItemBuilder_React_Runtime_trace_collection>(_json);
-                                                    foreach (ItemBuilder_React_Runtime_trace logFragment in _collection.logs)
+                                                    try
                                                     {
-
-                                                        logFragment.metaData.userId = _personIdentifier;
-                                                        var _line = JsonConvert.SerializeObject(logFragment);
-
-                                                        List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(_line, "TAOPCI_V01");
-
-                                                        // TODO: Add flag to extract full name (project.task) vs. short name (project)
-
-                                                        foreach (var _l in _log)
+                                                        var _collection = JsonConvert.DeserializeObject<ItemBuilder_React_Runtime_trace_collection>(_json);
+                                                        foreach (ItemBuilder_React_Runtime_trace logFragment in _collection.logs)
                                                         {
-                                                            if (_l.EventName == "")
-                                                                _l.Element = "(Platform)";
+                                                            logFragment.metaData.userId = _personIdentifier;
+                                                            var _line = JsonConvert.SerializeObject(logFragment);
 
-                                                            var g = new logxGenericLogElement()
-                                                            {
-                                                                Item = _l.Element,
-                                                                EventID = _l.EventID,
-                                                                EventName = _l.EventName,
-                                                                PersonIdentifier = _l.PersonIdentifier,
-                                                                TimeStamp = _l.TimeStamp
-                                                            };
+                                                            List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(_line, "TAOPCI_V01");
+ 
+                                                            // TODO: Add flag to extract full name (project.task) vs. short name (project)
 
-                                                            try
+                                                            foreach (var _l in _log)
                                                             {
-                                                                g.EventDataXML = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.XmlSerializeToString(_l);
-                                                                _ret.AddEvent(g);
-                                                            }
-                                                            catch (Exception _innerex)
-                                                            {
-                                                                Console.WriteLine("Error Processing xml: '" + g.EventDataXML + "' - Details: " + _innerex.Message);
+                                                                var g = new logxGenericLogElement()
+                                                                {
+                                                                    Item = _l.Element,
+                                                                    EventID = _l.EventID,
+                                                                    EventName = _l.EventName,
+                                                                    PersonIdentifier = _l.PersonIdentifier,
+                                                                    TimeStamp = _l.TimeStamp
+                                                                };
+
+                                                                try
+                                                                {
+                                                                    g.EventDataXML = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.XmlSerializeToString(_l);
+                                                                    _ret.AddEvent(g);
+                                                                }
+                                                                catch (Exception _innerex)
+                                                                {
+                                                                    Console.WriteLine("Error Processing xml: '" + g.EventDataXML + "' - Details: " + _innerex.Message);
+                                                                }
                                                             }
                                                         }
-
                                                     }
-
-
+                                                    catch (Exception _ex)
+                                                    {
+                                                        Console.WriteLine("Unkown error " + _ex.Message);
+                                                    }
                                                 }
-                                                catch (Exception _ex)
+                                                catch
                                                 {
-                                                    Console.WriteLine("Unkown error " + _ex.Message);
+                                                    Console.WriteLine(" - Info: No valid base64 encoded LZString found (file: '" + csvFile + "', row: '" + _row + "', column '" + _col + "'.");
                                                 }
                                             }
-                                            catch 
-                                            {
-                                                Console.WriteLine("No valid base64 encoded LZString found");
-                                            }
-
-                                       
+                                            _col++;
                                         }
                                     }
-                                } 
+                                    _row++;
+                                }
                             }
-                        } 
+                        }
+                        catch (Exception _ex)
+                        {
+                            Console.WriteLine("Error processing file '" + csvFile + "': " + _ex.Message);
+                            return;
+                        }
+
                     }
-                    catch (Exception _ex)
-                    {
-                        Console.WriteLine("Error processing file '" + txtFile + "': " + _ex.Message);
-                        return;
-                    }
-                    Console.WriteLine("ok."); 
                 }
 
                 #endregion

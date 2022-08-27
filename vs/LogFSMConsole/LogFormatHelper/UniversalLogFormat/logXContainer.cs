@@ -1,5 +1,6 @@
 ﻿#region usings
 using CsvHelper;
+using ICSharpCode.SharpZipLib.GZip;
 using Ionic.Zip;
 using LogFSM;
 using LogFSMConsole;
@@ -7,10 +8,13 @@ using LogFSMShared;
 using NPOI.OpenXmlFormats.Dml;
 using NPOI.SS.Formula.Functions;
 using NPOI.SS.UserModel;
+using NPOI.Util;
 using NPOI.XSSF.UserModel;
 using StataLib;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
+using System.Dynamic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -25,6 +29,8 @@ namespace LogFSM_LogX2019
          
         public bool PersonIdentifierIsNumber { get; set; }
         public string PersonIdentifierName { get; set; }
+
+        public bool RelativeTimesAreSeconds { get; set; }
 
         #region Result Data
 
@@ -152,8 +158,6 @@ namespace LogFSM_LogX2019
                     {
                         resultDataTableColnames.Add(_name, _name);  
                     }
-                    
-                  
                 }
 
                 string _value = "";
@@ -221,20 +225,14 @@ namespace LogFSM_LogX2019
                     throw new Exception("Personidentifier was expected do be a number");
                 }
             }
-
-           
+             
             if (!maxEventIDByPerson.ContainsKey(element.PersonIdentifier))
                 maxEventIDByPerson.Add(element.PersonIdentifier, 0);
 
             if (element.EventID > maxEventIDByPerson[element.PersonIdentifier])
                 maxEventIDByPerson[element.PersonIdentifier] = element.EventID;
 
-            TimeSpan _relativeTimeSpan = TimeSpan.FromMilliseconds(element.RelativeTime);
-
-            /* TODO: Add Flag
-            if (ParsedCommandLineArguments.Flags.Contains("RELATIVETIMESECONDS"))
-                _relativeTimeSpan = TimeSpan.FromSeconds(element.RelativeTime);
-            */
+            TimeSpan _relativeTimeSpan = RelativeTimesAreSeconds ? TimeSpan.FromSeconds(element.RelativeTime) : TimeSpan.FromMilliseconds(element.RelativeTime);
 
             logxLogDataRow rootParentLine = new logxLogDataRow()
             {
@@ -249,7 +247,6 @@ namespace LogFSM_LogX2019
                 EventName = uniqueValues["EventName"][element.EventName],
 
                 AttributValues = new List<Tuple<int, int>>(),
-
             };
 
             logDataTables[rootLogName].Add(rootParentLine);
@@ -264,7 +261,6 @@ namespace LogFSM_LogX2019
                     doc = null;
                 }
             } 
-
         }
 
         private void ProcessXMLData(XElement xmlelement, string path, string PersonIdentifier, logxLogDataRow parentLine, int id)
@@ -298,9 +294,10 @@ namespace LogFSM_LogX2019
             };
              
             if (!logDataTables.ContainsKey(path))
-            {
                 logDataTables.Add(path, new List<logxLogDataRow>());
-            }
+
+            if (!logDataTableColnames.ContainsKey(path))
+                logDataTableColnames.Add(path, new List<string>());
 
             logDataTables[path].Add(newChildLine);
 
@@ -318,8 +315,7 @@ namespace LogFSM_LogX2019
             {
                 ProcessXMLData(x, path + "." + x.Name.LocalName, PersonIdentifier, newChildLine, i);
                 i++;
-            }
-
+            } 
         }
 
         private void AddValueToLogDataTable(string path, string name, string value, logxLogDataRow row)
@@ -338,7 +334,6 @@ namespace LogFSM_LogX2019
                 logDataTableColnames.Add(path, new List<string>());
 
             if (!logDataTableColnames[path].Contains(name))
-
                 logDataTableColnames[path].Add(name);
 
             row.AttributValues.Add(new Tuple<int, int>(logDataTableColnames[path].IndexOf(name), uniqueValues[name][value]));
@@ -371,13 +366,28 @@ namespace LogFSM_LogX2019
                         result = decimal.Compare((decimal)x.RelativeTime.TotalMilliseconds, (decimal)y.RelativeTime.TotalMilliseconds);
                     return result;
                 });
-            }
-
-
+            } 
         }
 
-        public void ExportStata(string filename, string language)
+        public void ExportStata(CommandLineArguments ParsedCommandLineArguments)
         {
+            string filename = ParsedCommandLineArguments.Transform_OutputStata;
+
+            string _attributeNotDefinded = "(attribute not defined)";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputstringattributenotdefined"))
+                _attributeNotDefinded = ParsedCommandLineArguments.ParameterDictionary["outputstringattributenotdefined"];
+
+            string _attributeNotExpected = "(attribute not expected)";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputstringattributenotexpected"))
+                _attributeNotExpected = ParsedCommandLineArguments.ParameterDictionary["outputstringattributenotdefined"];
+
+            bool _includeFlatAndSparseLogDataTable = false;
+            if (ParsedCommandLineArguments.Flags.Contains("INCLUDEFLAT"))
+                _includeFlatAndSparseLogDataTable = true;
+
+            string _language = "ENG";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("language"))
+                _language = ParsedCommandLineArguments.ParameterDictionary["language"];
 
             DateTime dt1960 = new DateTime(1960, 1, 1, 0, 0, 0, 0);
 
@@ -408,22 +418,22 @@ namespace LogFSM_LogX2019
                 foreach (string _id in logDataTables.Keys)
                 { 
                     var _varlist = new List<StataVariable>();
-                    _varlist.Add(new StataVariable() { Name = "Line", VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%12.0g", Description = CodebookDictionary.GetColumnNameDescription("Line", language) });
+                    _varlist.Add(new StataVariable() { Name = "Line", VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%12.0g", Description = CodebookDictionary.GetColumnNameDescription("Line", _language) });
 
                     if (PersonIdentifierIsNumber)
-                        _varlist.Add(new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", language) });
+                        _varlist.Add(new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", _language) });
                     else
-                        _varlist.Add(new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", language), ValueLabelName = "l_" + "PersonIdentifier" });
+                        _varlist.Add(new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", _language), ValueLabelName = "l_" + "PersonIdentifier" });
 
-                    _varlist.Add(new StataVariable() { Name = "Element", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("Element", language), ValueLabelName = "l_" + "Element" });
-                    _varlist.Add(new StataVariable() { Name = "TimeStamp", VarType = StataVariable.StataVarType.Double, DisplayFormat = @"%tcMonth_dd,_CCYY_HH:MM:SS.sss", Description = CodebookDictionary.GetColumnNameDescription("TimeStamp", language) , ValueLabelName = "l_" + "Timestamp" });
-                    _varlist.Add(new StataVariable() { Name = "RelativeTime", VarType = StataVariable.StataVarType.Double, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("RelativeTime", language), ValueLabelName = "l_" + "RelativeTime" });
+                    _varlist.Add(new StataVariable() { Name = "Element", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("Element", _language), ValueLabelName = "l_" + "Element" });
+                    _varlist.Add(new StataVariable() { Name = "TimeStamp", VarType = StataVariable.StataVarType.Double, DisplayFormat = @"%tcMonth_dd,_CCYY_HH:MM:SS.sss", Description = CodebookDictionary.GetColumnNameDescription("TimeStamp", _language) , ValueLabelName = "l_" + "Timestamp" });
+                    _varlist.Add(new StataVariable() { Name = "RelativeTime", VarType = StataVariable.StataVarType.Double, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("RelativeTime", _language), ValueLabelName = "l_" + "RelativeTime" });
 
-                    _varlist.Add(new StataVariable() { Name = "EventID", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("EventID", language) });
-                    _varlist.Add(new StataVariable() { Name = "ParentEventID", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("ParentEventID", language), ValueLabelName = "l_" + "ParentEventID" });
-                    _varlist.Add(new StataVariable() { Name = "Path", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%40.0g", Description = CodebookDictionary.GetColumnNameDescription("Path", language), ValueLabelName = "l_" + "Path" });
-                    _varlist.Add(new StataVariable() { Name = "ParentPath", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%40.0g", Description = CodebookDictionary.GetColumnNameDescription("ParentPath", language), ValueLabelName = "l_" + "ParentPath" });
-                    _varlist.Add(new StataVariable() { Name = "EventName", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("EventName", language), ValueLabelName = "l_" + "EventName" });
+                    _varlist.Add(new StataVariable() { Name = "EventID", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("EventID", _language) });
+                    _varlist.Add(new StataVariable() { Name = "ParentEventID", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("ParentEventID", _language), ValueLabelName = "l_" + "ParentEventID" });
+                    _varlist.Add(new StataVariable() { Name = "Path", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%40.0g", Description = CodebookDictionary.GetColumnNameDescription("Path", _language), ValueLabelName = "l_" + "Path" });
+                    _varlist.Add(new StataVariable() { Name = "ParentPath", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%40.0g", Description = CodebookDictionary.GetColumnNameDescription("ParentPath", _language), ValueLabelName = "l_" + "ParentPath" });
+                    _varlist.Add(new StataVariable() { Name = "EventName", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("EventName", _language), ValueLabelName = "l_" + "EventName" });
                     
                     if (logDataTableColnames.ContainsKey(_id))
                     {
@@ -431,18 +441,18 @@ namespace LogFSM_LogX2019
                         {
                             if (!listOfLabelContainers.ContainsKey(_colname))
                             {  
-                                _varlist.Add(new StataVariable() { Name = "a_" + _colname, VarType = StataVariable.StataVarType.String, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetAttributeDescrition(_id, "a_" + _colname, language, 64)});
+                                _varlist.Add(new StataVariable() { Name = "a_" + _colname, VarType = StataVariable.StataVarType.String, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetAttributeDescrition(_id, "a_" + _colname, _language, 64)});
                             }
                             else
                             {
-                                _varlist.Add(new StataVariable() { Name = "a_" + _colname, VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetAttributeDescrition(_id, "a_" + _colname, language, 64), ValueLabelName = listOfLabelContainers [_colname] });
+                                _varlist.Add(new StataVariable() { Name = "a_" + _colname, VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetAttributeDescrition(_id, "a_" + _colname, _language, 64), ValueLabelName = listOfLabelContainers [_colname] });
                             }
 
                         }
                     }
 
                     string _tmpfile = GetTempFileName("dta");
-                    string _dataSetName = CodebookDictionary.GetMetaData("StudyName", "", language);
+                    string _dataSetName = CodebookDictionary.GetMetaData("StudyName", "", _language);
                     
                     var _dtaFile = new StataFileWriter(_tmpfile, _varlist, _dataSetName, true);
                      
@@ -452,13 +462,13 @@ namespace LogFSM_LogX2019
                             _dtaFile.AddValueLabel("l_" + "PersonIdentifier", _i, uniqueValuesLookup["PersonIdentifier"][_i]);
                     }
 
-                    int id = 0;
+                    int _linecounter = 0;
                     foreach (var v in logDataTables[_id])
                     {
 
                         object[] _line = new object[_varlist.Count];
 
-                        _line[0] = id;
+                        _line[0] = _linecounter;
                         _line[1] = v.PersonIdentifier;
 
                         _line[2] = v.Element;
@@ -512,10 +522,9 @@ namespace LogFSM_LogX2019
                             }
                         }
                         _dtaFile.AppendDataLine(_line);
-                        id++;
+                        _linecounter++;
                     }
-
-
+                     
                     _dtaFile.AddValueLabel("l_" + "ParentEventID", -1, "(no parent)");
                     _dtaFile.AddValueLabel("l_" + "Timestamp", -1, "(missing)");
 
@@ -536,141 +545,295 @@ namespace LogFSM_LogX2019
                                 for (int _i = 0; _i < uniqueValues[_colname].Count; _i++)
                                     _dtaFile.AddValueLabel(listOfLabelContainers[_colname], _i, uniqueValuesLookup[_colname][_i].Replace("ë", "e"));
 
-                                _dtaFile.AddValueLabel("l_" + _colname, -1, "(attribute not defined)");
+                                _dtaFile.AddValueLabel("l_" + _colname, -1, _attributeNotDefinded);
                             }                           
                         }
                     }
 
                     _dtaFile.Close();
-                    zip.AddFile(_tmpfile).FileName = _id + ".dta";
-
+                    zip.AddFile(_tmpfile).FileName = _id + ".dta"; 
                 }
 
                 #endregion
 
-                #region Result Data
+                #region Log Data / Flat and Sparse Log Data Table 
 
-                if (ContainsResultData)
-                {
+                if (_includeFlatAndSparseLogDataTable)
+                { 
+                    string _tmpfile = GetTempFileName("dta");
+                    string _dataSetName = CodebookDictionary.GetMetaData("StudyName", "", _language);
 
-                    var _varlist = new Dictionary<string,StataVariable>();
-                    _varlist.Add("Line", new StataVariable() { Name = "Line", VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%12.0g", Description = CodebookDictionary.GetColumnNameDescription("Line", language) });
+                    var _varlist = new List<StataVariable>();
+                    _varlist.Add(new StataVariable() { Name = "Line", VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%12.0g", Description = CodebookDictionary.GetColumnNameDescription("Line", _language) });
 
                     if (PersonIdentifierIsNumber)
-                        _varlist.Add("PersonIdentifier",new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Long, DisplayFormat = @" % 20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", language) });
+                        _varlist.Add(new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", _language) });
                     else
-                        _varlist.Add("PersonIdentifier", new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", language), ValueLabelName = "l_" + "PersonIdentifier" });
+                        _varlist.Add(new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", _language), ValueLabelName = "l_" + "PersonIdentifier" });
+
+                    _varlist.Add(new StataVariable() { Name = "Element", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("Element", _language), ValueLabelName = "l_" + "Element" });
+                    _varlist.Add(new StataVariable() { Name = "TimeStamp", VarType = StataVariable.StataVarType.Double, DisplayFormat = @"%tcMonth_dd,_CCYY_HH:MM:SS.sss", Description = CodebookDictionary.GetColumnNameDescription("TimeStamp", _language), ValueLabelName = "l_" + "Timestamp" });
+                    _varlist.Add(new StataVariable() { Name = "RelativeTime", VarType = StataVariable.StataVarType.Double, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("RelativeTime", _language), ValueLabelName = "l_" + "RelativeTime" });
+
+                    _varlist.Add(new StataVariable() { Name = "EventID", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("EventID", _language) });
+                    _varlist.Add(new StataVariable() { Name = "ParentEventID", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("ParentEventID", _language), ValueLabelName = "l_" + "ParentEventID" });
+                    _varlist.Add(new StataVariable() { Name = "Path", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%40.0g", Description = CodebookDictionary.GetColumnNameDescription("Path", _language), ValueLabelName = "l_" + "Path" });
+                    _varlist.Add(new StataVariable() { Name = "ParentPath", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%40.0g", Description = CodebookDictionary.GetColumnNameDescription("ParentPath", _language), ValueLabelName = "l_" + "ParentPath" });
+                    _varlist.Add(new StataVariable() { Name = "EventName", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("EventName", _language), ValueLabelName = "l_" + "EventName" });
+
+                    List<string> _colnames = new List<string>();
+                    foreach (var _table in logDataTableColnames)
+                    {
+                        foreach (var _colname in _table.Value)
+                            if (!_colnames.Contains(_colname))
+                                _colnames.Add(_colname);
+                    }
+
+                    foreach (var _colname in _colnames)
+                    {
+                        if (!listOfLabelContainers.ContainsKey(_colname))
+                            _varlist.Add(new StataVariable() { Name = "a_" + _colname, VarType = StataVariable.StataVarType.String, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetResultVariableLabel(_colname, _language, 64)});
+                        else
+                            _varlist.Add(new StataVariable() { Name = "a_" + _colname, VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetResultVariableLabel(_colname, _language, 64), ValueLabelName = listOfLabelContainers[_colname] });
+                    }                       
+
+                    var _dtaFile = new StataFileWriter(_tmpfile, _varlist, _dataSetName, true);
                      
-                    string _id = "Results";
+                    // Data
 
-                    // Head
-                    for (int _i = 0; _i < resultDataTableColnames.Count; _i++)
+                    int _linecounter = 0;
+                    foreach (string _id in logDataTables.Keys)
                     {
-                        string _key = resultDataTableColnames.Keys.ToArray<string>()[_i];
-
-                        if (!CodebookDictionary.IgnoreResultVariable(_key))
+                        if (_id != rootLogName)
                         {
-                            string _colname = resultDataTableColnames.Values.ToArray<string>()[_i];
-                            if (!listOfLabelContainers.ContainsKey(_key))
+                            foreach (var v in logDataTables[_id])
                             {
-                                _varlist.Add(_key, new StataVariable() { Name = CodebookDictionary.GetResultVariableName(_key), VarType = StataVariable.StataVarType.String, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetResultVariableLabel(_key, language, 64) });
-                            }
-                            else
-                            {
-                                _varlist.Add(_key, new StataVariable() { Name = CodebookDictionary.GetResultVariableName(_key), VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetResultVariableLabel(_key, language, 64), ValueLabelName = listOfLabelContainers[_key] });
-                            }
-                        } 
-                    }
+                                object[] _line = new object[_varlist.Count];
 
-                    string _tmpfile = GetTempFileName("dta");
-                    string _dataSetName = CodebookDictionary.GetMetaData("StudyName", "", language);
-                    var _dtaFile = new StataFileWriter(_tmpfile, _varlist.Values.ToList<StataVariable>(), _dataSetName, true);
-                    
-                    if (!PersonIdentifierIsNumber)
-                    {
-                        for (int _i = 0; _i < uniqueValues["PersonIdentifier"].Count; _i++)
-                            _dtaFile.AddValueLabel("l_" + "PersonIdentifier", _i, uniqueValuesLookup["PersonIdentifier"][_i]);
-                    }
+                                _line[0] = _linecounter;
+                                _line[1] = v.PersonIdentifier;
 
-                    // Data 
-                    int id = 0;
-                    foreach (var v in resultDataTable.Keys)
-                    {
-                        object[] _line = new object[_varlist.Count];
-                        _line[0] = id;
-                        _line[1] = resultDataTable[v].PersonIdentifier;
-
-                        int j = 0;
-                        for (int _i = 0; _i < resultDataTableColnames.Count; _i++)
-                        { 
-                            string _key = resultDataTableColnames.Keys.ToList<string>()[_i];
-                            if (!CodebookDictionary.IgnoreResultVariable(_key))
-                            {
-                                if (!listOfLabelContainers.ContainsKey(_key))
-                                {
-                                    string _value = "";
-                                    foreach (var p in resultDataTable[v].AttributValues)
-                                    {
-                                        if (p.Item1 == _i)
-                                        {
-                                            _value = uniqueValuesLookup[logDataTableColnames[_id][_i]][p.Item2];
-                                            break;
-                                        }
-                                    }
-                                    _line[2 + j++] = _value;
-                                }
+                                _line[2] = v.Element;
+                                if (v.TimeStamp.Year == 1)
+                                    _line[3] = StataLib.StataMissingValues._empty;
                                 else
+                                    _line[3] = Math.Round((v.TimeStamp - dt1960).TotalMilliseconds, 0);
+
+                                _line[4] = Math.Round(v.RelativeTime.TotalMilliseconds, 0);
+                                _line[5] = v.EventID;
+                                _line[6] = v.ParentEventID;
+                                _line[7] = v.Path;
+                                _line[8] = v.ParentPath;
+                                _line[9] = v.EventName;
+
+                                for (int i = 0; i < _colnames.Count; i++)
                                 {
-                                    int _value = -1;
-                                    foreach (var p in resultDataTable[v].AttributValues)
+                                    string _colname = _colnames[i];
+                                    if (logDataTableColnames[_id].Contains(_colname))
                                     {
-                                        if (p.Item1 == _i)
+                                        int _i = logDataTableColnames[_id].IndexOf(_colname);
+                                        int _value = -1;
+                                        foreach (var p in v.AttributValues)
                                         {
-                                            _value = p.Item2;
-                                            break;
+                                            if (p.Item1 == _i)
+                                            {
+                                                _value = p.Item2;
+                                                break;
+                                            }
                                         }
-                                    }
-                                    _line[2 + j++] = _value;
+                                        if (_value == -1)
+                                        {
+                                            if (_varlist[10 + i].VarType == StataVariable.StataVarType.String || _varlist[10 + i].VarType == StataVariable.StataVarType.FixedString)
+                                                _line[10 + i] = _attributeNotExpected;
+                                            else if (_varlist[10 + i].VarType == StataVariable.StataVarType.Int || _varlist[10 + i].VarType == StataVariable.StataVarType.Long || _varlist[10 + i].VarType == StataVariable.StataVarType.Byte)
+                                            {
+                                                _line[10 + i] = _value;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            _line[10 + i] = _value; 
+                                        }
+                                    }   
+                                    else
+                                    {
+                                        if (_varlist[10 + i].VarType == StataVariable.StataVarType.String || _varlist[10 + i].VarType == StataVariable.StataVarType.FixedString)
+                                            _line[10 + i] = _attributeNotDefinded;
+                                        else if (_varlist[10 + i].VarType == StataVariable.StataVarType.Int || _varlist[10 + i].VarType == StataVariable.StataVarType.Long || _varlist[10 + i].VarType == StataVariable.StataVarType.Byte)
+                                        {
+                                            _line[10 + i] = -2;
+                                        } 
+                                    }  
                                 }
+
+                                _dtaFile.AppendDataLine(_line);
+                                _linecounter++;
                             }
                         }
+                    }
+                      
+                    _dtaFile.AddValueLabel("l_" + "ParentEventID", -1, "(no parent)");
+                    _dtaFile.AddValueLabel("l_" + "Timestamp", -1, "(missing)");
 
-                        _dtaFile.AppendDataLine(_line);
-                        id++;
+                    foreach (string _labelSetName in new string[] { "Element", "Path", "ParentPath", "EventName" })
+                    {
+                        for (int _i = 0; _i < uniqueValues[_labelSetName].Count; _i++)
+                            _dtaFile.AddValueLabel("l_" + _labelSetName, _i, uniqueValuesLookup[_labelSetName][_i]);
                     }
 
-                    
-                    for (int _j = 0; _j < resultDataTableColnames.Count; _j++)
+                    foreach (var _colname in _colnames)
                     {
-                        string _key = resultDataTableColnames.Keys.ToList<string>()[_j];
-                        if (!CodebookDictionary.IgnoreResultVariable(_key))
-                        {
-                            if (listOfLabelContainers.ContainsKey(_key))
-                            {
-                                for (int _i = 0; _i < uniqueValues[_key].Count; _i++)
-                                    _dtaFile.AddValueLabel(listOfLabelContainers[_key], _i, uniqueValuesLookup[_key][_i]);
+                       if (listOfLabelContainers.ContainsKey(_colname))
+                       {
+                            for (int _i = 0; _i < uniqueValues[_colname].Count; _i++)
+                                _dtaFile.AddValueLabel(listOfLabelContainers[_colname], _i, uniqueValuesLookup[_colname][_i].Replace("ë", "e"));
 
-                                _dtaFile.AddValueLabel(listOfLabelContainers[_key], -1, "(attribute not defined)");
-                            }
-                        }
-                    } 
+                            _dtaFile.AddValueLabel(listOfLabelContainers[_colname], -1, _attributeNotDefinded);
+                           _dtaFile.AddValueLabel(listOfLabelContainers[_colname], -2, _attributeNotExpected);
+                       }
+                   }
 
-                    _dtaFile.Close();
-                    zip.AddFile(_tmpfile).FileName = _id + ".dta";
-                }
+                   _dtaFile.Close();
+                   zip.AddFile(_tmpfile).FileName = "FlatAndSparseLogDataTable.dta";
+               }
 
-                #endregion
+               #endregion
 
-                zip.UseZip64WhenSaving = Zip64Option.Always;
-                zip.Save(filename);
-            }
-        }
+               #region Result Data
 
-        public void ExportSPSS(string filename, string language)
+               if (ContainsResultData)
+               { 
+                   var _varlist = new Dictionary<string,StataVariable>();
+                   _varlist.Add("Line", new StataVariable() { Name = "Line", VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%12.0g", Description = CodebookDictionary.GetColumnNameDescription("Line", _language) });
+
+                   if (PersonIdentifierIsNumber)
+                       _varlist.Add("PersonIdentifier",new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Long, DisplayFormat = @" % 20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", _language) });
+                   else
+                       _varlist.Add("PersonIdentifier", new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", _language), ValueLabelName = "l_" + "PersonIdentifier" });
+
+                   string _id = "Results";
+
+                   // Head
+                   for (int _i = 0; _i < resultDataTableColnames.Count; _i++)
+                   {
+                       string _key = resultDataTableColnames.Keys.ToArray<string>()[_i];
+
+                       if (!CodebookDictionary.IgnoreResultVariable(_key))
+                       {
+                           string _colname = resultDataTableColnames.Values.ToArray<string>()[_i];
+                           if (!listOfLabelContainers.ContainsKey(_key))
+                               _varlist.Add(_key, new StataVariable() { Name = CodebookDictionary.GetResultVariableName(_key), VarType = StataVariable.StataVarType.String, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetResultVariableLabel(_key, _language, 64) });
+                           else
+                               _varlist.Add(_key, new StataVariable() { Name = CodebookDictionary.GetResultVariableName(_key), VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetResultVariableLabel(_key, _language, 64), ValueLabelName = listOfLabelContainers[_key] });
+                       } 
+                   }
+
+                   string _tmpfile = GetTempFileName("dta");
+                   string _dataSetName = CodebookDictionary.GetMetaData("StudyName", "", _language);
+                   var _dtaFile = new StataFileWriter(_tmpfile, _varlist.Values.ToList<StataVariable>(), _dataSetName, true);
+
+                   if (!PersonIdentifierIsNumber)
+                   {
+                       for (int _i = 0; _i < uniqueValues["PersonIdentifier"].Count; _i++)
+                           _dtaFile.AddValueLabel("l_" + "PersonIdentifier", _i, uniqueValuesLookup["PersonIdentifier"][_i]);
+                   }
+
+                   // Data 
+                   int id = 0;
+                   foreach (var v in resultDataTable.Keys)
+                   {
+                       object[] _line = new object[_varlist.Count];
+                       _line[0] = id;
+                       _line[1] = resultDataTable[v].PersonIdentifier;
+
+                       int j = 0;
+                       for (int _i = 0; _i < resultDataTableColnames.Count; _i++)
+                       { 
+                           string _key = resultDataTableColnames.Keys.ToList<string>()[_i];
+                           if (!CodebookDictionary.IgnoreResultVariable(_key))
+                           {
+                               if (!listOfLabelContainers.ContainsKey(_key))
+                               {
+                                   string _value = "";
+                                   foreach (var p in resultDataTable[v].AttributValues)
+                                   {
+                                       if (p.Item1 == _i)
+                                       {
+                                           _value = uniqueValuesLookup[logDataTableColnames[_id][_i]][p.Item2];
+                                           break;
+                                       }
+                                   }
+                                   _line[2 + j++] = _value;
+                               }
+                               else
+                               {
+                                   int _value = -1;
+                                   foreach (var p in resultDataTable[v].AttributValues)
+                                   {
+                                       if (p.Item1 == _i)
+                                       {
+                                           _value = p.Item2;
+                                           break;
+                                       }
+                                   }
+                                   _line[2 + j++] = _value;
+                               }
+                           }
+                       }
+
+                       _dtaFile.AppendDataLine(_line);
+                       id++;
+                   }
+
+
+                   for (int _j = 0; _j < resultDataTableColnames.Count; _j++)
+                   {
+                       string _key = resultDataTableColnames.Keys.ToList<string>()[_j];
+                       if (!CodebookDictionary.IgnoreResultVariable(_key))
+                       {
+                           if (listOfLabelContainers.ContainsKey(_key))
+                           {
+                               for (int _i = 0; _i < uniqueValues[_key].Count; _i++)
+                                   _dtaFile.AddValueLabel(listOfLabelContainers[_key], _i, uniqueValuesLookup[_key][_i]);
+
+                               _dtaFile.AddValueLabel(listOfLabelContainers[_key], -1, _attributeNotDefinded);
+                           }
+                       }
+                   } 
+
+                   _dtaFile.Close();
+                   zip.AddFile(_tmpfile).FileName = _id + ".dta";
+               }
+
+               #endregion
+
+               zip.UseZip64WhenSaving = Zip64Option.Always;
+               zip.Save(filename);
+           }
+       }
+
+        public void ExportSPSS(CommandLineArguments ParsedCommandLineArguments)
         {
-         
+            string filename = ParsedCommandLineArguments.Transform_OutputSPSS;
+
+            string _attributeNotDefinded = "(attribute not defined)";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputstringattributenotdefined"))
+                _attributeNotDefinded = ParsedCommandLineArguments.ParameterDictionary["outputstringattributenotdefined"];
+
+            string _attributeNotExpected = "(attribute not expected)";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputstringattributenotexpected"))
+                _attributeNotExpected = ParsedCommandLineArguments.ParameterDictionary["outputstringattributenotdefined"];
+
+            bool _includeFlatAndSparseLogDataTable = false;
+            if (ParsedCommandLineArguments.Flags.Contains("INCLUDEFLAT"))
+                _includeFlatAndSparseLogDataTable = true;
+
+            string _language = "ENG";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("language"))
+                _language = ParsedCommandLineArguments.ParameterDictionary["language"];
+
             DateTime dt1960 = new DateTime(1960, 1, 1, 0, 0, 0, 0);
- 
+
             Dictionary<string, Dictionary<double, string>> labelContainers = new Dictionary<string, Dictionary<double, string>>();
             foreach (var k in uniqueValues.Keys)
             {
@@ -680,7 +843,7 @@ namespace LogFSM_LogX2019
                 for (int i = 0; i < uniqueValues[k].Count; i++)
                     labelContainers[k].Add((double)i, uniqueValuesLookup[k][i]);
 
-                labelContainers[k].Add((double)(-1), "(attribute not defined)");
+                labelContainers[k].Add((double)(-1), _attributeNotDefinded);
             }
 
             using (ZipFile zip = new ZipFile())
@@ -690,42 +853,43 @@ namespace LogFSM_LogX2019
                 foreach (string _id in logDataTables.Keys)
                 {
                     var _varlist = new List<SpssLib.SpssDataset.Variable>();
-                    _varlist.Add(new SpssLib.SpssDataset.Variable("Line") { Label = CodebookDictionary.GetColumnNameDescription("Line", language) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("Line") { Label = CodebookDictionary.GetColumnNameDescription("Line", _language) });
 
                     if (PersonIdentifierIsNumber || !labelContainers.ContainsKey("PersonIdentifier"))
-                        _varlist.Add(new SpssLib.SpssDataset.Variable(PersonIdentifierName) { Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", language, 64) });
+                        _varlist.Add(new SpssLib.SpssDataset.Variable(PersonIdentifierName) { Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", _language, 64) });
                     else
-                        _varlist.Add(new SpssLib.SpssDataset.Variable(PersonIdentifierName) { ValueLabels = labelContainers["PersonIdentifier"], Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", language, 64) });
+                        _varlist.Add(new SpssLib.SpssDataset.Variable(PersonIdentifierName) { ValueLabels = labelContainers["PersonIdentifier"], Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", _language, 64) });
 
-                    _varlist.Add(new SpssLib.SpssDataset.Variable("Element") { ValueLabels = labelContainers["Element"], Label = CodebookDictionary.GetResultVariableLabel("Element", language, 64) });
-                    _varlist.Add(new SpssLib.SpssDataset.Variable("TimeStamp") { /*ValueLabels = labelContainers["TimeStamp"],*/ Label = CodebookDictionary.GetResultVariableLabel("TimeStamp", language, 64) });
-                    _varlist.Add(new SpssLib.SpssDataset.Variable("RelativeTime") { /*ValueLabels = labelContainers["RelativeTime"], */Label = CodebookDictionary.GetResultVariableLabel("RelativeTime", language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("Element") { ValueLabels = labelContainers["Element"], Label = CodebookDictionary.GetResultVariableLabel("Element", _language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("TimeStamp")
+                    { /*ValueLabels = labelContainers["TimeStamp"],*/
+                        Label = CodebookDictionary.GetResultVariableLabel("TimeStamp", _language, 64)
+                    });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("RelativeTime") { /*ValueLabels = labelContainers["RelativeTime"], */Label = CodebookDictionary.GetResultVariableLabel("RelativeTime", _language, 64) });
 
-                    _varlist.Add(new SpssLib.SpssDataset.Variable("EventID") { /*ValueLabels = labelContainers["EventID"],*/ Label = CodebookDictionary.GetResultVariableLabel("EventID", language, 64) });
-                    _varlist.Add(new SpssLib.SpssDataset.Variable("ParentEventID") { Label = CodebookDictionary.GetResultVariableLabel("ParentEventID", language, 64) });
-                    _varlist.Add(new SpssLib.SpssDataset.Variable("Path") { ValueLabels = labelContainers["Path"], Label = CodebookDictionary.GetResultVariableLabel("Path", language, 64) });
-                    _varlist.Add(new SpssLib.SpssDataset.Variable("ParentPath") { ValueLabels = labelContainers["ParentPath"], Label = CodebookDictionary.GetResultVariableLabel("ParentPath", language, 64) });
-                    _varlist.Add(new SpssLib.SpssDataset.Variable("EventName") { ValueLabels = labelContainers["EventName"], Label = CodebookDictionary.GetResultVariableLabel("EventName", language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("EventID") { /*ValueLabels = labelContainers["EventID"],*/ Label = CodebookDictionary.GetResultVariableLabel("EventID", _language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("ParentEventID") { Label = CodebookDictionary.GetResultVariableLabel("ParentEventID", _language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("Path") { ValueLabels = labelContainers["Path"], Label = CodebookDictionary.GetResultVariableLabel("Path", _language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("ParentPath") { ValueLabels = labelContainers["ParentPath"], Label = CodebookDictionary.GetResultVariableLabel("ParentPath", _language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("EventName") { ValueLabels = labelContainers["EventName"], Label = CodebookDictionary.GetResultVariableLabel("EventName", _language, 64) });
 
 
                     if (logDataTableColnames.ContainsKey(_id))
                     {
                         foreach (var _colname in logDataTableColnames[_id])
-                        { 
+                        {
                             if (!labelContainers.ContainsKey(_colname))
-                                _varlist.Add(new SpssLib.SpssDataset.Variable("a_" + _colname) { Label = CodebookDictionary.GetResultVariableLabel(_colname, language, 64) });
+                                _varlist.Add(new SpssLib.SpssDataset.Variable("a_" + _colname) { Label = CodebookDictionary.GetResultVariableLabel(_colname, _language, 64) });
                             else
-                                _varlist.Add(new SpssLib.SpssDataset.Variable("a_" + _colname) { ValueLabels = labelContainers[_colname], Label = CodebookDictionary.GetResultVariableLabel(_colname, language, 64) });
+                                _varlist.Add(new SpssLib.SpssDataset.Variable("a_" + _colname) { ValueLabels = labelContainers[_colname], Label = CodebookDictionary.GetResultVariableLabel(_colname, _language, 64) });
                         }
                     }
-
-
+                     
                     string _tmpfile = GetTempFileName("sav");
-                    string _dataSetName = CodebookDictionary.GetMetaData("StudyName", "", language);
-
+                    string _dataSetName = CodebookDictionary.GetMetaData("StudyName", "", _language);
                     var options = new SpssLib.DataReader.SpssOptions();
 
-                    int id = 0;
+                    int _linecounter = 0;
                     using (FileStream fileStream = new FileStream(_tmpfile, FileMode.Create, FileAccess.Write))
                     {
                         using (var writer = new SpssLib.DataReader.SpssWriter(fileStream, _varlist, options))
@@ -734,7 +898,7 @@ namespace LogFSM_LogX2019
                             {
 
                                 var _line = writer.CreateRecord();
-                                _line[0] = (double)id;
+                                _line[0] = (double)_linecounter;
                                 _line[1] = (double)v.PersonIdentifier;
 
                                 _line[2] = (double)v.Element;
@@ -745,8 +909,8 @@ namespace LogFSM_LogX2019
                                 else
                                 {
                                     _line[3] = (double)Math.Round((v.TimeStamp - dt1960).TotalMilliseconds, 0);
-                                } 
-                                _line[4] = (double)(Math.Round(v.RelativeTime.TotalMilliseconds,0));  
+                                }
+                                _line[4] = (double)(Math.Round(v.RelativeTime.TotalMilliseconds, 0));
                                 _line[5] = (double)v.EventID;
                                 _line[6] = (double)v.ParentEventID;
                                 _line[7] = (double)v.Path;
@@ -789,12 +953,143 @@ namespace LogFSM_LogX2019
                                 }
 
                                 writer.WriteRecord(_line);
-                                id++;
+                                _linecounter++;
                             }
                         }
                         zip.AddFile(_tmpfile).FileName = _id + ".sav";
 
                     }
+                }
+
+                #endregion
+                 
+                #region Log Data / Flat and Sparse Log Data Table 
+
+                if (_includeFlatAndSparseLogDataTable)
+                { 
+                    var _varlist = new List<SpssLib.SpssDataset.Variable>();
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("Line") { Label = CodebookDictionary.GetColumnNameDescription("Line", _language) });
+                     
+                    foreach( var l in labelContainers.Keys)
+                    {
+                        if (!labelContainers[l].ContainsKey((double)-2))
+                            labelContainers[l].Add((double)-2, _attributeNotExpected);
+                    }
+
+                    if (PersonIdentifierIsNumber || !labelContainers.ContainsKey("PersonIdentifier"))
+                        _varlist.Add(new SpssLib.SpssDataset.Variable(PersonIdentifierName) { Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", _language, 64) });
+                    else
+                        _varlist.Add(new SpssLib.SpssDataset.Variable(PersonIdentifierName) { ValueLabels = labelContainers["PersonIdentifier"], Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", _language, 64) });
+
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("Element") { ValueLabels = labelContainers["Element"], Label = CodebookDictionary.GetResultVariableLabel("Element", _language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("TimeStamp") {   Label = CodebookDictionary.GetResultVariableLabel("TimeStamp", _language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("RelativeTime") { Label = CodebookDictionary.GetResultVariableLabel("RelativeTime", _language, 64) });
+
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("EventID") { Label = CodebookDictionary.GetResultVariableLabel("EventID", _language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("ParentEventID") { Label = CodebookDictionary.GetResultVariableLabel("ParentEventID", _language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("Path") { ValueLabels = labelContainers["Path"], Label = CodebookDictionary.GetResultVariableLabel("Path", _language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("ParentPath") { ValueLabels = labelContainers["ParentPath"], Label = CodebookDictionary.GetResultVariableLabel("ParentPath", _language, 64) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("EventName") { ValueLabels = labelContainers["EventName"], Label = CodebookDictionary.GetResultVariableLabel("EventName", _language, 64) });
+
+                    List<string> _colnames = new List<string>();
+                    foreach (var _table in logDataTableColnames)
+                    {
+                        foreach (var _colname in _table.Value)
+                            if (!_colnames.Contains(_colname))
+                                _colnames.Add(_colname);
+                    }
+
+                    foreach (var _colname in _colnames)
+                    {
+                        if (!labelContainers.ContainsKey(_colname))
+                            _varlist.Add(new SpssLib.SpssDataset.Variable("a_" + _colname) { Label = CodebookDictionary.GetResultVariableLabel(_colname, _language, 64) });
+                        else
+                            _varlist.Add(new SpssLib.SpssDataset.Variable("a_" + _colname) { ValueLabels = labelContainers[_colname], Label = CodebookDictionary.GetResultVariableLabel(_colname, _language, 64) });
+                         
+                    }
+
+                    string _tmpfile = GetTempFileName("sav");
+                    string _dataSetName = CodebookDictionary.GetMetaData("StudyName", "", _language);
+                    var options = new SpssLib.DataReader.SpssOptions();
+
+                    int _linecounter = 0;
+                    using (FileStream fileStream = new FileStream(_tmpfile, FileMode.Create, FileAccess.Write))
+                    {
+                        using (var writer = new SpssLib.DataReader.SpssWriter(fileStream, _varlist, options))
+                        {
+                            foreach (string _id in logDataTables.Keys)
+                            {
+                                if (_id != rootLogName)
+                                {
+                                    foreach (var v in logDataTables[_id])
+                                    {
+                                        var _line = writer.CreateRecord();
+                                        _line[0] = (double)_linecounter;
+                                        _line[1] = (double)v.PersonIdentifier;
+
+                                        _line[2] = (double)v.Element;
+                                        if (v.TimeStamp.Year == 1)
+                                        {
+                                            _line[3] = (double)-1;
+                                        }
+                                        else
+                                        {
+                                            _line[3] = (double)Math.Round((v.TimeStamp - dt1960).TotalMilliseconds, 0);
+                                        }
+                                        _line[4] = (double)(Math.Round(v.RelativeTime.TotalMilliseconds, 0));
+                                        _line[5] = (double)v.EventID;
+                                        _line[6] = (double)v.ParentEventID;
+                                        _line[7] = (double)v.Path;
+                                        _line[8] = (double)v.ParentPath;
+                                        _line[9] = (double)v.EventName;
+
+                                        for (int i = 0; i < _colnames.Count; i++)
+                                        {
+                                            string _colname = _colnames[i];
+                                            if (logDataTableColnames[_id].Contains(_colname))
+                                            {
+                                                int _i = logDataTableColnames[_id].IndexOf(_colname);
+                                                int _value = -1;
+                                                foreach (var p in v.AttributValues)
+                                                {
+                                                    if (p.Item1 == _i)
+                                                    {
+                                                        _value = p.Item2;
+                                                        break;
+                                                    }
+                                                }
+                                                if (_value == -1)
+                                                {
+                                                    if (_varlist[10 + i].Type ==  SpssLib.SpssDataset.DataType.Text)
+                                                        _line[10 + i] = _attributeNotExpected;
+                                                    else if (_varlist[10 + i].Type== SpssLib.SpssDataset.DataType.Numeric)
+                                                        _line[10 + i] = (double)_value;
+                                                }
+                                                else
+                                                {
+                                                    _line[10 + i] = (double)_value;
+                                                }
+                                            }
+                                            else
+                                            { 
+                                                if (_varlist[10 + i].Type == SpssLib.SpssDataset.DataType.Text)
+                                                    _line[10 + i] = _attributeNotDefinded;
+                                                else if (_varlist[10 + i].Type == SpssLib.SpssDataset.DataType.Numeric)
+                                                    _line[10 + i] = (double)-2;
+                                               
+                                            }
+                                        }
+
+                                        writer.WriteRecord(_line);
+                                        _linecounter++;
+                                    }
+                                }
+                            }
+
+                            
+                        }
+                    }
+                    zip.AddFile(_tmpfile).FileName = "FlatAndSparseLogDataTable.sav";
                 }
 
                 #endregion
@@ -805,13 +1100,13 @@ namespace LogFSM_LogX2019
                 {
                     string _id = "Results";
                     var _varlist = new List<SpssLib.SpssDataset.Variable>();
-                    _varlist.Add(new SpssLib.SpssDataset.Variable("Line") { Label = CodebookDictionary.GetColumnNameDescription("Line", language) });
+                    _varlist.Add(new SpssLib.SpssDataset.Variable("Line") { Label = CodebookDictionary.GetColumnNameDescription("Line", _language) });
 
                     if (PersonIdentifierIsNumber || !labelContainers.ContainsKey("PersonIdentifier"))
-                        _varlist.Add(new SpssLib.SpssDataset.Variable(PersonIdentifierName) { Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", language, 64)}); 
+                        _varlist.Add(new SpssLib.SpssDataset.Variable(PersonIdentifierName) { Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", _language, 64) });
                     else
-                        _varlist.Add(new SpssLib.SpssDataset.Variable(PersonIdentifierName) { ValueLabels = labelContainers["PersonIdentifier"],  Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", language, 64)}); 
-                       
+                        _varlist.Add(new SpssLib.SpssDataset.Variable(PersonIdentifierName) { ValueLabels = labelContainers["PersonIdentifier"], Label = CodebookDictionary.GetResultVariableLabel("PersonIdentifier", _language, 64) });
+
                     // Head
                     for (int _i = 0; _i < resultDataTableColnames.Count; _i++)
                     {
@@ -822,23 +1117,23 @@ namespace LogFSM_LogX2019
                             string _colname = resultDataTableColnames.Values.ToArray<string>()[_i];
                             if (!labelContainers.ContainsKey(_key))
                             {
-                                _varlist.Add(new SpssLib.SpssDataset.Variable(CodebookDictionary.GetResultVariableName(_key)) { Label = CodebookDictionary.GetResultVariableLabel(_key, language, 64) }); 
+                                _varlist.Add(new SpssLib.SpssDataset.Variable(CodebookDictionary.GetResultVariableName(_key)) { Label = CodebookDictionary.GetResultVariableLabel(_key, _language, 64) });
                             }
                             else
                             {
-                                _varlist.Add(new SpssLib.SpssDataset.Variable(CodebookDictionary.GetResultVariableName(_key)) { ValueLabels = labelContainers[_key], Label = CodebookDictionary.GetResultVariableLabel(_key, language, 64) });
+                                _varlist.Add(new SpssLib.SpssDataset.Variable(CodebookDictionary.GetResultVariableName(_key)) { ValueLabels = labelContainers[_key], Label = CodebookDictionary.GetResultVariableLabel(_key, _language, 64) });
                             }
                         }
                     }
 
                     string _tmpfile = GetTempFileName("sav");
-                    string _dataSetName = CodebookDictionary.GetMetaData("StudyName", "", language);
+                    string _dataSetName = CodebookDictionary.GetMetaData("StudyName", "", _language);
                     var options = new SpssLib.DataReader.SpssOptions();
 
                     using (FileStream fileStream = new FileStream(_tmpfile, FileMode.Create, FileAccess.Write))
                     {
                         using (var writer = new SpssLib.DataReader.SpssWriter(fileStream, _varlist, options))
-                        { 
+                        {
                             int id = 0;
                             foreach (var v in resultDataTable.Keys)
                             {
@@ -886,7 +1181,7 @@ namespace LogFSM_LogX2019
                             }
                         }
                     }
-                     
+
                     zip.AddFile(_tmpfile).FileName = _id + ".sav";
                 }
 
@@ -894,7 +1189,7 @@ namespace LogFSM_LogX2019
 
                 zip.UseZip64WhenSaving = Zip64Option.Always;
                 zip.Save(filename);
-            } 
+            }
         }
  
         public void ExportCSV(CommandLineArguments ParsedCommandLineArguments)
@@ -905,14 +1200,30 @@ namespace LogFSM_LogX2019
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputtimestampformatstring"))
                 _outputTimeStampFormatString = ParsedCommandLineArguments.ParameterDictionary["outputtimestampformatstring"];
 
-            // TODO: Format Relative Time 
-
-            string _outputRelativeTimeFormatString = "hh':'mm':'ss':'fff";
+            string _outputRelativeTimeFormatString = "";
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputrelativetimeformatstring"))
                 _outputRelativeTimeFormatString = ParsedCommandLineArguments.ParameterDictionary["outputrelativetimeformatstring"];
 
+            string _attributeNotDefinded = "(attribute not defined)";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputstringattributenotdefined"))
+                _attributeNotDefinded = ParsedCommandLineArguments.ParameterDictionary["outputstringattributenotdefined"];
 
-            DateTime dt1960 = new DateTime(1960, 1, 1, 0, 0, 0, 0);
+            string _attributeNotExpected = "(attribute not expected)";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputstringattributenotexpected"))
+                _attributeNotExpected = ParsedCommandLineArguments.ParameterDictionary["outputstringattributenotdefined"];
+
+            bool _includeFlatAndSparseLogDataTable = false;
+            if (ParsedCommandLineArguments.Flags.Contains("INCLUDEFLAT"))
+                _includeFlatAndSparseLogDataTable = true;
+
+            bool _skipResultTable = false;
+            if (ParsedCommandLineArguments.Flags.Contains("SKIPRESULTS"))
+                _skipResultTable = true;
+
+            string _language = "ENG";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("language"))
+                _language = ParsedCommandLineArguments.ParameterDictionary["language"];
+
             string _sep = ";";
 
             using (ZipFile zip = new ZipFile())
@@ -932,15 +1243,23 @@ namespace LogFSM_LogX2019
                         }
                         sw.WriteLine();
 
-                        int id = 0;
+                        int _linecounter = 0;
                         foreach (var v in logDataTables[_id])
                         {
-                            sw.Write(id);
-                            sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["PersonIdentifier"][(int)v.PersonIdentifier]));
+                            sw.Write(_linecounter);
+                            if (PersonIdentifierIsNumber)
+                                sw.Write(_sep + StringToCSVCell(v.PersonIdentifier.ToString()));
+                            else
+                                sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["PersonIdentifier"][(int)v.PersonIdentifier]));
+
                             sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["Element"][v.Element])); 
-                            sw.Write(_sep + StringToCSVCell(v.TimeStamp.ToString(_outputTimeStampFormatString)));  
-                             
-                            sw.Write(_sep + StringToCSVCell(Math.Round(v.RelativeTime.TotalMilliseconds,0).ToString()));  
+                            sw.Write(_sep + StringToCSVCell(v.TimeStamp.ToString(_outputTimeStampFormatString)));
+
+                            if (_outputRelativeTimeFormatString.Trim()== "")
+                                sw.Write(_sep + StringToCSVCell(Math.Round(v.RelativeTime.TotalMilliseconds, 0).ToString()));
+                            else
+                                sw.Write(_sep + StringToCSVCell(v.RelativeTime.ToString(_outputRelativeTimeFormatString)));
+                            
                             sw.Write(_sep + StringToCSVCell(v.EventID.ToString()));
                             sw.Write(_sep + StringToCSVCell(v.ParentEventID.ToString()));
                             sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["Path"][v.Path]));
@@ -961,17 +1280,12 @@ namespace LogFSM_LogX2019
                                         }
                                     }
                                     if (_value == -1)
-                                    {
-                                        sw.Write(_sep + StringToCSVCell("(attribute not defined)"));
-                                    }
+                                        sw.Write(_sep + StringToCSVCell(_attributeNotDefinded));
                                     else
-                                    {
                                         sw.Write(_sep + StringToCSVCell(uniqueValuesLookup[logDataTableColnames[_id][_i]][_value]));
-                                    }
                                 }
-                            }
-
-                            id++;
+                            } 
+                            _linecounter++;
                             sw.WriteLine();
                         }
                     }
@@ -983,11 +1297,94 @@ namespace LogFSM_LogX2019
                 #endregion
 
                 #region Log Data / Flat and Sparse Log Data Table 
+
+                if (_includeFlatAndSparseLogDataTable)
+                { 
+                    string _tmpFlatFile = GetTempFileName("csv");
+
+                    using (StreamWriter sw = new StreamWriter(new FileStream(_tmpFlatFile, FileMode.OpenOrCreate), Encoding.UTF8))
+                    {
+                        sw.Write("Line" + _sep + "PersonIdentifier" + _sep + "Element" + _sep + "TimeStamp" + _sep + "RelativeTime" + _sep + "EventID" + _sep + "ParentEventID" + _sep + "Path" + _sep + "ParentPath" + _sep + "EventName");
+                        List<string> _colnames = new List<string>();
+                        foreach (var _table in logDataTableColnames)
+                        {
+                            foreach (var _colname in _table.Value)
+                                if (!_colnames.Contains(_colname))
+                                    _colnames.Add(_colname);
+                        }
+
+                        foreach (var _colname in _colnames)
+                            sw.Write(_sep + "a_" + _colname);
+
+                        sw.WriteLine();
+
+                        int _linecounter = 0;
+                        foreach (string _id in logDataTables.Keys)
+                        {
+                            if (_id != rootLogName)
+                            {
+                                foreach (var v in logDataTables[_id])
+                                {
+                                    sw.Write(_linecounter);
+                                    if (PersonIdentifierIsNumber)
+                                        sw.Write(_sep + StringToCSVCell(v.PersonIdentifier.ToString()));
+                                    else
+                                        sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["PersonIdentifier"][(int)v.PersonIdentifier]));
+
+                                    sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["Element"][v.Element]));
+                                    sw.Write(_sep + StringToCSVCell(v.TimeStamp.ToString(_outputTimeStampFormatString)));
+
+                                    if (_outputRelativeTimeFormatString.Trim() == "")
+                                        sw.Write(_sep + StringToCSVCell(Math.Round(v.RelativeTime.TotalMilliseconds, 0).ToString()));
+                                    else
+                                        sw.Write(_sep + StringToCSVCell(v.RelativeTime.ToString(_outputRelativeTimeFormatString)));
+                                    
+                                    sw.Write(_sep + StringToCSVCell(v.EventID.ToString()));
+                                    sw.Write(_sep + StringToCSVCell(v.ParentEventID.ToString()));
+                                    sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["Path"][v.Path]));
+                                    sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["ParentPath"][v.ParentPath]));
+
+                                    sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["EventName"][v.EventName]));
+
+                                    foreach (var _colname in _colnames)
+                                    {
+                                        if (logDataTableColnames[_id].Contains(_colname))
+                                        {
+                                            int _i = logDataTableColnames[_id].IndexOf(_colname);
+                                            int _value = -1;
+                                            foreach (var p in v.AttributValues)
+                                            {
+                                                if (p.Item1 == _i)
+                                                {
+                                                    _value = p.Item2;
+                                                    break;
+                                                }
+                                            }
+                                            if (_value == -1)
+                                                sw.Write(_sep + StringToCSVCell(_attributeNotDefinded));
+                                            else
+                                                sw.Write(_sep + StringToCSVCell(uniqueValuesLookup[logDataTableColnames[_id][_i]][_value]));
+                                        }
+                                        else
+                                            sw.Write(_sep + StringToCSVCell(_attributeNotExpected));
+                                    }
+
+                                    _linecounter++;
+                                    sw.WriteLine();
+                                }
+                            }
+                        }
+
+                    }
+
+                    zip.AddFile(_tmpFlatFile).FileName = "FlatAndSparseLogDataTable.csv";
+                }
+
                 #endregion 
 
                 #region Result Data
 
-                if (ContainsResultData)
+                if (ContainsResultData && !_skipResultTable)
                 {
                     string _id = "Results";
                     string _tmpfile = GetTempFileName("csv");
@@ -1031,13 +1428,9 @@ namespace LogFSM_LogX2019
                                         }
                                     }
                                     if (_value == -1)
-                                    {
-                                        sw.Write(_sep + StringToCSVCell("(attribute not defined)"));
-                                    }
+                                        sw.Write(_sep + StringToCSVCell(_attributeNotDefinded));
                                     else
-                                    {
                                         sw.Write(_sep + StringToCSVCell(uniqueValuesLookup[logDataTableColnames[_id][_i]][_value]));
-                                    }
                                 }  
                             }
                             sw.WriteLine();
@@ -1064,12 +1457,31 @@ namespace LogFSM_LogX2019
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputtimestampformatstring"))
                 _outputTimeStampFormatString = ParsedCommandLineArguments.ParameterDictionary["outputtimestampformatstring"];
 
-            // TODO: Format Relative Time 
-
-            string _outputRelativeTimeFormatString = "hh':'mm':'ss':'fff";
+            string _outputRelativeTimeFormatString = "";
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputrelativetimeformatstring"))
                 _outputRelativeTimeFormatString = ParsedCommandLineArguments.ParameterDictionary["outputrelativetimeformatstring"];
-             
+
+            string _attributeNotDefinded = "(attribute not defined)";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputstringattributenotdefined"))
+                _attributeNotDefinded = ParsedCommandLineArguments.ParameterDictionary["outputstringattributenotdefined"];
+
+            string _attributeNotExpected = "(attribute not expected)";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputstringattributenotexpected"))
+                _attributeNotExpected = ParsedCommandLineArguments.ParameterDictionary["outputstringattributenotdefined"];
+
+            bool _includeFlatAndSparseLogDataTable = false;
+            if (ParsedCommandLineArguments.Flags.Contains("INCLUDEFLAT"))
+                _includeFlatAndSparseLogDataTable = true;
+
+            bool _skipResultTable = false;
+            if (ParsedCommandLineArguments.Flags.Contains("SKIPRESULTS"))
+                _skipResultTable = true;
+
+            string _language = "ENG";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("language"))
+                _language = ParsedCommandLineArguments.ParameterDictionary["language"];
+
+
             using (var fs = new FileStream(filename, FileMode.Create, FileAccess.Write))
             {
                 Dictionary<string, string> _sheetIndex = new Dictionary<string, string>();
@@ -1132,7 +1544,12 @@ namespace LogFSM_LogX2019
                       
                         row.CreateCell(2).SetCellValue(uniqueValuesLookup["Element"][v.Element]);
                         row.CreateCell(3).SetCellValue(v.TimeStamp.ToString());
-                        row.CreateCell(4).SetCellValue(Math.Round(v.RelativeTime.TotalMilliseconds,0).ToString());
+
+                        if (_outputRelativeTimeFormatString.Trim() == "")
+                            row.CreateCell(4).SetCellValue(Math.Round(v.RelativeTime.TotalMilliseconds, 0).ToString());
+                        else
+                            row.CreateCell(4).SetCellValue(v.RelativeTime.ToString(_outputRelativeTimeFormatString));
+                                               
                         row.CreateCell(5).SetCellValue(v.EventID.ToString());
                         row.CreateCell(6).SetCellValue(v.ParentEventID.ToString());
                         row.CreateCell(7).SetCellValue(uniqueValuesLookup["Path"][v.Path]);
@@ -1155,7 +1572,7 @@ namespace LogFSM_LogX2019
                                 }
                                 if (_value == -1)
                                 {
-                                    row.CreateCell(_colIndex++).SetCellValue("(attribute not defined)");
+                                    row.CreateCell(_colIndex++).SetCellValue(_attributeNotDefinded);
                                 }
                                 else
                                 {
@@ -1187,14 +1604,115 @@ namespace LogFSM_LogX2019
 
                 #endregion
 
+                #region Log Data / Flat and Sparse Log Data Table 
+
+                if (_includeFlatAndSparseLogDataTable)
+                {
+                    string _tableName = "FlatAndSparseLogDataTable";
+                    _sheetIndex.Add(_tableName, _tableName);
+                    ISheet sheet = workbook.CreateSheet(_sheetIndex[_tableName]);
+
+                    // Head
+
+                    var rowIndex = 0;
+                    IRow firstrow = sheet.CreateRow(rowIndex++);
+                    firstrow.CreateCell(0).SetCellValue("Line");
+                    firstrow.CreateCell(1).SetCellValue("PersonIdentifier");
+                    firstrow.CreateCell(2).SetCellValue("Element");
+                    firstrow.CreateCell(3).SetCellValue("TimeStamp");
+                    firstrow.CreateCell(4).SetCellValue("RelativeTime");
+                    firstrow.CreateCell(5).SetCellValue("EventID");
+                    firstrow.CreateCell(6).SetCellValue("ParentEventID");
+                    firstrow.CreateCell(7).SetCellValue("Path");
+                    firstrow.CreateCell(8).SetCellValue("ParentPath");
+                    firstrow.CreateCell(9).SetCellValue("EventName");
+
+                    List<string> _colnames = new List<string>();
+                    foreach (var _table in logDataTableColnames)
+                    {
+                        foreach (var _colname in _table.Value)
+                            if (!_colnames.Contains(_colname))
+                                _colnames.Add(_colname);
+                    }
+
+                    int _colIndex = 10;
+                    foreach (var _colname in _colnames)
+                    {
+                        firstrow.CreateCell(_colIndex).SetCellValue("a_" + _colname);
+                        _colIndex++;
+                    }
+
+                    // Data 
+
+                    int _linecounter = 0;
+                    foreach (string _id in logDataTables.Keys)
+                    {
+                        if (_id != rootLogName)
+                        {
+                            foreach (var v in logDataTables[_id])
+                            {
+                                IRow row = sheet.CreateRow(rowIndex++);
+                                row.CreateCell(0).SetCellValue(_linecounter);
+                                if (PersonIdentifierIsNumber)
+                                    row.CreateCell(1).SetCellValue(v.PersonIdentifier);
+                                else
+                                    row.CreateCell(1).SetCellValue(uniqueValuesLookup["PersonIdentifier"][(int)v.PersonIdentifier]);
+
+                                row.CreateCell(2).SetCellValue(StringToCSVCell(uniqueValuesLookup["Element"][v.Element]));
+
+                                if (_outputRelativeTimeFormatString.Trim() == "")
+                                    row.CreateCell(3).SetCellValue((Math.Round(v.RelativeTime.TotalMilliseconds, 0).ToString()));
+                                else
+                                    row.CreateCell(3).SetCellValue(v.TimeStamp.ToString(_outputTimeStampFormatString));
+                                                                 
+                                row.CreateCell(4).SetCellValue(StringToCSVCell(Math.Round(v.RelativeTime.TotalMilliseconds, 0).ToString()));
+                                row.CreateCell(5).SetCellValue(StringToCSVCell(v.EventID.ToString()));
+                                row.CreateCell(6).SetCellValue(StringToCSVCell(v.ParentEventID.ToString()));
+                                row.CreateCell(7).SetCellValue(StringToCSVCell(uniqueValuesLookup["Path"][v.Path]));
+                                row.CreateCell(8).SetCellValue(StringToCSVCell(uniqueValuesLookup["ParentPath"][v.ParentPath]));
+                                row.CreateCell(9).SetCellValue(StringToCSVCell(uniqueValuesLookup["EventName"][v.EventName]));
+
+                                _colIndex = 10;
+                                foreach (var _colname in _colnames)
+                                {
+                                    if (logDataTableColnames[_id].Contains(_colname))
+                                    {
+                                        int _i = logDataTableColnames[_id].IndexOf(_colname);
+                                        int _value = -1;
+                                        foreach (var p in v.AttributValues)
+                                        {
+                                            if (p.Item1 == _i)
+                                            {
+                                                _value = p.Item2;
+                                                break;
+                                            }
+                                        }
+                                        if (_value == -1)
+                                            row.CreateCell(_colIndex).SetCellValue(_attributeNotDefinded);
+                                        else
+                                            row.CreateCell(_colIndex).SetCellValue(uniqueValuesLookup[logDataTableColnames[_id][_i]][_value]);
+                                    }
+                                    else
+                                        row.CreateCell(_colIndex).SetCellValue(_attributeNotExpected);
+
+                                    _colIndex++;
+                                } 
+                                _linecounter++; 
+                            }
+
+                        }
+                    } 
+                }
+
+                #endregion
+
                 #region Result Data
 
-                if (ContainsResultData)
+                if (ContainsResultData && !_skipResultTable)
                 {
-                    string _id = "Results";
-
-                    _sheetIndex.Add(_id, _id);
-                    ISheet sheet = workbook.CreateSheet(_sheetIndex[_id]);
+                    string _tableName = "Results";
+                    _sheetIndex.Add(_tableName, _tableName);
+                    ISheet sheet = workbook.CreateSheet(_sheetIndex[_tableName]);
 
                     // Head
 
@@ -1211,12 +1729,11 @@ namespace LogFSM_LogX2019
                     }
                        
                     // Data 
-                    int id = 0;
+                    int _linecounter = 0;
                     foreach (var v in resultDataTable.Keys)
-                    {
-
+                    { 
                         IRow row = sheet.CreateRow(rowIndex++);
-                        row.CreateCell(0).SetCellValue(id);
+                        row.CreateCell(0).SetCellValue(_linecounter);
                         if (PersonIdentifierIsNumber)
                         {
                             row.CreateCell(1).SetCellValue(resultDataTable[v].PersonIdentifier);
@@ -1243,21 +1760,21 @@ namespace LogFSM_LogX2019
                                 }
                                 if (_value == -1)
                                 {
-                                    row.CreateCell(_colIndex++).SetCellValue("(attribute not defined)");
+                                    row.CreateCell(_colIndex++).SetCellValue(_attributeNotDefinded);
                                 }
                                 else
                                 {
-                                    string _stringValue = uniqueValuesLookup[logDataTableColnames[_id][_i]][_value];
+                                    string _stringValue = uniqueValuesLookup[logDataTableColnames[_tableName][_i]][_value];
                                     if (_stringValue.Length > 32766)
                                     {
 
                                         if (PersonIdentifierIsNumber)
                                         {
-                                            ExportErrors.Add("- XLSX: Shortened string of length " + _stringValue.Length + " for person identifier '" + resultDataTable[v].PersonIdentifier + "', in table  '" + _id + "', for column '" + logDataTableColnames[_id][_i] + "'");
+                                            ExportErrors.Add("- XLSX: Shortened string of length " + _stringValue.Length + " for person identifier '" + resultDataTable[v].PersonIdentifier + "', in table  '" + _tableName + "', for column '" + logDataTableColnames[_tableName][_i] + "'");
                                         }
                                         else
                                         {
-                                            ExportErrors.Add("- XLSX: Shortened string of length " + _stringValue.Length + " for person identifier '" + uniqueValuesLookup["PersonIdentifier"][(int)resultDataTable[v].PersonIdentifier] + "', in table  '" + _id + "', for column '" + logDataTableColnames[_id][_i] + "'");
+                                            ExportErrors.Add("- XLSX: Shortened string of length " + _stringValue.Length + " for person identifier '" + uniqueValuesLookup["PersonIdentifier"][(int)resultDataTable[v].PersonIdentifier] + "', in table  '" + _tableName + "', for column '" + logDataTableColnames[_tableName][_i] + "'");
                                         }
 
                                         _stringValue = _stringValue.Substring(0, 32766);
@@ -1266,9 +1783,8 @@ namespace LogFSM_LogX2019
                                     row.CreateCell(_colIndex++).SetCellValue(_stringValue);
                                 }
                             } 
-                        }
-
-                        id++;
+                        } 
+                        _linecounter++;
                     }
                      
                 }
@@ -1290,6 +1806,14 @@ namespace LogFSM_LogX2019
 
             if (ParsedCommandLineArguments.Flags.Contains("ORDER_WITHIN_ELEMENTS"))
                 sort = EventDataListExtension.ESortType.ElementAndTime;
+
+            bool serializeRawXML = false;
+            if (ParsedCommandLineArguments.Flags.Contains("SERIALIZERAWXML"))
+                serializeRawXML = true;
+
+            bool serializeRawXMLZIP = false;
+            if (ParsedCommandLineArguments.Flags.Contains("SERIALIZERAWXMLZIP"))
+                serializeRawXMLZIP = true;
               
             Dictionary<string, List<EventData>> _inMemoryTempData = new Dictionary<string, List<EventData>>();
              
@@ -1372,10 +1896,8 @@ namespace LogFSM_LogX2019
                     m_event.Add("assessment:relativetime", factory.CreateAttributeLiteral("assessment:relativetime", Math.Round(e.RelativeTime.TotalMilliseconds, 0).ToString(), null));
                     m_event.Add("time:timestamp", factory.CreateAttributeTimestamp("time:timestamp", e.TimeStamp, ext_time_timestamp));
                     foreach (var a in e.EventValues)
-                    {
                         m_event.Add(a.Key, factory.CreateAttributeLiteral(a.Key, a.Value, null));
-                    }
-                     
+
                     OpenXesNet.model.XEvent evt = OpenXesNet.factory.XFactoryRegistry.Instance.CurrentDefault.CreateEvent();
                     evt.SetAttributes(m_event);
                     trace.Add(evt);
@@ -1386,12 +1908,40 @@ namespace LogFSM_LogX2019
                 xesOutput.Add(trace);
 
             }
-             
-             
-            OpenXesNet.io.XesXmlGZIPSerializer gzipSerializer = new OpenXesNet.io.XesXmlGZIPSerializer();           
-            FileStream fStream = File.Create(filename);
-            gzipSerializer.Serialize(xesOutput, fStream);
-             
+                        
+            if (serializeRawXML || serializeRawXMLZIP)
+            {
+
+                if (serializeRawXMLZIP)
+                {
+                    using (ZipFile zip = new ZipFile())
+                    {
+                        string _tmpfile = GetTempFileName("xml");
+                        OpenXesNet.io.XesXmlSerializer serializer = new OpenXesNet.io.XesXmlSerializer();
+                        FileStream fStream = File.Create(_tmpfile);
+                        serializer.Serialize(xesOutput, fStream);
+                        fStream.Close();
+                        zip.AddFile(_tmpfile).FileName = "xes.xml";
+                        zip.UseZip64WhenSaving = Zip64Option.Always;
+                        zip.Save(filename);
+                    }
+                } 
+                else
+                {
+                    OpenXesNet.io.XesXmlSerializer serializer = new OpenXesNet.io.XesXmlSerializer();
+                    FileStream fStream = File.Create(filename);
+                    serializer.Serialize(xesOutput, fStream);
+                    fStream.Close();
+                }
+
+            } 
+            else
+            {
+                OpenXesNet.io.XesXmlGZIPSerializer gzipSerializer = new OpenXesNet.io.XesXmlGZIPSerializer();
+                FileStream fStream = File.Create(filename);
+                gzipSerializer.Serialize(xesOutput, fStream);
+                fStream.Close();
+            }
         }
 
         public static string GetTempFileName(string extension)
@@ -1501,9 +2051,7 @@ namespace LogFSM_LogX2019
                             } 
                         }
                     }
-                }
-               
-
+                } 
             }
             else if (filename.ToLower().EndsWith(".csv"))
             {
@@ -1580,9 +2128,7 @@ namespace LogFSM_LogX2019
                     {
                         var r = new List<object> { new { OldPersonIdentifier = uniqueValuesLookup["PersonIdentifier"][_i].ToString(), NewPersonIdentifier = uniqueValuesLookup["PersonIdentifier"][_i].ToString() }, };
                         csv.WriteRecords(r);
-                    }
-
-                   
+                    } 
                 }
             }
             else
@@ -1598,8 +2144,15 @@ namespace LogFSM_LogX2019
                 CodebookDictionary.LoadDictionaryExcelSheet(filename);
         }
 
-        public void CreateCodebook(string filename, string language)
-        { 
+        public void CreateCodebook(CommandLineArguments ParsedCommandLineArguments)
+        {
+            string filename = ParsedCommandLineArguments.Transform_Codebook;
+
+            string _language = "ENG";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("language"))
+                _language = ParsedCommandLineArguments.ParameterDictionary["language"];
+
+
             using (var fs = new FileStream(filename, FileMode.Create, FileAccess.Write))
             { 
                 IWorkbook workbook = new XSSFWorkbook();
@@ -1698,12 +2251,13 @@ namespace LogFSM_LogX2019
 
         public static void ExportLogXContainerData(CommandLineArguments ParsedCommandLineArguments, logXContainer _ret)
         {
+            bool _skipRelativeTimeUpdate = false; 
+            if (ParsedCommandLineArguments.Flags.Contains("SKIPRELATIVETIMEUPDATE"))
+                _skipRelativeTimeUpdate = true;
 
-            string _language = "ENG";
-            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("language"))
-                _language = ParsedCommandLineArguments.ParameterDictionary["language"];
+            if (!_skipRelativeTimeUpdate)
+                _ret.UpdateRelativeTimes();
 
-            _ret.UpdateRelativeTimes();
             _ret.CreateLookup();
 
             // Export
@@ -1711,41 +2265,39 @@ namespace LogFSM_LogX2019
             if (ParsedCommandLineArguments.Transform_OutputStata.Trim() != "")
             {
                 if (ParsedCommandLineArguments.Verbose)
-                    Console.WriteLine("Create ZIP archive with Stata file(s).");
+                    Console.WriteLine(" - Create ZIP archive with Stata file(s).");
 
-                _ret.ExportStata(ParsedCommandLineArguments.Transform_OutputStata, _language);
+                _ret.ExportStata(ParsedCommandLineArguments);
             }
 
             if (ParsedCommandLineArguments.Transform_OutputSPSS.Trim() != "")
             {
                 if (ParsedCommandLineArguments.Verbose)
-                    Console.WriteLine("Create ZIP archive with SPSS file(s).");
+                    Console.WriteLine(" - Create ZIP archive with SPSS file(s).");
 
-                _ret.ExportSPSS(ParsedCommandLineArguments.Transform_OutputSPSS, _language);
+                _ret.ExportSPSS(ParsedCommandLineArguments);
             }
 
             if (ParsedCommandLineArguments.Transform_OutputXLSX.Trim() != "")
             {
                 if (ParsedCommandLineArguments.Verbose)
-                    Console.WriteLine("Create XLSX file.");
+                    Console.WriteLine(" - Create XLSX file.");
 
-                _ret.ExportXLSX(ParsedCommandLineArguments);
-
+                _ret.ExportXLSX(ParsedCommandLineArguments); 
             }
 
             if (ParsedCommandLineArguments.Transform_OutputXES.Trim() != "")
             {
                 if (ParsedCommandLineArguments.Verbose)
-                    Console.WriteLine("Create XES file.");
+                    Console.WriteLine(" - Create XES file.");
 
-                _ret.ExportXES(ParsedCommandLineArguments);
-
+                _ret.ExportXES(ParsedCommandLineArguments); 
             }
 
             if (ParsedCommandLineArguments.Transform_OutputZCSV.Trim() != "")
             {
                 if (ParsedCommandLineArguments.Verbose)
-                    Console.WriteLine("Create ZIP archive with CSV file(s).");
+                    Console.WriteLine(" - Create ZIP archive with CSV file(s).");
 
                 _ret.ExportCSV(ParsedCommandLineArguments);
             }
@@ -1753,9 +2305,9 @@ namespace LogFSM_LogX2019
             if (ParsedCommandLineArguments.Transform_Codebook.Trim() != "")
             {
                 if (ParsedCommandLineArguments.Verbose)
-                    Console.WriteLine("Create Codebook File.");
+                    Console.WriteLine(" - Create Codebook File.");
 
-                _ret.CreateCodebook(ParsedCommandLineArguments.Transform_Codebook, _language);
+                _ret.CreateCodebook(ParsedCommandLineArguments);
             }
 
             if (_ret.ExportErrors.Count > 0)

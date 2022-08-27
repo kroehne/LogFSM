@@ -117,11 +117,7 @@ namespace LogDataTransformer_IRTlibPlayer_V01
                 string _personIdentifierColumnName = "PersonIdentifier";
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("personidentifier"))
                     _personIdentifierColumnName = ParsedCommandLineArguments.ParameterDictionary["personidentifier"];
-
-                string _language = "ENG";
-                if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("language"))
-                    _language = ParsedCommandLineArguments.ParameterDictionary["language"];
-
+                 
                 double _utcoffset = 0;
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("utcoffset"))
                     _utcoffset = double.Parse(ParsedCommandLineArguments.ParameterDictionary["utcoffset"]);
@@ -538,73 +534,8 @@ namespace LogDataTransformer_IRTlibPlayer_V01
 
                 }
 
-                _ret.UpdateRelativeTimes();
-                _ret.CreateLookup();
+                logXContainer.ExportLogXContainerData(ParsedCommandLineArguments, _ret);
 
-                // Export
-
-                if (ParsedCommandLineArguments.Transform_OutputStata.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create ZIP archive with Stata file(s).");
-
-                    _ret.ExportStata(ParsedCommandLineArguments.Transform_OutputStata, _language);
-                }
-
-                if (ParsedCommandLineArguments.Transform_OutputSPSS.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create ZIP archive with SPSS file(s).");
-
-                    _ret.ExportSPSS(ParsedCommandLineArguments.Transform_OutputSPSS, _language);
-                }
-                 
-                if (ParsedCommandLineArguments.Transform_OutputXLSX.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create XLSX file.");
-
-                    _ret.ExportXLSX(ParsedCommandLineArguments);
-
-                }
-
-                if (ParsedCommandLineArguments.Transform_OutputXES.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create XES file.");
-
-                    _ret.ExportXES(ParsedCommandLineArguments);
-
-                }
-
-                if (ParsedCommandLineArguments.Transform_OutputZCSV.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create ZIP archive with CSV file(s).");
-
-                    _ret.ExportCSV(ParsedCommandLineArguments);
-                }
-
-                if (ParsedCommandLineArguments.Transform_Codebook.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create Codebook File.");
-
-                    _ret.CreateCodebook(ParsedCommandLineArguments.Transform_Codebook, _language);
-                }
-
-                if (_ret.ExportErrors.Count > 0)
-                {
-                    Console.WriteLine(_ret.ExportErrors.Count + " error(s) creating output files.");
-                    if (ParsedCommandLineArguments.Verbose)
-                    {
-                        for (int i = 0; i < _ret.ExportErrors.Count; i++)
-                        {
-                            Console.WriteLine(_ret.ExportErrors[i]);
-                        }
-
-                    }
-                }
             }
             catch (Exception _ex)
             {

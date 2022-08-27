@@ -24,6 +24,10 @@ namespace LogDataTransformer_EE_RAP_V01
                 if (ParsedCommandLineArguments.Flags.Contains("NUMERICPERSONIDENTIFIER"))
                     _personIdentifierIsNumber = true;
 
+                bool _relativeTimesAreSeconds = false;
+                if (ParsedCommandLineArguments.Flags.Contains("RELATIVETIMESARESECONDS"))
+                    _relativeTimesAreSeconds = true;
+
                 string _personIdentifier = "PersonIdentifier";
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("personidentifier"))
                     _personIdentifier = ParsedCommandLineArguments.ParameterDictionary["personidentifier"];
@@ -71,7 +75,7 @@ namespace LogDataTransformer_EE_RAP_V01
                      
                 }
                  
-                logXContainer _ret = new logXContainer() { PersonIdentifierIsNumber = _personIdentifierIsNumber, PersonIdentifierName = _personIdentifier };
+                logXContainer _ret = new logXContainer() { PersonIdentifierIsNumber = _personIdentifierIsNumber, PersonIdentifierName = _personIdentifier, RelativeTimesAreSeconds = _relativeTimesAreSeconds };
                 _ret.LoadCodebookDictionary(ParsedCommandLineArguments.Transform_Dictionary);
 
                 if (ParsedCommandLineArguments.Transform_ConcordanceTable.Trim() != "")
@@ -163,65 +167,7 @@ namespace LogDataTransformer_EE_RAP_V01
                     }
                 }
 
-                _ret.UpdateRelativeTimes();
-                _ret.CreateLookup();
-
-                if (ParsedCommandLineArguments.Transform_OutputStata.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create ZIP archive with Stata file(s).");
-
-                    _ret.ExportStata(ParsedCommandLineArguments.Transform_OutputStata, _language);
-                }
-
-                if (ParsedCommandLineArguments.Transform_OutputXLSX.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create XLSX file.");
-
-                    _ret.ExportXLSX(ParsedCommandLineArguments);
-
-                }
-
-                if (ParsedCommandLineArguments.Transform_OutputZCSV.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create ZIP archive with CSV file(s).");
-
-                    _ret.ExportCSV(ParsedCommandLineArguments);
-                }
-
-                if (ParsedCommandLineArguments.Transform_Codebook.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create Codebook File.");
-
-                    _ret.CreateCodebook(ParsedCommandLineArguments.Transform_Codebook, _language);
-                }
-
-                if (ParsedCommandLineArguments.Transform_ConcordanceTable.Trim() != "")
-                {
-                    if (!File.Exists(ParsedCommandLineArguments.Transform_ConcordanceTable))
-                    {
-                        if (ParsedCommandLineArguments.Verbose)
-                            Console.WriteLine("Create Concordance Table.");
-
-                        _ret.CreateConcordanceTable(ParsedCommandLineArguments.Transform_ConcordanceTable);
-                    }
-                }
-               
-                if (_ret.ExportErrors.Count > 0)
-                {
-                    Console.WriteLine(_ret.ExportErrors.Count + " error(s) creating output files.");
-                    if (ParsedCommandLineArguments.Verbose)
-                    {
-                        for (int i = 0; i < _ret.ExportErrors.Count; i++)
-                        {
-                            Console.WriteLine(_ret.ExportErrors[i]);
-                        }
-
-                    }
-                }
+                logXContainer.ExportLogXContainerData(ParsedCommandLineArguments, _ret);
             }
             catch (Exception _ex)
             {

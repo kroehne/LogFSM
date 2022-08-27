@@ -109,7 +109,7 @@ namespace LogFSMConsole
         /// <summary>
         /// Transform to xes format.
         /// </summary>
-        public const string _CMDA_JOB_TRANSFORM_outputesx = "xesoutput";
+        public const string _CMDA_JOB_TRANSFORM_output_xes = "xesoutput";
 
         /// <summary>
         /// Transform to zcsv format.
@@ -357,10 +357,13 @@ namespace LogFSMConsole
         #region Application Startup
 
         public void PrintWelcomeMessage()
-        { 
-            Console.WriteLine(Application);
-            Console.WriteLine(new string('=', (Application).Length));
-
+        {
+            Console.ForegroundColor = ConsoleColor.Blue;
+            string _app = Application + " (Version: " + typeof(Program).Assembly.GetName().Version.ToString() + ")";
+            Console.WriteLine(_app);
+            Console.WriteLine(new string('=', (_app).Length));
+            Console.ResetColor();
+             
             if (Verbose)
             {  
                 Console.WriteLine("Arguments: ");
@@ -418,7 +421,7 @@ namespace LogFSMConsole
                 }
                 catch (Exception _ex)
                 {
-                    Console.WriteLine(" - Error checking FSM file: " + _ex.Message);
+                    Console.WriteLine("  - Error checking FSM file: " + _ex.Message);
                     _return = false;
                 }
                 #endregion
@@ -439,7 +442,7 @@ namespace LogFSMConsole
                     {
                         if (!File.Exists(ZIPFileName))
                         {
-                            Console.WriteLine("- Error (DF104 / Archive not found): Archive file '" + ZIPFileName + "' not found. Check the value provided as 'zipfilename'.");
+                            Console.WriteLine(" - Error (DF104 / Archive not found): Archive file '" + ZIPFileName + "' not found. Check the value provided as 'zipfilename'.");
                             _return = false;
                         }
 
@@ -465,7 +468,7 @@ namespace LogFSMConsole
                     {
                         if (!File.Exists(ZIPFileName))
                         {
-                            Console.WriteLine("- Error (DF106 / Archive not found): Archive file '" + ZIPFileName + "' not found. Check the value provided as 'zipfilename'.");
+                            Console.WriteLine(" - Error (DF106 / Archive not found): Archive file '" + ZIPFileName + "' not found. Check the value provided as 'zipfilename'.");
                             _return = false;
 
                             int _NumberOfStataFiles = 0;
@@ -492,20 +495,20 @@ namespace LogFSMConsole
                                 UniversalFileFormat = "STATA";
                             else
                             {
-                                 Console.WriteLine("- Error (DF107 / Universal Log Format not Detected): Data format of not detected (SPSS: '" + _NumberOfSPSSFiles + "', Stata: '" + _NumberOfStataFiles + "', CSV: '" + _NumberOfStataFiles +"')");
+                                 Console.WriteLine(" - Error (DF107 / Universal Log Format not Detected): Data format of not detected (SPSS: '" + _NumberOfSPSSFiles + "', Stata: '" + _NumberOfStataFiles + "', CSV: '" + _NumberOfStataFiles +"')");
                                 _return = false;
                             }
                         }
                     }
                     else
                     {
-                        Console.WriteLine("- Error (DF101 / Format Unknown): Data of file type '" + DataFileType + "' not supported. Check the value provided as 'datafiletype'. ");
+                        Console.WriteLine(" - Error (DF101 / Format Unknown): Data of file type '" + DataFileType + "' not supported. Check the value provided as 'datafiletype'. ");
                         _return = false;
                     }
                 }
                 catch (Exception _ex)
                 {
-                    Console.WriteLine("- Error (DF100 / Unknown error): Unknown error checking the data file: " + _ex.Message);
+                    Console.WriteLine(" - Error (DF100 / Unknown error): Unknown error checking the data file: " + _ex.Message);
                     _return = false;
                 }
 
@@ -884,7 +887,7 @@ namespace LogFSMConsole
 
             this.Transform_OutputStata = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_output_stata, "");
             this.Transform_OutputXLSX = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_output_xlsx, "");
-            this.Transform_OutputXES = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_outputesx, "");
+            this.Transform_OutputXES = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_output_xes, "");
             
             this.Transform_OutputZCSV = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_output_zcsv, "");
             this.Transform_OutputSPSS = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_output_spss, "");

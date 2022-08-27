@@ -53,9 +53,8 @@ namespace LogFSMConsole
 
             if (!_parsedCommandLineArguments.CheckCommandLineArguments())
             { 
-                _watch.Stop();
-                Console.WriteLine("Application stopped.");
-                Console.WriteLine("Time elapsed: {0}", _watch.Elapsed);
+                _watch.Stop(); 
+                Console.WriteLine("Application stopped. Time elapsed: {0}", _watch.Elapsed);
                 return;
             }
 
@@ -65,9 +64,8 @@ namespace LogFSMConsole
 
             if (!_parsedCommandLineArguments.PrepareDefaulfFiles())
             {
-                _watch.Stop();
-                Console.WriteLine("Application stopped.");
-                Console.WriteLine("Time elapsed: {0}", _watch.Elapsed);
+                _watch.Stop(); 
+                Console.WriteLine("Application stopped. Time elapsed: {0}", _watch.Elapsed);
                 return;
             }
 
@@ -128,8 +126,7 @@ namespace LogFSMConsole
                     File.AppendAllText(Path.Combine(ParsedCommandLineArguments.OutputPath, "logfsmlasterror.txt"), "Error: " + _ex.ToString());
                     Watch.Stop();
                     Console.WriteLine("Error writing to file '" + Path.Combine(ParsedCommandLineArguments.OutputPath, "logfsmlastfsmjson.txt") + "'. See 'logfsmlasterror' for details.");
-                    Console.WriteLine("Application stopped.");
-                    Console.WriteLine("Time elapsed: {0}", Watch.Elapsed);
+                    Console.WriteLine("Application stopped. Time elapsed: {0}", Watch.Elapsed);
                     return;
                 }
    
@@ -139,8 +136,7 @@ namespace LogFSMConsole
                 {
                     Watch.Stop();
                     Console.WriteLine("Error in the fsm definition. See 'logfsmlasterror' for details.");
-                    Console.WriteLine("Application stopped.");
-                    Console.WriteLine("Time elapsed: {0}", Watch.Elapsed);
+                    Console.WriteLine("Application stopped. Time elapsed: {0}", Watch.Elapsed);
                     return;
                 }
 
@@ -160,8 +156,7 @@ namespace LogFSMConsole
                 {
                     Console.WriteLine("Error compiling FSM.");
                     Watch.Stop();
-                    Console.WriteLine("Application stopped.");
-                    Console.WriteLine("Time elapsed: {0}", Watch.Elapsed);
+                    Console.WriteLine("Application stopped. Time elapsed: {0}", Watch.Elapsed);
                     return;
                 }
 
@@ -182,8 +177,7 @@ namespace LogFSMConsole
                 File.AppendAllText(Path.Combine(ParsedCommandLineArguments.OutputPath, "logfsmlasterror.txt"), "Error: " + _ex.ToString());
                 Console.WriteLine("Error instantiating the compiled fsm. See 'logfsmlasterror' for details.");
                 Watch.Stop();
-                Console.WriteLine("Application stopped.");
-                Console.WriteLine("Time elapsed: {0}", Watch.Elapsed);
+                Console.WriteLine("Application stopped. Time elapsed: {0}", Watch.Elapsed);
                 return;
             }
             #endregion
@@ -304,8 +298,7 @@ namespace LogFSMConsole
                     File.AppendAllText(Path.Combine(ParsedCommandLineArguments.OutputPath, "logfsmlasterror.txt"), "Error: " + _ex.ToString());
                     Console.WriteLine("Error moving temp file. See 'logfsmlasterror' for details.");
                     Watch.Stop();
-                    Console.WriteLine("Application stopped.");
-                    Console.WriteLine("Time elapsed: {0}", Watch.Elapsed);
+                    Console.WriteLine("Application stopped. Time elapsed: {0}", Watch.Elapsed);
                     return;
                 }
                 #endregion
@@ -491,8 +484,7 @@ namespace LogFSMConsole
                     File.AppendAllText(Path.Combine(ParsedCommandLineArguments.OutputPath, "logfsmlasterror.txt"), "Error: " + _ex.ToString());
                     Console.WriteLine("Error moving temp file. See 'logfsmlasterror' for details.");
                     Watch.Stop();
-                    Console.WriteLine("Application stopped.");
-                    Console.WriteLine("Time elapsed: {0}", Watch.Elapsed);
+                    Console.WriteLine("Application stopped. Time elapsed: {0}", Watch.Elapsed);
                     return;
                 }
                 #endregion
@@ -581,9 +573,8 @@ namespace LogFSMConsole
             {
                 File.AppendAllText(Path.Combine(ParsedCommandLineArguments.OutputPath, "logfsmlasterror.txt"), "Error: " + _ex.ToString());
                 Console.WriteLine("Error post processing UML state chart. See 'logfsmlasterror' for details.");
-                Watch.Stop();
-                Console.WriteLine("Application stopped.");
-                Console.WriteLine("Time elapsed: {0}", Watch.Elapsed);
+                Watch.Stop(); 
+                Console.WriteLine("Application stopped. Time elapsed: {0}", Watch.Elapsed);
                 return;
             }
 

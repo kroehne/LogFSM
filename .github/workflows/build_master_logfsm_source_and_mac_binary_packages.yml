@@ -74,7 +74,7 @@ jobs:
       run: mv $GITHUB_WORKSPACE/r/inst/extdata/osx-x64/TransformToUniversalLogFormat $GITHUB_WORKSPACE/transform/mac  
  
     - name: 'Move Mac TransformToUniversalLogFormat'      
-      run: mv $GITHUB_WORKSPACE/r/inst/extdata/win-x64/TransformToUniversalLogFormat.exe $GITHUB_WORKSPACE/transform/mac  
+      run: mv $GITHUB_WORKSPACE/r/inst/extdata/win-x64/TransformToUniversalLogFormat.exe $GITHUB_WORKSPACE/transform/win  
  
     - name: 'Create ZIP Archive with TransformToUniversalLogFormat-Tools'  
       uses: thedoctor0/zip-release@main

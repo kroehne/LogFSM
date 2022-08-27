@@ -253,11 +253,7 @@ namespace LogDataTransformer_Firebase_V01
                 string _personIdentifierColumnName = "PersonIdentifier";
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("personidentifier"))
                     _personIdentifierColumnName = ParsedCommandLineArguments.ParameterDictionary["personidentifier"];
-                  
-                double _utcoffset = 0;
-                if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("utcoffset"))
-                    _utcoffset = double.Parse(ParsedCommandLineArguments.ParameterDictionary["utcoffset"]);
-
+          
                 // Create logXContainer 
 
                 logXContainer _ret = new LogFSM_LogX2019.logXContainer()

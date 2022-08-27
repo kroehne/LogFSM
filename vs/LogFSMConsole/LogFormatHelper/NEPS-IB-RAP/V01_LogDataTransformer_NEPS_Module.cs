@@ -17,19 +17,14 @@ namespace LogDataTransformer_NEPS_V01
         {
             try
             {
-                /*
-                bool _personIdentifierIsNumber = false;
-                if (ParsedCommandLineArguments.Flags.Contains("NUMERICPERSONIDENTIFIER"))
-                    _personIdentifierIsNumber = true;
-                */
+                bool _relativeTimesAreSeconds = false;
+                if (ParsedCommandLineArguments.Flags.Contains("RELATIVETIMESARESECONDS"))
+                    _relativeTimesAreSeconds = true;
 
                 string _personIdentifier = "lfd";
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("personidentifier"))
                     _personIdentifier = ParsedCommandLineArguments.ParameterDictionary["personidentifier"];
-
-                string _language = "ENG";
-                if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("language"))
-                    _language = ParsedCommandLineArguments.ParameterDictionary["language"];
+                 
 
                 List<string> _listOfFiles = new List<string>();
                 foreach (string inFolder in ParsedCommandLineArguments.Transform_InputFolders)
@@ -55,57 +50,11 @@ namespace LogDataTransformer_NEPS_V01
                         break;
                 }
                  
-                logXContainer _ret = CreateGenericLogContainer(_listOfFiles, _personIdentifier, true, ParsedCommandLineArguments.ExcludedElements);
+                logXContainer _ret = CreateGenericLogContainer(_listOfFiles, _personIdentifier, true, _relativeTimesAreSeconds, ParsedCommandLineArguments.ExcludedElements);
                 _ret.LoadCodebookDictionary(ParsedCommandLineArguments.Transform_Dictionary);
 
-                // TODO: Check!
-                //_ret.UpdateRelativeTimes();
-                _ret.CreateLookup();
+                logXContainer.ExportLogXContainerData(ParsedCommandLineArguments, _ret);
 
-                if (ParsedCommandLineArguments.Transform_OutputStata.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create ZIP archive with Stata file(s).");
-
-                    _ret.ExportStata(ParsedCommandLineArguments.Transform_OutputStata, _language);
-                }
-
-                if (ParsedCommandLineArguments.Transform_OutputXLSX.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create XLSX file.");
-
-                    _ret.ExportXLSX(ParsedCommandLineArguments);
-
-                }
-
-                if (ParsedCommandLineArguments.Transform_OutputZCSV.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create ZIP archive with CSV file(s).");
-
-                    _ret.ExportCSV(ParsedCommandLineArguments);
-                }
-
-                if (ParsedCommandLineArguments.Transform_Codebook.Trim() != "")
-                {
-                    if (ParsedCommandLineArguments.Verbose)
-                        Console.WriteLine("Create Codebook File.");
-
-                    _ret.CreateCodebook(ParsedCommandLineArguments.Transform_Codebook, _language);
-                }
-
-                if (_ret.ExportErrors.Count > 0)
-                {
-                    Console.WriteLine(_ret.ExportErrors.Count + " error(s) creating output files.");
-                    if (ParsedCommandLineArguments.Verbose)
-                    {
-                        for (int i = 0; i < _ret.ExportErrors.Count; i++)
-                        {
-                            Console.WriteLine(_ret.ExportErrors[i]);
-                        }
-                    }
-                }
             }
             catch (Exception _ex)
             {
@@ -113,10 +62,10 @@ namespace LogDataTransformer_NEPS_V01
             }
         }
 
-        public static logXContainer CreateGenericLogContainer(List<string> StataFiles, string PersonIdentifierName, bool PersonIdentifierIsNumber, string[] ExcludedElements)
+        public static logXContainer CreateGenericLogContainer(List<string> StataFiles, string PersonIdentifierName, bool PersonIdentifierIsNumber, bool RelativeTimesAreSeconds,  string[] ExcludedElements)
         {
 
-            logXContainer _ret = new logXContainer() { PersonIdentifierName = PersonIdentifierName, PersonIdentifierIsNumber = PersonIdentifierIsNumber };
+            logXContainer _ret = new logXContainer() { PersonIdentifierName = PersonIdentifierName, PersonIdentifierIsNumber = PersonIdentifierIsNumber, RelativeTimesAreSeconds = RelativeTimesAreSeconds };
             try
             {
                 int _progressCounter = 0;
