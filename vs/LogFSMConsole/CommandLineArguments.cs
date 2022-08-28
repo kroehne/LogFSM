@@ -842,7 +842,7 @@ namespace LogFSMConsole
             this.Mask = GetParameterOrDefault(_CMDA_mask, "");
              
             string _flags = GetParameterOrDefault(_CMDA_flags, "");
-            this.Flags = _flags.Split(';').ToList();
+            this.Flags = _flags.Split('-').ToList();
             for (int i = 0; i < Flags.Count; i += 1)
             {
                 this.Flags[i] = Flags[i].Trim().ToUpper();
