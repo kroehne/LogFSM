@@ -1,6 +1,10 @@
 CHANGE-LOG
 ==========
 
+2022-09-04 0.4.5.20
+
+* Added XES support to 'TransformToUniversalLogFormat'
+
 2022-07-24 0.4.5.19
 
 * Nuget package updates
@@ -8,15 +12,15 @@ CHANGE-LOG
 2022-06-15 0.4.5.18
 
 * Added support for experimental Firebase administration of CBA ItemBuilder tasks
-* Added experimental support for XES output 
+* Added experimental support for XES output
 
 2022-01-11 0.4.5.16
 
-* Fixed bug in processing IB logs 
+* Fixed bug in processing IB logs
 
 2021-06-03 0.4.5.15
 
-* Added optional parameter "ignoretables" to function RunLogFSMSyntax to specify tables from log data in the universal log format that should be ignored, specified as ;-separated table names as string argument (default: "Log;Results", i.e., the datasets Log.dta/Log.csv/Log.sav and Results.dta/Results.csv/Results.sav from the universal log format are ignored). 
+* Added optional parameter "ignoretables" to function RunLogFSMSyntax to specify tables from log data in the universal log format that should be ignored, specified as ;-separated table names as string argument (default: "Log;Results", i.e., the datasets Log.dta/Log.csv/Log.sav and Results.dta/Results.csv/Results.sav from the universal log format are ignored).
 
 2021-05-11 0.4.5.14
 
@@ -24,11 +28,11 @@ CHANGE-LOG
 
 2021-05-10 0.4.5.13
 
-* Added support for IBSD with download in "TransformToUniversalLogFormat.exe" 
+* Added support for IBSD with download in "TransformToUniversalLogFormat.exe"
 
 2021-02-26 0.4.5.12
 
-* Fixed bug in textencoding in "TransformToUniversalLogFormat.exe" 
+* Fixed bug in textencoding in "TransformToUniversalLogFormat.exe"
 
 2020-12-01 0.4.5.11
 

@@ -21,13 +21,14 @@
 #' @param verbose Request verbose output messages.
 #' @param inputfolders Input folder to be processed.
 #' @param stataoutput Output file name for the generated universal log format, type Stata (i.e., absolute path to the zip file containing log data as Stata files, one file for each event type).
-#' @param zcsvoutput Output file name for the generated universal log format, type zip-compressed CSV (i.e., absolute path to the zip file containing log data as CSV files, one file for each event type).
+#' @param zcsvoutput  Output file name for the generated universal log format, type zip-compressed CSV (i.e., absolute path to the zip file containing log data as CSV files, one file for each event type).
 #' @param xlsxoutput Output file name for the generated universal log format, type XLSX (i.e., absolute path to XLSX file containing log data, one sheet for each event type).
-#' @param spssoutput Output file name for the generated universal log format, type SPSS (i.e., absolute path to the zip file containing log data as SPSS files, one file for each event type).
+#' @param xesoutput  Output file name for the generated log file, type XES (i.e., absolute path to the XES file containing log data as .gzip file, if flag SERIALIZERAWXML is not provided, or as .xml file otherwise).
+#' @param spssoutput Output file name for the generated universal log format, type SPSS / PSPP (i.e., absolute path to the zip file containing log data as SPSS / PSPP files, one file for each event type).
 #' @param inputformat File format of the raw log data to be processed (see above for valid options).
 #' @param mask File filter mask. Only files that match the specified mask will be used (e.g., *.jsonl).
-#' @param excludedelements A string variable refering to the element names (i.e., items, units or tasks), that should be ignored.
-#' @param flags Optional flags as documented for the specific data formats (see below).
+#' @param excludedelements A string variable referring to the element names (i.e., items, units or tasks), that should be ignored.
+#' @param flags  Optional flags to be used for the specific transformation. Multiple flags can be combined using - as the separator.
 #' @param logversion Version information about the raw data (see below).
 #' @param dictionary Dictionary file for the creation of an integrated codebook.
 #' @param codebook Codebook file name (XLSX file). An XLSX file is created, which documents the generated log data as a codebook in universal log format.
@@ -38,7 +39,7 @@
 #'
 #' @export
 #' @md
-TransformToUniversalLogFormat <- function(inputfolders, stataoutput="", zcsvoutput="", xlsxoutput="", spssoutput="",
+TransformToUniversalLogFormat <- function(inputfolders, stataoutput="", zcsvoutput="", xlsxoutput="", xesoutput="", spssoutput="",
                                           inputformat = "", mask="",verbose=F, excludedelements = "",
                                           table="",dictionary="",codebook="",logversion="default",
                                           flags="", ...){
@@ -48,6 +49,7 @@ TransformToUniversalLogFormat <- function(inputfolders, stataoutput="", zcsvoutp
                                    stataoutput=stataoutput,
                                    zcsvoutput=zcsvoutput,
                                    xlsxoutput=xlsxoutput,
+                                   xesoutput=xesoutput,
                                    spssoutput=spssoutput,
                                    inputformat=inputformat,
                                    codebook=codebook,
@@ -60,6 +62,6 @@ TransformToUniversalLogFormat <- function(inputfolders, stataoutput="", zcsvoutp
                                    flags=flags,
                                    ...)
 
-  return(file.exists(stataoutput) | file.exists(zcsvoutput) | file.exists(xlsxoutput))
+  return(file.exists(stataoutput) | file.exists(zcsvoutput) | file.exists(xlsxoutput) | file.exists(xesoutput) | file.exists(spssoutput))
 
 }
