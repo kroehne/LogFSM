@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>LogFSM Transformer Tool (Under Development)</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">LogFSM Transformer Tool (Under
+Development)</h1>
+
+
+
+<p>This vignette is aimed at data provides who want to provide log data
+in the universal log format. LogFSM provides a function to transform raw
+log data from selected supported platforms.</p>
+<div id="transform-raw-log-data-to-universal-log-format-with-logfsm" class="section level2">
+<h2>Transform Raw Log Data to Universal Log Format with LogFSM</h2>
+<p>LogFSM provides support to transform log data to the universal log
+format currently for the following assessment platforms (possible values
+of the argument ‘inputformat’):</p>
+<ul>
+<li>CBA ItemBuilder (Version &lt;= 8.12), RAP Generation, Execution
+Environment (EE): <code>eeibraprawv01a</code></li>
+<li>CBA ItemBuilder (Version &gt;= 8.12), REACT Generation, ‘ItemBuilder
+Static Delivery’ (IBSD): <code>ibsdraw01a</code></li>
+<li>NEPS-TBT-Moduls (Data gathered in the National Educational Panel
+Study, NEPS): <code>nepsrawv01a</code></li>
+</ul>
+<div id="general-workflow-raw-data-to-universal-log-format" class="section level3">
+<h3>General Workflow: Raw Data to Universal Log Format</h3>
+<p>Input:</p>
+<ul>
+<li>Folder with raw log data</li>
+<li>File name for output zip</li>
+<li>Input format (of a supported platform)</li>
+<li>Optional: Concordance table</li>
+<li>Optional: Codebook dictionary</li>
+</ul>
+<p>Output:</p>
+<ul>
+<li>ZIP archiv with log files in the universal log data format</li>
+<li>Optional: Excel document as codebook</li>
+<li>Optional: Template of a concordance table</li>
+</ul>
+<p>Sipmle Example:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>myinfolder <span class="ot">&lt;-</span> <span class="st">&quot;&quot;</span>    <span class="co"># Absolute file path to the directory containing ZIP archives </span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>                    <span class="co"># or XML files exported from the CBA ItemBuilder Execution Environment </span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>mystatazip <span class="ot">&lt;-</span> <span class="st">&quot;&quot;</span>    <span class="co"># Absolute file path for a ZIP archive that will be created containing the</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                    <span class="co"># log data in the universal log format</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>mycodebook <span class="ot">&lt;-</span> <span class="st">&quot;&quot;</span>    <span class="co"># Absolute file path for the XLSX document that will be created containg the</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>                    <span class="co"># codebook</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>mydictionary <span class="ot">&lt;-</span> <span class="st">&quot;&quot;</span>  <span class="co"># Absolute file path for a XLSX document with event-related platform-specific</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                    <span class="co"># documentation that will be used as dictionary while creating the codebook</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">TransformToUniversalLogFormat</span>(<span class="at">input =</span> myinfolder</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>                              <span class="at">stata =</span> mystatazip, </span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>                              <span class="at">inputformat =</span> <span class="st">&quot;eeibraprawv01a&quot;</span>, </span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>                              <span class="at">dictionary =</span> mydictionary, </span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>                              <span class="at">codebook =</span> mycodebook)</span></code></pre></div>
+</div>
+<div id="specific-comments-neps-tbt-moduls" class="section level3">
+<h3>Specific Comments: NEPS-TBT-Moduls</h3>
+<p>Input:</p>
+<ul>
+<li>Input folders are expected to contain the extracted zip archives of
+individual assessments (raw data archives) created with NEPS
+‘Testanwendung’.</li>
+</ul>
+</div>
+<div id="specific-comments-ib-ee-rap" class="section level3">
+<h3>Specific Comments: IB EE / RAP</h3>
+<p>Input:</p>
+<ul>
+<li>Input folders are expected to contain xml files (or zip archives
+with xml files) exported from the Execution Environment.</li>
+</ul>
+</div>
+<div id="specific-comments-ibsd-react" class="section level3">
+<h3>Specific Comments: IBSD / REACT</h3>
+<p>Input:</p>
+<ul>
+<li>Input folders are expected to contain json files exported from the
+ItemBuilder static delivery environment.</li>
+</ul>
+</div>
+</div>
+<div id="documentation-codebook" class="section level2">
+<h2>Documentation (Codebook)</h2>
+<div id="generated-codebook" class="section level3">
+<h3>Generated Codebook</h3>
+<p>Codebooks contain the following sheets:</p>
+<ul>
+<li><code>MetaData</code>: General metadata about the log data.</li>
+<li><code>Head</code>: Variable labels for columns in all tables.</li>
+<li><code>Events</code>: Description of all events present in the log
+data.</li>
+<li><code>Attributes</code>: Description of all attributes (for the
+occured events).</li>
+</ul>
+<p>For all entries in the sheet <code>Head</code> the column
+<code>Identifies</code> is provided. This column indicates which
+information is identified by the entries in this column. Possible values
+are:</p>
+<ul>
+<li><code>line</code>: The values in this column can be used to identify
+lines.</li>
+<li><code>target-person</code>: The values in this column identifiy the
+target-persons.</li>
+<li><code>instrument-part</code>: The values in this column identify the
+administered part of the assessment instrument.</li>
+<li><code>assessment-time</code>: The values in this column identify the
+assessment time.</li>
+<li><code>event</code>: The values in this column identify events.</li>
+<li><code>table</code>: The values in this column identify tables.</li>
+<li>(empty or <code>-</code>): This column is not an identifier.</li>
+</ul>
+<p>The table <code>Attributes</code> lists for each table which
+additional event-specific columns are included. For each column, you can
+specify whether it can contain anonymization-relevant information
+(column <code>Anonymity</code>). Possible values are:</p>
+<ul>
+<li><code>instrument-part</code>: Entries in this column can contain
+information from the items used.</li>
+<li><code>target-person</code>: Entries in this column may contain
+information related to a person identifier.</li>
+<li><code>paradata</code>: Entries in this column can contain
+paradata.</li>
+<li><code>text response</code>: Entries in this column can contain
+entered text responses.</li>
+<li>(empty or <code>-</code>): The values in this column cannot contain
+information relevant to anonymization.</li>
+</ul>
+<p>The table
+``Attributes<code>also allows adding additional comments regarding potential steps necessary to purify the log data in the column</code>Purification<code>. Moreover,</code>Conditions```
+can be described in the column of the same name, if attributes only
+under certain circumstances attribute values can contain
+anonymity-relevant information.</p>
+</div>
+<div id="dictionary-codebook-template" class="section level3">
+<h3>Dictionary (Codebook Template)</h3>
+<p>An XLSX document can be used as a template (dictionary) for creating
+a codeobk.</p>
+<p>Dictionary files can contain the following sheets:</p>
+<ul>
+<li><code>MetaData</code>: General metadata about the log data</li>
+<li><code>Head</code>: Variable labels for columns in all tables</li>
+<li><code>Events</code>: Description of all events</li>
+<li><code>Attributes</code>: Description of all event attributes</li>
+</ul>
+<p>Language variants can be defined optionally. For this purpose, the
+selected columns can be defined several times in the following tables
+(column names with suffix _LANGUAGE, e.g., AttributeValue_ENG and
+AttributeValue_DE):</p>
+<ul>
+<li><code>MetaData</code>: AttributeValue_LANGUAGE</li>
+<li><code>Head</code>: VariableLable_LANGUAGE</li>
+<li><code>Events</code>: EventDescription_LANGUAGE</li>
+<li><code>Attributes</code>: Description_LANGUAGE</li>
+</ul>
+<p>The following example shows how a codebook dictionary can be created
+with the R package openxlsx</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create data for sheet &#39;metadata&#39;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">rbind</span>(<span class="fu">c</span>(<span class="st">&quot;StudyName&quot;</span>, <span class="st">&quot;Name of the study&quot;</span> ,<span class="st">&quot;Studienname&quot;</span>),</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>           <span class="fu">c</span>(<span class="st">&quot;TestPlatform&quot;</span>, <span class="st">&quot;Software version&quot;</span>,<span class="st">&quot;Version der Software&quot;</span>))</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(m) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Attribute&quot;</span>,<span class="st">&quot;AttributeValue_ENG&quot;</span>,<span class="st">&quot;AttributeValue_DE&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create data for sheet &#39;head&#39;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">&quot;ID&quot;</span>, <span class="st">&quot;ID for this line (counter over all cases and events)&quot;</span>, </span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;ID für diese Zeile (Zähler über alle Fälle und Ereignisse)&quot;</span>, </span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;line&quot;</span>),</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">&quot;PersonIdentifier&quot;</span>, <span class="st">&quot;ID of the person which triggered the event data in this row&quot;</span>,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;ID der Person, die das Log-Ereignis in dieser Zeile ausgelöst hat&quot;</span>, </span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;target-person&quot;</span>),</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">&quot;Element&quot;</span>, <span class="st">&quot;Item or page name (source of the event data in this row)&quot;</span>,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>               <span class="st">&quot;Item oder Seitennahme (Quelle der Eventdaten in dieser Zeile)&quot;</span>, </span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;instrument-part&quot;</span>),</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">&quot;TimeStamp&quot;</span>, <span class="st">&quot;Time stamp for the event data in this line&quot;</span>,</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;Zeitstempel für die Ereignisdaten in dieser Zeile&quot;</span>, </span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;assessment-time&quot;</span>),</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">&quot;RelativeTime&quot;</span>, <span class="st">&quot;Relative time for the log event (milliseconds relative to the start)&quot;</span>,</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;Relativzeit für das Log-Ereignis (Millisekunden relativ zum Start)&quot;</span>, </span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;-&quot;</span>),</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">&quot;EventID&quot;</span>, <span class="st">&quot;ID for the current event (starts with 0 within the current &#39;Path&#39;)&quot;</span>,</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>               <span class="st">&quot;ID für das aktuelle Ereignis (beginnt mit 0 innerhalb des aktuellen &#39;Path&#39;)&quot;</span>, </span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;event&quot;</span>),</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">&quot;ParentEventID&quot;</span>, <span class="st">&quot;ID of the parent event (used for the nested data structures of an event)&quot;</span>,</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>                     <span class="st">&quot;ID des übergeordneten Ereignisses (wird für die geschachtelten Datenstrukturen eines Ereignisses verwendet)&quot;</span>,</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;event&quot;</span>),</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">&quot;Path&quot;</span>, <span class="st">&quot;Hierarchy of the nested data structure&quot;</span>,</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;Hierarchie der geschachtelten Datenstruktur&quot;</span>, </span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;table&quot;</span>),</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">&quot;ParentPath&quot;</span>, <span class="st">&quot;Hierarchy of the parent element (empty for the elements at the root level)&quot;</span>,</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>                  <span class="st">&quot;Hierarchie des Elternelements (leer für die Elemente auf der Wurzelebene)&quot;</span>, </span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;table&quot;</span>),</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">&quot;EventName&quot;</span>, <span class="st">&quot;Name of the log event / data in this line&quot;</span>,</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;Name des Logevents in dieser Zeile&quot;</span>, </span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;-&quot;</span>))</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(h) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Column&quot;</span>,<span class="st">&quot;VariableLable_ENG&quot;</span>,<span class="st">&quot;VariableLable_DE&quot;</span>,<span class="st">&quot;Identifies&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create data for sheet &#39;events&#39;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>e <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">&quot;ButtonLogEntry&quot;</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;Log.ButtonLogEntry&quot;</span>,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;Jeder Interaktion eines Testteilnehmers mit einer Schaltfläche führt zum Speichern eines Log-Ereignisses vom Typ ButtonLogEntry. Neben dem Zeitstempel wird im Attribut a_id gespeichert, welche Schaltfläche gedrückt wurde. Die Namen der Schaltflächen sind als so-genannte user-defined ID innerhalb des Items festgelegt. &quot;</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;Each interaction of a test participant with a button results in the saving of a log event of the type ButtonLogEntry. In addition to the timestamp, the a_id attribute stores which button was pressed. The names of the buttons are defined as a so-called user-defined ID within the item. &quot;</span>) <span class="co"># ...</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>)  </span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(e) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;EventName&quot;</span>,<span class="st">&quot;Table&quot;</span>,<span class="st">&quot;EventDescription_DE&quot;</span>,<span class="st">&quot;EventDescription_ENG&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create data for sheet &#39;attributes&#39;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">&quot;Log.CBAItemLogEntry&quot;</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;a_webClientUserAgent&quot;</span>,<span class="st">&quot;-&quot;</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;User Agent String des Browsers.&quot;</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;User Agent String of the browser.&quot;</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;paradata &quot;</span>,<span class="st">&quot;-&quot;</span>),</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">&quot;Log.ButtonLogEntry&quot;</span>,</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;a_id&quot;</span>,<span class="st">&quot;-&quot;</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;User-Defined ID der Schaltfläche, welche gedrückt wurde. Die Namen der Schaltflächen sind als so-genannte user-defined ID innerhalb des Items festgelegt. &quot;</span>,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;User-Defined ID of the button that was pressed. The names of the buttons are defined as a so-called user-defined ID within the item. &quot;</span>,</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;-&quot;</span>,<span class="st">&quot;-&quot;</span>)<span class="co"># ...</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(a)<span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Table&quot;</span>,<span class="st">&quot;Column&quot;</span>,<span class="st">&quot;Condition&quot;</span>,<span class="st">&quot;Description_DE&quot;</span>,<span class="st">&quot;Description_ENG&quot;</span>, <span class="st">&quot;Anonymity&quot;</span>, <span class="st">&quot;Purification&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># combine datasets and write as xlsx file</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>b <span class="ot">&lt;-</span> <span class="fu">createWorkbook</span>(f)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="fu">addWorksheet</span>(b, <span class="st">&quot;MetaData&quot;</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="fu">writeData</span>(b, <span class="at">sheet =</span> <span class="dv">1</span>, m)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="fu">addWorksheet</span>(b, <span class="st">&quot;Head&quot;</span>)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="fu">writeData</span>(b, <span class="at">sheet =</span> <span class="dv">2</span>, h)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="fu">addWorksheet</span>(b, <span class="st">&quot;Events&quot;</span>)</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="fu">writeData</span>(b, <span class="at">sheet =</span> <span class="dv">3</span>, e)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="fu">addWorksheet</span>(b, <span class="st">&quot;Attributes&quot;</span>)</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="fu">writeData</span>(b, <span class="at">sheet =</span> <span class="dv">4</span>, a)</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="fu">saveWorkbook</span>(b, <span class="at">file =</span> <span class="st">&quot;dictionary.xlsx&quot;</span>, <span class="at">overwrite =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+</div>
+</div>
+<div id="concordance-table" class="section level2">
+<h2>Concordance Table</h2>
+<p>If a file name is specified for a concordance table, and the file
+does not exist, then the TransformToUniversalLogFormat function creates
+a template file. This file contains all PersonIdentifiers and can be
+edited / modified for a second call of the function.</p>
+<div id="change-personidentifier" class="section level3">
+<h3>Change PersonIdentifier</h3>
+<p>A concordance table in XLSX, CSV or Stata format must have two
+columns:</p>
+<ul>
+<li><code>PersonIdentifierOld</code>: Original ID</li>
+<li><code>PersonIdentifierNew</code>: New ID</li>
+</ul>
+<p>When creating log data in Universal Log Format, the original ID is
+exchanged for the new ID.</p>
+</div>
+<div id="filter-test-takers" class="section level3">
+<h3>Filter Test-Takers</h3>
+<p>If an existing XLSX, CSV or Stata file is transferred as a
+concordance table, then only those cases are transferred to the
+Universal Log File for which they are contained in the concordance
+table.</p>
+<p>Cases that are not included in the concordance table are filtered
+(that is, ignored).</p>
+</div>
+</div>
+<div id="transform-raw-log-data-to-universal-log-format-using-commmand-line-tool" class="section level2">
+<h2>Transform Raw Log Data to Universal Log Format using Commmand Line
+Tool</h2>
+<p>In order to be able to carry out a conversion outside of R, a
+commandLine tool is provided to accompany the conversion. This allows
+access to the options available via the LogFSM function
+<code>TransformToUniversalLogFormat</code> from the command line.</p>
+<p>Arguments (Input):</p>
+<ul>
+<li><code>-i</code> / <code>-input</code>: Input folder to be
+processed.</li>
+<li><code>-r</code> / <code>-rawformat</code>: Raw format (either
+<code>eeibraprawv01a</code>, <code>ibsdraw01a</code> or
+<code>nepsrawv01a</code>).</li>
+<li><code>-l</code> / <code>-logversion</code>: Version information
+about the raw data.</li>
+</ul>
+<p>Arguments (Output):</p>
+<ul>
+<li><code>-s</code> / <code>-stata</code>: Output file name for the
+generated universal log format, type Stata (i.e., absolute path to the
+zip file containing log data as Stata files, one file for each event
+type).”)</li>
+<li><code>-z</code> / <code>-zcsv</code>: Output file name for the
+generated universal log format, type zip-compressed CSV (i.e., absolute
+path to the zip file containing log data as CSV files, one file for each
+event type).</li>
+<li><code>-x</code> / <code>-xslx</code>: Output file name for the
+generated universal log format, type XLSX (i.e., absolute path to XLSX
+file containing log data, one sheet for each event type).</li>
+</ul>
+<p>Filter:</p>
+<ul>
+<li><code>-m</code> / <code>-mask</code>: File filter mask. Only files
+that match the specified mask will be used (e.g., *.jsonl).</li>
+<li><code>-e</code> / <code>-excludedelements</code>: Element names
+(i.e., items, units or tasks), that should be ignored.</li>
+<li><code>-t</code> / <code>-table</code>: Concordance table file
+name.</li>
+</ul>
+<p>Codebook:</p>
+<ul>
+<li><code>-r</code> / <code>-codebook</code>: File name for the XLSX
+file created as codebook.</li>
+<li><code>-r</code> / <code>-dictionary</code>: Dictionary file for the
+creation of an integrated codebook.</li>
+</ul>
+<p>Misc:</p>
+<ul>
+<li><p><code>-f</code> / <code>-flags</code>: Optional flags as
+documented for the specific data formats.</p></li>
+<li><p><code>-a</code> / <code>-arguments</code>: Additional arguments
+(URL style, i.e., ?name1=value&amp;name2=value).</p></li>
+<li><p><code>-v</code> / <code>-verbose</code>: Request verbose output
+messages.</p></li>
+</ul>
+<p>Example call:</p>
+<p><code>TransformToUniversalLogFormat.exe --i PATH\in\ -s PATH\out\data_dta.zip</code></p>
+<p>To request help information, call:</p>
+<p><code>TransformToUniversalLogFormat.exe --help</code></p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

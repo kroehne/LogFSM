@@ -1,14 +1,23 @@
-#' Transform Log Data with LogFSM (Under Development)
+#' Transform Log Data with LogFSM
 #'
-#' Function for transforming raw log data files (from different supported sources) to the universal log format.
+#' LogFSM provides a function for transforming raw log data files (from different supported sources) to the universal log format, the flat and spares log data table or into the XES format.
 #'
 #' The transformation of log data from different platforms using the function 'TransformToUniversalLogFormat' is available for the
 #' following source formats:
 #'
-#' - ```nepsrawv01a```: Folder(s) with extracted output files from NEPS TBT modules (created by DIPF/TBA).
-#' - ```ibsdraw01a```: Folder(s) with log data generated with CBA 'ItemBuilder static delivery' (IBSD, provided by DIPF/TBA, CBA ItemBuilder >= 8.12, REACT).
+#' - ```ibsdraw01a```: Data stored as jsonl files as provided by the online deployment software ItemBuilder Static Delivery (IBSD). IBSD, provided by DIPF/TBA, can be used for CBA ItemBuilder >= 8.12, REACT).
+#' - ```irtlibv01a```: Data stored as zip archives as provided by the deployment software IRTlib. IRTlib, provided by DIPF/TBA, can be used for CBA ItemBuilder > 8.12, REACT).
+#'
+#' The following formats are experimental and under development:
+#' - ```taopci01a```: CSV files exported from TAO using https://github.com/DIPFtba/fastib2pci
+#' - ```ibfirebase01a```: Data stored in a firebase database by an experimental firebase hosting for CBA ItemBuilder items.
+#'
+#' The following formats are outdated:
 #' - ```eeibraprawv01a```: Folder(s) with ZIP archives or XML files created with the CBA ItemBuilder Execution Environment (EE, provided by DIPF/TBA, CBA ItemBuilder <= 8.12, RAP).
-#' - ```irtlibv01a```: Data generated with the IRTlib-Player (provided by DIPF/TBA, CBA ItemBuilder > 8.12, REACT).
+#'
+#' The following formats are specific to particular assessment programs:
+#' - ```nepsrawv01a```: Folder(s) with extracted output files from NEPS TBT modules (created by DIPF/TBA).
+#' - ```piaacr1txt01a```:  PIAAC Round 1, TXT files with preprocessed raw log data from https://piaac-logdata.tba-hosting.de
 #'
 #' The following flags are supported:
 #'
@@ -17,6 +26,8 @@
 #' The following optional parameters can be provided in LogFSM:
 #'
 #' - ```PersonIdentifier```: Specify the name of the column that contains the person identifiers (default is 'PersonIdentifier').
+#'
+#' A command-line tool to be used outside of R is also provided (see https://github.com/kroehne/LogFSM/wiki/Command-line-tool-TransformToUniversalLogFormat).
 #'
 #' @param verbose Request verbose output messages.
 #' @param inputfolders Input folder to be processed.

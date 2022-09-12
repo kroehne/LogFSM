@@ -29,6 +29,6 @@ Imports:
     DiagrammeR,
     kableExtra,
     testthat
-RoxygenNote: 6.1.1
+RoxygenNote: 7.2.1
 VignetteBuilder: knitr
 BinaryFiles: 

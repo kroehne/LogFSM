@@ -555,7 +555,7 @@ namespace LogDataTransformer_Firebase_V01
                                                     }
                                                     else
                                                     {
-                                                        Console.WriteLine("Unknown file type: " + entry.FileName);
+                                                        Console.WriteLine("Unknown file type (file: '" + entry.FileName + "' in archive: '" + zip.Name + "'");
                                                     }
                                                 }
                                                 else

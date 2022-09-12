@@ -2,13 +2,26 @@
 % Please edit documentation in R/TransformToUniversalLogFormat.R
 \name{TransformToUniversalLogFormat}
 \alias{TransformToUniversalLogFormat}
-\title{Transform Log Data with LogFSM (Under Development)}
+\title{Transform Log Data with LogFSM}
 \usage{
-TransformToUniversalLogFormat(inputfolders, stataoutput = "",
-  zcsvoutput = "", xlsxoutput = "", spssoutput = "",
-  inputformat = "", mask = "*.*", verbose = F,
-  excludedelements = "", table = "", dictionary = "",
-  codebook = "", logversion = "default", flags = "", ...)
+TransformToUniversalLogFormat(
+  inputfolders,
+  stataoutput = "",
+  zcsvoutput = "",
+  xlsxoutput = "",
+  xesoutput = "",
+  spssoutput = "",
+  inputformat = "",
+  mask = "",
+  verbose = F,
+  excludedelements = "",
+  table = "",
+  dictionary = "",
+  codebook = "",
+  logversion = "default",
+  flags = "",
+  ...
+)
 }
 \arguments{
 \item{inputfolders}{Input folder to be processed.}
@@ -19,7 +32,9 @@ TransformToUniversalLogFormat(inputfolders, stataoutput = "",
 
 \item{xlsxoutput}{Output file name for the generated universal log format, type XLSX (i.e., absolute path to XLSX file containing log data, one sheet for each event type).}
 
-\item{spssoutput}{Output file name for the generated universal log format, type SPSS (i.e., absolute path to the zip file containing log data as SPSS files, one file for each event type).}
+\item{xesoutput}{Output file name for the generated log file, type XES (i.e., absolute path to the XES file containing log data as .gzip file, if flag SERIALIZERAWXML is not provided, or as .xml file otherwise).}
+
+\item{spssoutput}{Output file name for the generated universal log format, type SPSS / PSPP (i.e., absolute path to the zip file containing log data as SPSS / PSPP files, one file for each event type).}
 
 \item{inputformat}{File format of the raw log data to be processed (see above for valid options).}
 
@@ -27,7 +42,7 @@ TransformToUniversalLogFormat(inputfolders, stataoutput = "",
 
 \item{verbose}{Request verbose output messages.}
 
-\item{excludedelements}{A string variable refering to the element names (i.e., items, units or tasks), that should be ignored.}
+\item{excludedelements}{A string variable referring to the element names (i.e., items, units or tasks), that should be ignored.}
 
 \item{table}{Concordance table file name (Stata, XLSX or CSV file). If the file exists and has two columns (PersonIdentifierOld and PersonIdentifierNew) it is used as a constants table. If a file name is specified that does not exist, a template for a concordance table is created.}
 
@@ -37,7 +52,7 @@ TransformToUniversalLogFormat(inputfolders, stataoutput = "",
 
 \item{logversion}{Version information about the raw data (see below).}
 
-\item{flags}{Optional flags as documented for the specific data formats (see below).}
+\item{flags}{Optional flags to be used for the specific transformation. Multiple flags can be combined using - as the separator.}
 
 \item{...}{(Further arguments will be passed on if necessary)}
 }
@@ -45,16 +60,31 @@ TransformToUniversalLogFormat(inputfolders, stataoutput = "",
 The function returns TRUE, if a file was created.
 }
 \description{
-Function for transforming raw log data files (from different supported sources) to the universal log format.
+LogFSM provides a function for transforming raw log data files (from different supported sources) to the universal log format, the flat and spares log data table or into the XES format.
 }
 \details{
 The transformation of log data from different platforms using the function 'TransformToUniversalLogFormat' is available for the
 following source formats:
 \itemize{
-\item \code{nepsrawv01a}: Folder(s) with extracted output files from NEPS TBT modules (created by DIPF/TBA).
-\item \code{ibsdraw01a}: Folder(s) with log data generated with CBA 'ItemBuilder static delivery' (IBSD, provided by DIPF/TBA, CBA ItemBuilder >= 8.12, REACT).
+\item \code{ibsdraw01a}: Data stored as jsonl files as provided by the online deployment software ItemBuilder Static Delivery (IBSD). IBSD, provided by DIPF/TBA, can be used for CBA ItemBuilder >= 8.12, REACT).
+\item \code{irtlibv01a}: Data stored as zip archives as provided by the deployment software IRTlib. IRTlib, provided by DIPF/TBA, can be used for CBA ItemBuilder > 8.12, REACT).
+}
+
+The following formats are experimental and under development:
+\itemize{
+\item \code{taopci01a}: CSV files exported from TAO using https://github.com/DIPFtba/fastib2pci
+\item \code{ibfirebase01a}: Data stored in a firebase database by an experimental firebase hosting for CBA ItemBuilder items.
+}
+
+The following formats are outdated:
+\itemize{
 \item \code{eeibraprawv01a}: Folder(s) with ZIP archives or XML files created with the CBA ItemBuilder Execution Environment (EE, provided by DIPF/TBA, CBA ItemBuilder <= 8.12, RAP).
-\item \code{irtlibv01a}: Data generated with the IRTlib-Player (provided by DIPF/TBA, CBA ItemBuilder > 8.12, REACT).
+}
+
+The following formats are specific to particular assessment programs:
+\itemize{
+\item \code{nepsrawv01a}: Folder(s) with extracted output files from NEPS TBT modules (created by DIPF/TBA).
+\item \code{piaacr1txt01a}:  PIAAC Round 1, TXT files with preprocessed raw log data from https://piaac-logdata.tba-hosting.de
 }
 
 The following flags are supported:
@@ -66,4 +96,6 @@ The following optional parameters can be provided in LogFSM:
 \itemize{
 \item \code{PersonIdentifier}: Specify the name of the column that contains the person identifiers (default is 'PersonIdentifier').
 }
+
+A command-line tool to be used outside of R is also provided (see https://github.com/kroehne/LogFSM/wiki/Command-line-tool-TransformToUniversalLogFormat).
 }

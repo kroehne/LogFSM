@@ -4,12 +4,24 @@
 \alias{RunFSMSyntax}
 \title{Anylze Log Data with LogFSM}
 \usage{
-RunFSMSyntax(fsmsyntax, datafilename, zipfilename, title = "title",
-  workingdir, outfilename, fsmfilename, fsmfiletype = "custom01",
-  datafiletype = "jsonlite", verbose = F, flags = "",
-  maxnumberofcases = -1, datafilefilter = "",
+RunFSMSyntax(
+  fsmsyntax,
+  datafilename,
+  zipfilename,
+  title = "title",
+  workingdir,
+  outfilename,
+  fsmfilename,
+  fsmfiletype = "custom01",
+  datafiletype = "jsonlite",
+  verbose = F,
+  flags = "",
+  maxnumberofcases = -1,
+  datafilefilter = "",
   outputtimestampformatstring = "dd.MM.yyyy hh:mm:ss.fff tt",
-  outputrelativetimeformatstring = "hh':'mm':'ss':'fff", ...)
+  outputrelativetimeformatstring = "hh':'mm':'ss':'fff",
+  ...
+)
 }
 \arguments{
 \item{fsmsyntax}{String variable containing the FSM syntax to be processed. The syntax string must include a valid LogFSM syntax segment in each line.}
@@ -83,6 +95,7 @@ The following data formats can be used directly (see parameter @datafiletype) ei
 as single files (\code{datafilename}) or as ZIP archives with multiple files (\code{zipfilename}):
 \itemize{
 \item \code{logfsmjson}: Format created by LogFSM when pre-processing using the function \code{PrepareLogData.}
+\item \code{universal01} : Format created by LogFSM when calling the function \code{TransformToUniversalLogFormat.}
 \item \code{eexml}: Format created by the CBA ItemBuilder using the excecution environment.
 }
 

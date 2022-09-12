@@ -1,15 +1,12 @@
-#' Prepare Log Data form Different Fromats for Use with LogFSM
+#' Prepare Log Data from Different Formats for Use with LogFSM
 #'
-#' Different data sources can be used with the LogFSM package. In order to harmonize the processing, data
-#' must be converted into the internal LogFSM format (```logfsmjson```) using the function ```PrepareLogData```.
-#' The function must be called with at least two arguments: The string variable provided as ```zipfilename``` refers
-#' to the ZIP archive in which  the source data are stored. The string provided as ```outfilename``` defines in which
-#' file the prepared data will be written.
+#' Log data originating from different assessment platforms or data sources can be used with the LogFSM package with the help of the function ```PrepareLogData```.
+#' ```PrepareLogData``` will convert the data from a supported data format into the internal LogFSM representation (```logfsmjson```), which can be used for decomposing test-taking processes with the function ```RunFSMSyntax```.
 #'
 #' Data formats that require pre-processing using the function ```PrepareLogData```
-#' to create the ```logfsmjson```(i.e. data that can be used with ```RunFSMSyntax```)
-#' * ```dataflatv01a```: Flat table with log data
-#' * ```piaaczip01a```: Text file with log data from the Programme for the International Assessment of Adult Competencies (PIAAC), exported from PIAAC LogDataAnalyzer (R1)
+#' to create the ```logfsmjson```(i.e. data that can be used with ```RunFSMSyntax```) are:
+#' * ```dataflatv01a```: Flat table with log data (i.e., flat and sparse log data table)
+#' * ```piaacldazip01a```: Text file with log data from the 'Programme for the International Assessment of Adult Competencies (PIAAC)', Round 1, exported from PIAAC LogDataAnalyzer (LDA)
 #' * ```nepszip01a```: ZIP archive with data in the universal log data format used in the National Educational Panel Study (NEPS, TBT-studies 2009-2020)
 #'
 #' If data are provided as  ```dataflatv01a```, the following columns are expected:
