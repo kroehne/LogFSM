@@ -85,7 +85,7 @@ namespace LogDataTransformer_EE_RAP_V01
                         if (ParsedCommandLineArguments.Verbose)
                             Console.WriteLine("Read Concordance Table.");
 
-                        _ret.ReadConcordanceTable(ParsedCommandLineArguments.Transform_ConcordanceTable);
+                        _ret.ReadConcordanceTable(ParsedCommandLineArguments.Transform_ConcordanceTable, ParsedCommandLineArguments.Verbose);
                     }
                 }
 

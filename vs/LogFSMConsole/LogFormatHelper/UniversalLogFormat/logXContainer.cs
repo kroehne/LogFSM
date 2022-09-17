@@ -114,7 +114,7 @@ namespace LogFSM_LogX2019
 
             if (CondordanceTable.Count != 0)
             {
-                if (!CondordanceTable.ContainsKey(element.PersonIdentifier))
+                 if (!CondordanceTable.ContainsKey(element.PersonIdentifier))
                     return;
                 else
                     element.PersonIdentifier = CondordanceTable[element.PersonIdentifier];
@@ -2002,7 +2002,7 @@ namespace LogFSM_LogX2019
                 return 0;
         }
 
-        public void ReadConcordanceTable(string filename)
+        public void ReadConcordanceTable(string filename, bool verbose)
         {
             if (filename.ToLower().EndsWith(".dta"))
             {
@@ -2036,22 +2036,33 @@ namespace LogFSM_LogX2019
 
                 IWorkbook workbook = WorkbookFactory.Create(filename);
                 int _concordanceTableSheetIndex = workbook.GetSheetIndex("ConcordancTable");
-                if (_concordanceTableSheetIndex != -1)
+                
+
+
+                if (_concordanceTableSheetIndex == -1)
                 {
-                    var _sheet = workbook.GetSheetAt(_concordanceTableSheetIndex);
-                    if (_sheet.LastRowNum >= 1)
+                    if (verbose)
+                        Console.WriteLine("Found no table 'ConcordancTable', use the first sheet.");
+
+                    _concordanceTableSheetIndex = 0;
+                }
+
+                var _sheet = workbook.GetSheetAt(_concordanceTableSheetIndex);
+                if (_sheet.LastRowNum >= 1)
+                {
+                    for (int rowIndex = 1; rowIndex <= _sheet.LastRowNum; rowIndex++)
                     {
-                        for (int rowIndex = 1; rowIndex <= _sheet.LastRowNum; rowIndex++)
+                        IRow row = _sheet.GetRow(rowIndex);
+                        if (row.Cells.Count > 1)
                         {
-                            IRow row = _sheet.GetRow(rowIndex);
-                            if (row.Cells.Count > 1)
-                            {
-                                if (!CondordanceTable.ContainsKey(row.Cells[0].StringCellValue))
-                                    CondordanceTable.Add(row.Cells[0].StringCellValue.Trim(), row.Cells[1].StringCellValue.Trim());
-                            } 
+                            string _old = row.Cells[0].ToString().Trim();
+                            string _new = row.Cells[1].ToString().Trim();
+
+                            if (!CondordanceTable.ContainsKey(_old))
+                                CondordanceTable.Add(_old,_new);
                         }
                     }
-                } 
+                }
             }
             else if (filename.ToLower().EndsWith(".csv"))
             {

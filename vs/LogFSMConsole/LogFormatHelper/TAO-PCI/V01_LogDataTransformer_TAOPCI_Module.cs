@@ -10,6 +10,7 @@ using CsvHelper;
 using LZStringCSharp;
 using LogDataTransformer_IB_REACT_8_12__8_13;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 #endregion
 
 namespace LogDataTransformer_TAOPCI_V01
@@ -113,6 +114,30 @@ namespace LogDataTransformer_TAOPCI_V01
                                                 {
                                                     _json = LZString.DecompressFromBase64(_json);
 
+                                                    // results  
+                                                     
+                                                    dynamic _dynresults = JsonConvert.DeserializeObject<dynamic>(_json);
+                                                    var _results = new Dictionary<string, object>();
+
+                                                    if (_dynresults.score != null)
+                                                    { 
+                                                        foreach (var _hits in _dynresults.score)
+                                                            foreach (var _hit in _hits)
+                                                                foreach (JProperty k in _hit)
+                                                                    _results.Add(_itemName + "_" + k.Name, k.Value);
+                                                    }
+                                                     
+                                                    if (_dynresults.scoreRaw != null)
+                                                    {
+                                                        foreach (var _group in _dynresults.scoreRaw)
+                                                            foreach (JProperty k in _group)
+                                                                _results.Add(_itemName + "_" + k.Name, k.Value);
+                                                    }
+
+                                                    if (_results.Count>0)
+                                                        _ret.AddResults(new logxGenericResultElement() { PersonIdentifier = _personIdentifier, Results = _results });
+
+                                                    // log 
                                                     try
                                                     {
                                                         var _collection = JsonConvert.DeserializeObject<ItemBuilder_React_Runtime_trace_collection>(_json);

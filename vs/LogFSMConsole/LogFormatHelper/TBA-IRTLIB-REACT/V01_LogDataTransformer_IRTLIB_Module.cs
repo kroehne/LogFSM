@@ -137,9 +137,12 @@ namespace LogDataTransformer_IRTlibPlayer_V01
                     if (File.Exists(ParsedCommandLineArguments.Transform_ConcordanceTable))
                     {
                         if (ParsedCommandLineArguments.Verbose)
-                            Console.WriteLine("Read Concordance Table.");
+                            Console.Write("Read Concordance Table... ");
 
-                        _ret.ReadConcordanceTable(ParsedCommandLineArguments.Transform_ConcordanceTable);
+                        _ret.ReadConcordanceTable(ParsedCommandLineArguments.Transform_ConcordanceTable, ParsedCommandLineArguments.Verbose);
+
+                        if (ParsedCommandLineArguments.Verbose)
+                            Console.WriteLine("Found " + _ret.CondordanceTable.Count + " lines.");
                     }
                 }
 
