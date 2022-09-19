@@ -34,6 +34,7 @@ namespace LogFSM_LogX2019
 
         #region Result Data
 
+        public bool flagShortenResultDataNames = false;
         public bool ContainsResultData { get; set; }
         public Dictionary<string,logxResultDataRow> resultDataTable { get; set; }
         public Dictionary<string, string> resultDataTableColnames { get; set; }
@@ -62,8 +63,7 @@ namespace LogFSM_LogX2019
         public logxCodebookDictionary CodebookDictionary { get; set; }
          
         private Dictionary<string, int> maxEventIDByPerson = new Dictionary<string, int>();
-
-
+         
         #endregion
 
         public logXContainer()
@@ -145,7 +145,7 @@ namespace LogFSM_LogX2019
                 if (!resultDataTableColnames.ContainsKey(_name))
                 {
                     List<string> _shortnames = resultDataTableColnames.Values.ToList<string>();                    
-                    if (_name.Length > 25)
+                    if (flagShortenResultDataNames && _name.Length > 25)
                     {
                         string _shortname = _name.Substring(0, 25);
                         int _i = 1;

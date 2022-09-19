@@ -1,6 +1,10 @@
 CHANGE-LOG
 ==========
 
+2022-09-19 0.4.5.21
+
+* Bug fix MaxDepth (JSON Deserialization)
+
 2022-09-04 0.4.5.20
 
 * Added XES support to 'TransformToUniversalLogFormat'
