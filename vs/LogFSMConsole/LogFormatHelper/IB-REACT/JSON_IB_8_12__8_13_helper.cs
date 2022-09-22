@@ -1,6 +1,7 @@
 ﻿#region usings 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NPOI.SS.Formula.Eval;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -138,6 +139,14 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                     string _pageAreaName = "";
                     string _page = "";
 
+                    if (!int.TryParse(entry.EntryId, out _tracId))
+                        _tracId = -1;
+
+                    string _cbaVers = logFragment.metaData.cbaVers;
+                    string _sessionId = logFragment.metaData.sessionId;
+                    DateTime _loginTimestamp = DateTime.Parse(logFragment.metaData.loginTimestamp);
+                    DateTime _sendTimestamp = DateTime.Parse(logFragment.metaData.sendTimestamp);
+                     
                     if (entry.Details.ContainsKey("indexPath"))
                     {
                         string ret = entry.Details["indexPath"].ToString();
@@ -154,13 +163,23 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             _pageAreaName = parts[4].Replace("pageAreaName=", "");
                         if (parts.Length > 5)
                             _page = parts[5].Replace("page=", "");
+                    } 
+                    else
+                    {                        
+                        _task = "(not specified)";
+                        _pageAreaType = "(not specified)";
+                        _page = "(not specified)";
                     }
 
                     if (_element == null)
                     {
                         Console.WriteLine("Not implemented: No Element specified");
+                    } 
+                    else if (_element == "")
+                    {
+                        _element = "(plattform: " + _cbaVers + ")";
                     }
-
+                     
                     if (entry.Type == "TasksViewVisible")
                     {
                         #region TasksViewVisible
@@ -180,7 +199,11 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                                 Test = _test,
                                 PageAreaName = _pageAreaName,
                                 Page = _page,
-                                PageAreaType = _pageAreaType
+                                PageAreaType = _pageAreaType,
+                                CbaVers = _cbaVers,
+                                SessionId = _sessionId,
+                                LoginTimestamp = _loginTimestamp,
+                                SendTimestamp = _sendTimestamp
                             };
 
                             if (_s.Contains("AllowScoreDebugging"))
@@ -223,6 +246,11 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             loginTimestamp = entry.Details["loginTimestamp"].ToString(),
                             runtimeVersion = entry.Details["runtimeVersion"].ToString(),
                             webClientUserAgent = entry.Details["webClientUserAgent"].ToString(),
+
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
                         _ret.Add(details);
                         #endregion
@@ -245,6 +273,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaType = _pageAreaType,
 
                             name = entry.Details["item"]["name"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
                         _ret.Add(details);
                         #endregion
@@ -269,6 +301,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaName = _pageAreaName,
                             Page = _page,
                             PageAreaType = _pageAreaType,
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         if (entry.Details.ContainsKey("newTask"))
@@ -369,6 +405,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             newPageAreaType = entry.Details["pageAreaType"].ToString(),
                             newPageAreaName = entry.Details["pageAreaName"].ToString(),
                             newPageName = entry.Details["newPageName"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
                         _ret.Add(details);
                         #endregion
@@ -392,6 +432,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                             indexPath = entry.Details["indexPath"].ToString(),
                             newPageName = entry.Details["newPageName"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         if (entry.Details.ContainsKey("tab"))
@@ -422,6 +466,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                             indexPath = entry.Details["indexPath"].ToString(),
                             oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -451,6 +499,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                             indexPath = entry.Details["indexPath"].ToString(),
                             oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -477,6 +529,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                             indexPath = entry.Details["indexPath"].ToString(),
                             oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -503,6 +559,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                             indexPath = entry.Details["indexPath"].ToString(),
                             oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -528,6 +588,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaType = _pageAreaType,
 
                             indexPath = entry.Details["indexPath"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -553,6 +617,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaType = _pageAreaType,
 
                             indexPath = entry.Details["indexPath"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -583,6 +651,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaType = _pageAreaType,
 
                             indexPath = entry.Details["indexPath"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -608,6 +680,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaType = _pageAreaType,
 
                             indexPath = entry.Details["indexPath"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -633,6 +709,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaType = _pageAreaType,
 
                             indexPath = entry.Details["indexPath"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -660,6 +740,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             indexPath = entry.Details["indexPath"].ToString(),
                             oldSelected = int.Parse(entry.Details["oldSelected"].ToString()),
                             newSelected = int.Parse(entry.Details["newSelected"].ToString()),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -692,6 +776,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             indexPath = entry.Details["indexPath"].ToString(),
                             row = int.Parse(entry.Details["row"].ToString()),
                             column = int.Parse(entry.Details["column"].ToString()),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -729,6 +817,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             cellType = entry.Details["cellType"].ToString(),
                             oldValue = entry.Details["oldValue"].ToString(),
                             newValue = entry.Details["newValue"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -767,6 +859,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             indexPath = entry.Details["indexPath"].ToString(),
                             tab = entry.Details["tab"].ToString(),
                             page = entry.Details["page"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -792,6 +888,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaType = _pageAreaType,
 
                             indexPath = entry.Details["indexPath"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -818,6 +918,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                             indexPath = entry.Details["indexPath"].ToString(),
                             oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -844,6 +948,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                             indexPath = entry.Details["indexPath"].ToString(),
                             currentTextValue = entry.Details["currentTextValue"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -872,6 +980,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             oldTextValue = entry.Details["oldTextValue"].ToString(),
                             newTextValue = entry.Details["newTextValue"].ToString(),
                             origin = entry.Details["origin"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -903,6 +1015,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                             indexPath = entry.Details["indexPath"].ToString(),
                             currentTextValue = entry.Details["currentTextValue"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -931,6 +1047,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             oldTextValue = entry.Details["oldTextValue"].ToString(),
                             newTextValue = entry.Details["newTextValue"].ToString(),
                             origin = entry.Details["origin"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -979,6 +1099,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                             indexPath = entry.Details["indexPath"].ToString(),
                             displayType = entry.Details["displayType"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -1004,8 +1128,11 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaType = _pageAreaType,
 
                             indexPath = entry.Details["indexPath"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
-
                         ExtrectEventDetials(entry, details);
 
                         _ret.Add(details);
@@ -1030,6 +1157,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                             indexPath = entry.Details["indexPath"].ToString(),
                             oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -1057,6 +1188,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                             indexPath = entry.Details["indexPath"].ToString(),
                             oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -1082,6 +1217,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaType = _pageAreaType,
 
                             indexPath = entry.Details["indexPath"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         // TODO 
@@ -1120,6 +1259,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                             indexPath = entry.Details["indexPath"].ToString(),
                             userDefId = entry.Details["userDefId"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         if (entry.Details.ContainsKey("oldSelections"))
@@ -1155,6 +1298,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                                 PageAreaType = _pageAreaType,
 
                                 indexPath = entry.Details["indexPath"].ToString(),
+                                CbaVers = _cbaVers,
+                                SessionId = _sessionId,
+                                LoginTimestamp = _loginTimestamp,
+                                SendTimestamp = _sendTimestamp
                             };
 
                             if (entry.Details.ContainsKey("maxPlay"))
@@ -1205,6 +1352,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                                 PageAreaType = _pageAreaType,
 
                                 indexPath = entry.Details["indexPath"].ToString(),
+                                CbaVers = _cbaVers,
+                                SessionId = _sessionId,
+                                LoginTimestamp = _loginTimestamp,
+                                SendTimestamp = _sendTimestamp
                             };
 
                             /* TODO: The following attributes should not be missing*/
@@ -1256,7 +1407,11 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString()
+                            indexPath = entry.Details["indexPath"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         if (entry.Details.ContainsKey("userDefId"))
@@ -1298,7 +1453,11 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString()
+                            indexPath = entry.Details["indexPath"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         if (entry.Details.ContainsKey("userDefId"))
@@ -1340,6 +1499,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             indexPath = entry.Details["indexPath"].ToString(),
                             orientation = entry.Details["orientation"].ToString(),
                             position = double.Parse(entry.Details["position"].ToString()),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         if (entry.Details.ContainsKey("userDefId"))
@@ -1400,6 +1563,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             sendingType = entry.Details["sendingType"].ToString(),
                             receivingType = entry.Details["receivingType"].ToString(),
                             operation = entry.Details["operation"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         _ret.Add(details);
@@ -1425,6 +1592,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             indexPath = entry.Details["indexPath"].ToString(),
                             oldTextValue = entry.Details["oldTextValue"].ToString(),
                             newTextValue = entry.Details["newTextValue"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         if (entry.Details.ContainsKey("userDefIdPath"))
@@ -1453,6 +1624,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaType = _pageAreaType,
 
                             index = int.Parse(entry.Details["index"].ToString()),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         if (entry.Details.ContainsKey("clientX"))
@@ -1490,6 +1665,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                             navigationType = entry.Details["navigationType"].ToString(),
                             navigationTarget = entry.Details["navigationTarget"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         ExtrectEventDetials(entry, details);
@@ -1515,6 +1694,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaType = _pageAreaType,
 
                             origin = entry.Details["origin"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         if (entry.Details.ContainsKey("userDefIdPath"))
@@ -1548,6 +1731,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                             actionType = entry.Details["actionType"].ToString(),
                             details = entry.Details["details"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         _ret.Add(details);
@@ -1585,6 +1772,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                             type = entry.Details["type"].ToString(),
                             alternateStateDuration = double.Parse(entry.Details["alternateStateDuration"].ToString()),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         _ret.Add(details);
@@ -1608,6 +1799,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaType = _pageAreaType,
 
                             text = entry.Details["text"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         _ret.Add(details);
@@ -1649,6 +1844,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                             type = entry.Details["type"].ToString(),
                             alternateStateDuration = double.Parse(entry.Details["alternateStateDuration"].ToString()),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
                         };
 
                         _ret.Add(details);
@@ -2028,7 +2227,14 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
         [XmlAttribute] public string PageAreaName { get; set; }
         [XmlAttribute] public string Page { get; set; }
         [XmlAttribute] public string PageAreaType { get; set; }
+         
+        [XmlAttribute] public string CbaVers { get; set; }
 
+        [XmlAttribute] public string SessionId { get; set; }
+
+        [XmlAttribute] public DateTime LoginTimestamp { get; set; }
+
+        [XmlAttribute] public DateTime SendTimestamp { get; set; }
 
         public virtual new  string GetType() => nameof(Log_IB_8_12__8_13);
         public virtual Dictionary<string, string> GetPropertyList()
