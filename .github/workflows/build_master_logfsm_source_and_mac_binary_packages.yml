@@ -54,19 +54,19 @@ jobs:
       run: mkdir $GITHUB_WORKSPACE/r/inst/extdata/linux-x64 
       
     - name: 'Publish Linux Worker 2'   
-      run: dotnet publish vs/LogFSMCore.sln -c "Release LogFSM" -r ubuntu.16.10-x64 --self-contained true -o "$GITHUB_WORKSPACE/r/inst/extdata/linux-x64"
+      run: dotnet publish vs/LogFSMCore.sln -c "Release LogFSM" -r ubuntu.16.10-x64 --self-contained true -o "$GITHUB_WORKSPACE/r/inst/extdata/linux-x64" -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=false
 
     - name: 'Publish Windows Worker 1'      
       run: mkdir $GITHUB_WORKSPACE/r/inst/extdata/win-x64
       
     - name: 'Publish Windows Worker 2'   
-      run: dotnet publish vs/LogFSMCore.sln -c "Release LogFSM" -r win7-x64 --self-contained true -o "$GITHUB_WORKSPACE/r/inst/extdata/win-x64" 
+      run: dotnet publish vs/LogFSMCore.sln -c "Release LogFSM" -r win7-x64 --self-contained true -o "$GITHUB_WORKSPACE/r/inst/extdata/win-x64" -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=false 
  
     - name: 'Publish Mac Worker 1'      
       run: mkdir $GITHUB_WORKSPACE/r/inst/extdata/osx-x64
       
     - name: 'Publish Mac Worker 2'   
-      run: dotnet publish vs/LogFSMCore.sln -c "Release LogFSM" -r osx.10.12-x64 --self-contained true -o "$GITHUB_WORKSPACE/r/inst/extdata/osx-x64"
+      run: dotnet publish vs/LogFSMCore.sln -c "Release LogFSM" -r osx.10.12-x64 --self-contained true -o "$GITHUB_WORKSPACE/r/inst/extdata/osx-x64" -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=false
  
     - name: 'Move Linux TransformToUniversalLogFormat'      
       run: mv $GITHUB_WORKSPACE/r/inst/extdata/linux-x64/TransformToUniversalLogFormat $GITHUB_WORKSPACE/transform/linux  
