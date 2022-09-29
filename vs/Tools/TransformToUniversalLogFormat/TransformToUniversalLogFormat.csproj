@@ -11,6 +11,7 @@
 	  <PublishSingleFile>true</PublishSingleFile>
 	  <RuntimeIdentifier>win-x64</RuntimeIdentifier>
 	  <PublishTrimmed>false</PublishTrimmed>
+	  <PublishReadyToRun>true</PublishReadyToRun>
 	  <Authors>Ulf Kroehne</Authors>
 	  <Company>DIPF | Leibniz Institute for Research and Information in Education</Company>
 	  <Product>LogFSM</Product>
