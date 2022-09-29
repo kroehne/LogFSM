@@ -25,9 +25,10 @@ jobs:
  
     - name: Setup .NET Core SDK
       uses: actions/setup-dotnet@v2.1.1
-      with:
-        dotnet-version: '6.0'
-      
+      with:       
+        dotnet-version: '6.0.x'
+        dotnet-quality: 'preview'
+        
     - name: Build Dotnet Worker 
       run: echo "dotnet build vs/LogFSMCore.sln -c "Release LogFSM" -p:Version=$VERSION"
       shell: bash
@@ -42,7 +43,7 @@ jobs:
       run: mkdir r/inst/extdata/win-x64
       
     - name: 'Publish Windows Worker 2'   
-      run: dotnet publish vs/LogFSMCore.sln -c "Release LogFSM" -r win7-x64 -o "r/inst/extdata/win-x64" --self-contained 
+      run: dotnet publish vs/LogFSMCore.sln -c "Release LogFSM" -r win7-x64 --self-contained true -o "r/inst/extdata/win-x64"
  
     - name: Setup R Environment
       uses: r-lib/actions/setup-r@master
