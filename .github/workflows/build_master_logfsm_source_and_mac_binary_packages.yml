@@ -69,7 +69,7 @@ jobs:
       run: dotnet publish vs/LogFSMConsole/LogFSMConsole.csproj -c "Release LogFSM" -r osx.10.12-x64 --self-contained true -o "$GITHUB_WORKSPACE/r/inst/extdata/osx-x64" -p:Version=$VERSION
  
     - name: 'Publish Linux Transform'
-      run: dotnet publish vs/Tools/TransformToUniversalLogFormat/TransformToUniversalLogFormat.csproj -c "Release LogFSM" -r ubuntu.16.10-x64 --self-contained true -o "$GITHUB_WORKSPACE/transform/mac" -p:Version=$VERSION
+      run: dotnet publish vs/Tools/TransformToUniversalLogFormat/TransformToUniversalLogFormat.csproj -c "Release LogFSM" -r ubuntu.16.10-x64 --self-contained true -o "$GITHUB_WORKSPACE/transform/linux" -p:Version=$VERSION
  
     - name: 'Publish Windows Transform'
       run: dotnet publish vs/Tools/TransformToUniversalLogFormat/TransformToUniversalLogFormat.csproj -c "Release LogFSM" -r win7-x64 --self-contained true -o "$GITHUB_WORKSPACE/transform/win" -p:Version=$VERSION
