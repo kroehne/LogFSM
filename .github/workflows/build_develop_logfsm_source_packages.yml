@@ -45,7 +45,7 @@ jobs:
       run: dotnet publish vs/LogFSMConsole/LogFSMConsole.csproj  -c "Release LogFSM" -r win7-x64 --self-contained true -o "$GITHUB_WORKSPACE/r/inst/extdata/win-x64" -p:Version=$VERSION 
   
     - name: Setup R Environment
-      uses: r-lib/actions/setup-r@master
+      uses: r-lib/actions/setup-r@v1
       
     - name: Install Dependencies
       run: Rscript -e "install.packages(c('rcmdcheck','knitr','dplyr', 'curl', 'jsonlite', 'XML', 'ggplot2', 'Rmisc', 'TraMineR', 'rmarkdown', 'rappdirs', 'testthat','magrittr','DiagrammeR','kableExtra'))"  
