@@ -68,7 +68,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
             string _test = "";
             string _task = "";
             int _tracId = -1;
-
+ 
             if (source == "IRTlibPlayer_V01")
             {
                 try
@@ -1169,8 +1169,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         #endregion
                     }
                     else if (entry.Type == "RichText" || entry.Type == "RichTextField") // Note: "RichTextField" is outdated
-                    {
-
+                    { 
                         #region RichText 
                         RichText details = new RichText()
                         {
@@ -1807,14 +1806,64 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                         _ret.Add(details);
                         #endregion
-
                     }
                     else if (entry.Type == "OperatorTraceSnapshot")
                     {
-                        // TODO: Implement with example data
+                        #region OperatorTraceText
+                        OperatorTraceSnapshot details = new OperatorTraceSnapshot()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
+
+                            text = entry.Details["text"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
+                        };
+
+                        _ret.Add(details);
+                        #endregion
                     }
                     else if (entry.Type == "Snapshot")
-                    {
+                    { 
+                        #region SnapshotData
+                        SnapshotData details = new SnapshotData()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
+                             
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
+                        };
+
+                        details.snapShot = entry.Details.ToString();
+                         
+                        _ret.Add(details);
+                        #endregion
+                        
+
+                        //
                         // TODO: Implement with example data (or ignore!?)
                     }
                     else if (entry.Type == "Recommend")
@@ -1851,8 +1900,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         _ret.Add(details);
-                        #endregion
-                         
+                        #endregion                         
                     }
                     else if (entry.Type == "PauseResume")
                     {
@@ -2934,7 +2982,20 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
             return result;
         }
     }
- 
+
+    public class OperatorTraceSnapshot : Log_IB_8_12__8_13
+    {
+        [XmlAttribute] public string text { get; set; }
+
+        public override string GetType() => nameof(OperatorTraceText);
+        public override Dictionary<string, string> GetPropertyList()
+        {
+            var result = base.GetPropertyList();
+            result.Add(nameof(text), text);
+            return result;
+        }
+    }
+
 
     public class ApplicationFullScreen : Log_IB_8_12__8_13
     {
@@ -2995,6 +3056,27 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
             result.Add(nameof(key), key);
             result.Add(nameof(value), value);
             result.Add(nameof(dim), dim.ToString());
+            return result;
+        }
+    }
+     
+    public class SnapshotData : Log_IB_8_12__8_13
+    {
+        [XmlAttribute] public string origin { get; set; }
+        [XmlAttribute] public string indexPath { get; set; }
+        [XmlAttribute] public string userDefIdPath { get; set; }
+        [XmlAttribute] public string userDefId { get; set; }
+        [XmlAttribute] public string snapShot { get; set; }
+
+        public override string GetType() => nameof(JavaScriptInjected);
+        public override Dictionary<string, string> GetPropertyList()
+        {
+            var result = base.GetPropertyList();
+            result.Add(nameof(origin), origin);
+            result.Add(nameof(indexPath), indexPath);
+            result.Add(nameof(userDefIdPath), userDefIdPath);
+            result.Add(nameof(userDefId), userDefId);
+            result.Add(nameof(snapShot), snapShot);
             return result;
         }
     }
