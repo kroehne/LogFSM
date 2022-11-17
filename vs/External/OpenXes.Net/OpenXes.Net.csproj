@@ -52,5 +52,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Build.Packaging" Version="0.2.2" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />
   </ItemGroup>
 </Project>
