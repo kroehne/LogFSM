@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Ionic.Zip;
 using LogFSM_LogX2019;
 using LogFSMConsole;
 using StataLib;
@@ -25,7 +26,6 @@ namespace LogDataTransformer_NEPS_V01
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("personidentifier"))
                     _personIdentifier = ParsedCommandLineArguments.ParameterDictionary["personidentifier"];
                  
-
                 List<string> _listOfFiles = new List<string>();
                 foreach (string inFolder in ParsedCommandLineArguments.Transform_InputFolders)
                 {
@@ -35,6 +35,19 @@ namespace LogDataTransformer_NEPS_V01
                             Console.WriteLine("Warning: Directory not exists: '" + inFolder + "'.");
 
                         continue;
+                    }
+
+                    var _tmpZipFiles = Directory.GetFiles(inFolder, "*.zip", SearchOption.AllDirectories);
+                    foreach (var s in _tmpZipFiles)
+                    {
+                        using (Ionic.Zip.ZipFile zip = Ionic.Zip.ZipFile.Read(s))
+                        {
+                            foreach (ZipEntry e in zip)
+                            {                               
+                                if (e.FileName == Path.GetFileNameWithoutExtension(s) + "_log.dta")
+                                    e.Extract(inFolder, ExtractExistingFileAction.OverwriteSilently);
+                            }
+                        }
                     }
 
                     var _tmpFileList = Directory.GetFiles(inFolder, "*_log.dta", SearchOption.AllDirectories);

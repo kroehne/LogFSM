@@ -1824,7 +1824,13 @@ namespace LogFSM_LogX2019
             {
                 foreach (var v in logDataTables[_eventName])
                 {
-                    string _personIdentifier = uniqueValuesLookup["PersonIdentifier"][(int)v.PersonIdentifier];
+                    string _personIdentifier = v.PersonIdentifier.ToString();
+                    if (uniqueValuesLookup.ContainsKey("PersonIdentifier"))
+                    {
+                        if (uniqueValuesLookup["PersonIdentifier"].ContainsKey((int)v.PersonIdentifier))
+                            _personIdentifier = uniqueValuesLookup["PersonIdentifier"][(int)v.PersonIdentifier];
+                    }
+
                     if (!_inMemoryTempData.ContainsKey(_personIdentifier))
                         _inMemoryTempData.Add(_personIdentifier, new List<EventData>());
 
