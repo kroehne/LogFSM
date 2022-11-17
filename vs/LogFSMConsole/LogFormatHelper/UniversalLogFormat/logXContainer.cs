@@ -1791,7 +1791,7 @@ namespace LogFSM_LogX2019
 
                 #endregion
 
-                workbook.Write(fs);
+                workbook.Write(fs, false);
             }
         }
 
@@ -2131,7 +2131,7 @@ namespace LogFSM_LogX2019
                     {
                         sheet_concordance_index = addRowValues(sheet_concordance, sheet_concordance_index, new string[] { uniqueValuesLookup["PersonIdentifier"][_i].ToString(), uniqueValuesLookup["PersonIdentifier"][_i].ToString() });
                     }
-                    workbook.Write(fs);
+                    workbook.Write(fs, false);
                 }
             }
             else if (filename.ToLower().EndsWith(".csv"))
@@ -2254,7 +2254,7 @@ namespace LogFSM_LogX2019
 
                 #endregion
 
-                workbook.Write(fs);
+                workbook.Write(fs, false);
             }
         }
 
