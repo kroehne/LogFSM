@@ -24,14 +24,13 @@ jobs:
       shell: bash
  
     - name: Setup .NET Core SDK
-      uses: actions/setup-dotnet@v2.1.1
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '6.0.x'
         dotnet-quality: 'preview'
         
     - name: Build Dotnet Worker 
       run: dotnet build vs/LogFSMCore.sln -c "Release LogFSM" --self-contained true -p:Version=$VERSION
-      shell: bash
       
     - name: Prepare Folders 1
       run: mkdir r/inst
