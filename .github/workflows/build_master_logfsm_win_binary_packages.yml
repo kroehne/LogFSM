@@ -11,14 +11,15 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
  
     - name: Read Version from R Package
-      run: echo "VERSION=$(grep "Version:" r/DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')" >> $GITHUB_ENV
       shell: bash      
+      run: echo "VERSION=$(grep "Version:" r/DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')" >> $GITHUB_ENV    
 
     - name: Determine Shortened Hash 
-      run: echo "HASH=$(git log --pretty=format:'%h' -n 1)" >> $GITHUB_ENV
+      shell: bash      
+      run: echo "HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV   
      
     - run: echo "Building Version $VERSION ($HASH)"
       shell: bash
@@ -29,7 +30,7 @@ jobs:
         dotnet-version: '6.0.400' 
         
     - name: Build Dotnet Worker 
-      run: dotnet build vs/LogFSMCore.sln -c "Release LogFSM" --self-contained true -p:Version=$VERSION
+      run: dotnet build vs/LogFSMCore.sln -c "Release LogFSM" --self-contained true -p:Version=${{ env.VERSION }}
       
     - name: Prepare Folders 1
       run: mkdir r/inst
@@ -41,7 +42,7 @@ jobs:
       run: mkdir r/inst/extdata/win-x64
       
     - name: 'Publish Windows Worker 2'   
-      run: dotnet publish vs/LogFSMConsole/LogFSMConsole.csproj -c "Release LogFSM" -r win7-x64 -o "$GITHUB_WORKSPACE/r/inst/extdata/win-x64" -p:Version=$VERSION
+      run: dotnet publish vs/LogFSMConsole/LogFSMConsole.csproj -c "Release LogFSM" -r win7-x64 -o "$GITHUB_WORKSPACE/r/inst/extdata/win-x64" -p:Version=${{ env.VERSION }}
  
     - name: Setup R Environment
       uses: r-lib/actions/setup-r@v2
