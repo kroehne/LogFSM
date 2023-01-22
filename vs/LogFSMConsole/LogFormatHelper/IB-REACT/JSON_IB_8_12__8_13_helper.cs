@@ -463,8 +463,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaName = _pageAreaName,
                             Page = _page,
                             PageAreaType = _pageAreaType,
-
                             indexPath = entry.Details["indexPath"].ToString(),
+                            userDefId = entry.Details["userDefId"].ToString(),                             
                             oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
