@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+     - uses: actions/checkout@v3
      
     - name: Read Version from R Package
       run: echo "VERSION=$(grep "Version:" r/DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')" >> $GITHUB_ENV
@@ -44,13 +44,13 @@ jobs:
       run: dotnet publish vs/LogFSMConsole/LogFSMConsole.csproj  -c "Release LogFSM" -r win7-x64 --self-contained true -o "$GITHUB_WORKSPACE/r/inst/extdata/win-x64" -p:Version=$VERSION 
   
     - name: Setup R Environment
-      uses: r-lib/actions/setup-r@v1
+      uses: r-lib/actions/setup-r@v2
       
     - name: Install Dependencies
       run: Rscript -e "install.packages(c('rcmdcheck','knitr','dplyr', 'curl', 'jsonlite', 'XML', 'ggplot2', 'Rmisc', 'TraMineR', 'rmarkdown', 'rappdirs', 'testthat','magrittr','DiagrammeR','kableExtra'))"  
 
     - name: Install Pandoc
-      uses: r-lib/actions/setup-pandoc@v1
+      uses: r-lib/actions/setup-pandoc@v2
       with:
         pandoc-version: '2.7.3'  
 
@@ -60,7 +60,7 @@ jobs:
     - name: Build R package (all worker)
       run: Rscript -e "pkgbuild::build(path='r/')"
  
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v3
       with:
         name: ${{format('Develop_Win_LogFSM_{0}_{1}.tar.gz', env.VERSION, env.HASH)}}
         path: ${{ github.workspace }}/${{format('LogFSM_{0}.tar.gz', env.VERSION)}}

@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
      
     - name: Read Version from R Package
       run: echo "VERSION=$(grep "Version:" r/DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')" >> $GITHUB_ENV
@@ -26,7 +26,7 @@ jobs:
         pandoc-version: '2.7.3'  
     
     - name: Setup R Environment
-      uses: r-lib/actions/setup-r@v1
+      uses: r-lib/actions/setup-r@v2
             
     - name: Install Dependencies
       run: Rscript -e "install.packages(c('rmarkdown'))"  
