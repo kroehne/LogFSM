@@ -350,8 +350,8 @@ namespace LogFSMConsole
         // limit the number of processed persons (-1 = unlimited)
         public int MaxNumberOfCases = -1;
 
-        // path to the dlls (changed for debugging)
-        public string RuntimePath = AppDomain.CurrentDomain.BaseDirectory;
+        // path to the dlls  
+        public string RuntimePath = System.AppContext.BaseDirectory;
         public bool IsDebug = false;
 
         #region Application Startup

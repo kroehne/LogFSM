@@ -30,7 +30,7 @@ namespace LogFSMConsole
         {
             Stopwatch _watch = new Stopwatch();
             _watch.Start();
-             
+ 
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
              
             string[] _assemblyFullName = Assembly.GetExecutingAssembly().FullName.Split(',');
@@ -43,7 +43,7 @@ namespace LogFSMConsole
             }
 
 #if DEBUG
-            _parsedCommandLineArguments.RuntimePath = @"C:\work\github\LogFSM\vs\bin\dist\win-x64\";
+            _parsedCommandLineArguments.RuntimePath = System.AppContext.BaseDirectory; 
             _parsedCommandLineArguments.IsDebug = true;
 #endif
 

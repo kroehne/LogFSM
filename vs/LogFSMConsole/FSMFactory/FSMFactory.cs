@@ -364,7 +364,7 @@ namespace LogFSM
 
             #region Add Rferences
 
-            var assemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location);
+            var assemblyPath = System.AppContext.BaseDirectory;
             List<MetadataReference> references = new List<MetadataReference>();
 
             references.Add(MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Private.CoreLib.dll")));

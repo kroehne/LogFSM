@@ -1,6 +1,10 @@
 CHANGE-LOG
 ==========
 
+2023-02-10 0.4.5.25
+
+* Fixed bug (migration to dotnet core 6.0)
+
 2022-11-17 0.4.5.24
 
 * XES (small bugfix: allow numbers as PersonIdentifier)
