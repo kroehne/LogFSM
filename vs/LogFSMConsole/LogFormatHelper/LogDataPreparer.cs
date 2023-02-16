@@ -1125,7 +1125,7 @@ namespace LogFSMConsole
         #endregion
 
         #region PISA BQ
-
+  
         public static void ReadPISA_from_DME_ZIP__BQ_from_session_files(string ZipFileName, string OutFileName, string Password, string[] Element, int max, string Cycle, bool Verbose, CommandLineArguments ParsedCommandLineArguments)
         {
 
@@ -1240,7 +1240,7 @@ namespace LogFSMConsole
             DateTime dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, 0);
             List<EventData> _inMemoryTempDataEvents = new List<EventData>();
             XmlSerializer logSerializer = new XmlSerializer(typeof(log));
-            int numberOfPersonss = 0;
+            int numberOfPersons = 0;
 
             EventDataListExtension.ESortType sort = EventDataListExtension.ESortType.Time;
             if (ParsedCommandLineArguments.Flags.Contains("DONT_ORDER_EVENTS"))
@@ -1268,10 +1268,10 @@ namespace LogFSMConsole
                                     {
                                         if (innerZIPEntry.FileName.EndsWith("-log.xml") && innerZIPEntry.UncompressedSize != 0)
                                         {
-                                            numberOfPersonss += 1;
+                                            numberOfPersons += 1;
 
                                             string _PersonIdentifier = Path.GetFileName(innerZIPEntry.FileName).Replace("-log.xml", "");
-                                            Console.WriteLine(_PersonIdentifier + " -- " + numberOfPersonss);
+                                            Console.WriteLine(_PersonIdentifier + " -- " + numberOfPersons);
 
                                             if (_inMemoryTempDataEvents.Count > 0)
                                             {
@@ -1305,7 +1305,7 @@ namespace LogFSMConsole
                                             }
                                         }
 
-                                        if (max >= 1 && numberOfPersonss >= max)
+                                        if (max >= 1 && numberOfPersons >= max)
                                             break;
                                     }
                                 }

@@ -14,7 +14,8 @@ using StataLib;
 using Ionic.Zip;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
-# endregion
+using NPOI.SS.Formula.Functions;
+#endregion
 
 namespace LogDataTransformer_PISA_BQ_V01
 {
@@ -23,7 +24,13 @@ namespace LogDataTransformer_PISA_BQ_V01
         public static void ProcessLogFilesOnly(Stopwatch Watch, CommandLineArguments ParsedCommandLineArguments)
         {
             try
-            {
+            { 
+                EventDataListExtension.ESortType sort = EventDataListExtension.ESortType.Time;
+                if (ParsedCommandLineArguments.Flags.Contains("DONT_ORDER_EVENTS"))
+                    sort = EventDataListExtension.ESortType.None;
+                if (ParsedCommandLineArguments.Flags.Contains("ORDER_WITHIN_ELEMENTS"))
+                    sort = EventDataListExtension.ESortType.ElementAndTime;
+
                 bool _relativeTimesAreSeconds = false;
                 if (ParsedCommandLineArguments.Flags.Contains("RELATIVETIMESARESECONDS"))
                     _relativeTimesAreSeconds = true;
@@ -96,6 +103,22 @@ namespace LogDataTransformer_PISA_BQ_V01
 
                 _ret.LoadCodebookDictionary(ParsedCommandLineArguments.Transform_Dictionary);
 
+                if (ParsedCommandLineArguments.Transform_ConcordanceTable.Trim() != "")
+                {
+                    if (File.Exists(ParsedCommandLineArguments.Transform_ConcordanceTable))
+                    {
+                        if (ParsedCommandLineArguments.Verbose)
+                            Console.Write("Read Concordance Table... ");
+
+                        _ret.ReadConcordanceTable(ParsedCommandLineArguments.Transform_ConcordanceTable, ParsedCommandLineArguments.Verbose);
+
+                        if (ParsedCommandLineArguments.Verbose)
+                            Console.WriteLine("Found " + _ret.CondordanceTable.Count + " lines.");
+                    }
+                }
+
+                int _counterTest = 0;
+
                 foreach (string xfilename in _listOfXMLFiles)
                 {
                     if (xfilename.EndsWith("-log.xml"))
@@ -111,25 +134,37 @@ namespace LogDataTransformer_PISA_BQ_V01
                         _sr.Close();
                     }
                 }
-
+                int numberOfPersons = 0;
                 foreach (string zfilename in _listOfZIPArchivesWithXMLFiles)
                 {
                     try
                     {
                         using (var outerInputZipFile = ZipFile.Read(zfilename))
-                        {
+                        { 
+                            var totalFiles = outerInputZipFile.Entries.Count(x => x.FileName.EndsWith("-log.xml"));
+                            var currentFile = 0;
+                            int percent = 0;
+
                             foreach (var outerInputZipEntry in outerInputZipFile.Entries)
-                            {
+                            { 
                                 if (outerInputZipEntry.FileName.EndsWith("-log.xml") && outerInputZipEntry.UncompressedSize != 0)
                                 {
                                     #region Single XML file
                                     string _PersonIdentifier = Path.GetFileName(outerInputZipEntry.FileName).Replace("-log.xml", "");
 
                                     if (ParsedCommandLineArguments.Verbose)
-                                        Console.WriteLine(_PersonIdentifier + " -- " + _ret.GetNumberOfPersons);
+                                    {
+                                        if ((int)Math.Round((double)currentFile / (double)totalFiles * 100, 0) > percent + 9)
+                                        {                                            
+                                            percent = (int)Math.Round((double)currentFile / (double)totalFiles * 100, 0);
+                                            Console.WriteLine(percent + "% processed, " + numberOfPersons + " persons found.");                                            
+                                        }
+                                    }                                        
 
                                     using (MemoryStream innerZIPEntryMemoryStream = new MemoryStream())
                                     {
+                                        numberOfPersons += 1;
+
                                         outerInputZipEntry.Password = ParsedCommandLineArguments.ZIPPassword;
                                         outerInputZipEntry.Extract(innerZIPEntryMemoryStream);
                                         innerZIPEntryMemoryStream.Position = 0;
@@ -144,6 +179,8 @@ namespace LogDataTransformer_PISA_BQ_V01
 
                                     }
                                     #endregion
+
+                                    currentFile++;
                                 }
                                 else if (outerInputZipEntry.FileName.EndsWith("Session2.zip") && outerInputZipEntry.UncompressedSize != 0)
                                 {
@@ -160,17 +197,21 @@ namespace LogDataTransformer_PISA_BQ_V01
 
                                         if (ParsedCommandLineArguments.Verbose)
                                             Console.WriteLine(_PersonIdentifier + " -- " + _ret.GetNumberOfPersons);
-
+                                          
                                         outerInputZipEntry.Password = ParsedCommandLineArguments.ZIPPassword;
                                         outerInputZipEntry.Extract(outerZIPEntryMemoryStream);
                                         outerZIPEntryMemoryStream.Position = 0;
 
+                                     
                                         using (var innerZIP = ZipFile.Read(outerZIPEntryMemoryStream))
                                         {
                                             foreach (var innerZIPEntry in innerZIP.Entries)
                                             {
                                                 if (innerZIPEntry.FileName.EndsWith("_Data.zip") && innerZIPEntry.UncompressedSize != 0)
                                                 {
+                                                    _counterTest += 1;
+                                                    Console.WriteLine(_counterTest);
+
                                                     if (ParsedCommandLineArguments.Verbose)
                                                         Console.WriteLine(innerZIPEntry.FileName);
 
@@ -204,13 +245,16 @@ namespace LogDataTransformer_PISA_BQ_V01
 
                                                     }
                                                 }
+                                                 
+
+
                                             }
                                         }
                                     }
                                     #endregion
                                 }
-
-
+                                 
+                               
                             }
                         }
                     }
@@ -240,6 +284,7 @@ namespace LogDataTransformer_PISA_BQ_V01
         {
             var _tr = new StringReader(_xml);
             log _log = (log)logSerializer.Deserialize(_tr);
+            int _numberOFEventsForXML = 0;
 
             if (_log.itemGroup != null)
             {
@@ -260,7 +305,7 @@ namespace LogDataTransformer_PISA_BQ_V01
                 } 
                 int _EventID = _ret.GetMaxID(_PersonIdentifier);
                 int _EventVisitCounter = 0;
-
+                 
                 Dictionary<string, int> _elementVisitCounterDict = new Dictionary<string, int>();
                 string _currentElement = "";
 
@@ -304,7 +349,18 @@ namespace LogDataTransformer_PISA_BQ_V01
                                 throw new Exception("Element name not expected.");
                             }
                         }
-                         
+                        
+
+                        // TODO: Generalize!
+                        
+                        if (_EventValues.ContainsKey("Context") && _EventValues.ContainsKey("Value"))
+                        {
+                            if ( _EventValues["Context"] == "ST114Q01TA01" && _EventValues["Value"] != "null")
+                            {
+                                _EventValues["Value"] = MaskString(_EventValues["Value"]);
+                            }
+                        }
+                          
                         _EventValues.Add("RelativeTimeFrame", (_AbsoluteTime - _ElementStart).TotalMilliseconds.ToString());
                         _EventValues.Add("RelativeTimePrevious", (_AbsoluteTime - _PreviousEvent).TotalMilliseconds.ToString());
 
@@ -315,7 +371,7 @@ namespace LogDataTransformer_PISA_BQ_V01
                             foreach (string val in _EventValues.Keys)
                                 root.Add(new XAttribute(val, _EventValues[val]));
 
-                            logxGenericLogElement _parament = new logxGenericLogElement()
+                            logxGenericLogElement _newElement = new logxGenericLogElement()
                             {
                                 PersonIdentifier = _PersonIdentifier,
                                 Item = _Element,
@@ -325,41 +381,41 @@ namespace LogDataTransformer_PISA_BQ_V01
                                 EventDataXML = doc.ToString()
                             };
 
-                            _ret.AddEvent(_parament);
+                            _ret.AddEvent(_newElement);
                         }
 
                         _EventID += 1;
                         _EventVisitCounter += 1;
                         _PreviousEvent = _AbsoluteTime;
+
+                        _numberOFEventsForXML += 1;
                     }
 
                 }
+ 
+            }
+            else
+            {
 
-                // check for suspicious times
-                /* TODO
-                _currentElement = "";
-                List<string> framesWithSuspiciousData = new List<string>();
-                foreach (var v in _inMemoryTempDataEvents)
-                {
-                    if (_currentElement != v.EventName)
-                        _currentElement = v.EventName;
+            }
 
-                    if (v.TimeDifferencePrevious.TotalMinutes > 30)
-                        v.AddEventValue("Flag", "TimeToLong");
-
-                    if (v.TimeDifferencePrevious.TotalMilliseconds < 0)
-                        v.AddEventValue("Flag", "TimeNegative");
-                }
-                */
+            if (_numberOFEventsForXML == 0)
+            {
+                Console.WriteLine(_xml);
             }
 
             _tr.Close();
         }
-
+ 
         private static string CleanInvalidXmlChars(string text)
         {
             string re = @"[^\x09\x0A\x0D\x20-\xD7FF\xE000-\xFFFD\x10000-x10FFFF]";
             return Regex.Replace(text, re, "");
+        }
+
+        private static string MaskString(string text)
+        {
+            return string.Concat(Enumerable.Repeat("x", text.Length));
         }
 
     }

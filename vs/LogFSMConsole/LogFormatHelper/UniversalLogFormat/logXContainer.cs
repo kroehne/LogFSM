@@ -233,7 +233,7 @@ namespace LogFSM_LogX2019
                 maxEventIDByPerson[element.PersonIdentifier] = element.EventID;
 
             TimeSpan _relativeTimeSpan = RelativeTimesAreSeconds ? TimeSpan.FromSeconds(element.RelativeTime) : TimeSpan.FromMilliseconds(element.RelativeTime);
-
+             
             logxLogDataRow rootParentLine = new logxLogDataRow()
             {
                 PersonIdentifier = _personIdentifier,
@@ -260,7 +260,7 @@ namespace LogFSM_LogX2019
                     ProcessXMLData(doc.Root, rootLogName, element.PersonIdentifier, rootParentLine, 0);
                     doc = null;
                 }
-            } 
+            }   
         }
 
         private void ProcessXMLData(XElement xmlelement, string path, string PersonIdentifier, logxLogDataRow parentLine, int id)
@@ -1848,7 +1848,7 @@ namespace LogFSM_LogX2019
                     _inMemoryTempData[_personIdentifier].Add(new EventData()
                     {
                         Element = _element,
-                        EventName = _eventName,
+                        EventName = _eventName.Replace(rootLogName + ".",""),
                         PersonIdentifier = _personIdentifier,
                         TimeStamp = _timeStamp,
                         EventValues = _eventValues

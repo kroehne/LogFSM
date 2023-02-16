@@ -7,11 +7,9 @@ on:
 
 jobs:
   build_r_package:
-
     runs-on: ubuntu-latest
-
     steps:
-     - uses: actions/checkout@v3
+    - uses: actions/checkout@v3
      
     - name: Read Version from R Package
       run: echo "VERSION=$(grep "Version:" r/DESCRIPTION | perl -pe '($_)=/([0-9]+([.][0-9]+)+)/')" >> $GITHUB_ENV
