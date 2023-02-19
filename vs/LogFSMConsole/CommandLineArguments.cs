@@ -221,8 +221,21 @@ namespace LogFSMConsole
         /// </summary>
         public const string _CMDA_JOB_TRANSFORM_input_pisacazip01a = "pisacazip01a";
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public const string _CMDA_JOB_TRANSFORM_input_piaacldazip01a = "piaacldazip01a";
+
+        
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public const string _CMDA_JOB_TRANSFORM_input_timsst19zip01a = "timsst19zip01a";
+        
+
         #endregion
-         
+
         #region ParsedConfiguration
 
         public Dictionary<string, string> ParameterDictionary = new Dictionary<string, string>();
@@ -818,12 +831,20 @@ namespace LogFSMConsole
                 return (DataFileType.Trim().ToLower() == _CMDA_JOB_TRANSFORM_input_pisacazip01a && ZIPFileName.Trim() != "");
             }
         }
-
+         
         public bool DataFileTypeIsPIAACLdaRawZipVersion01A
         {
             get
             {
-                return (DataFileType.Trim().ToLower() == "piaacldazip01a" && ZIPFileName.Trim() != "");
+                return (DataFileType.Trim().ToLower() == _CMDA_JOB_TRANSFORM_input_piaacldazip01a && ZIPFileName.Trim() != "");
+            }
+        }
+
+        public bool DataFileTypeIsTIMSST19ZipVersion01A
+        {
+            get
+            {
+                return (DataFileType.Trim().ToLower() == _CMDA_JOB_TRANSFORM_input_timsst19zip01a && ZIPFileName.Trim() != "");
             }
         }
 

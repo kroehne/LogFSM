@@ -240,7 +240,7 @@ namespace LogDataTransformer_PISA_CA_V01
                                                                     {
                                                                         throw new Exception("Value not expected here.");
                                                                     }
-                                                                    else if (_currentElement == "fteData")
+                                                                    else if (_currentElement.StartsWith("fteData"))
                                                                     {
                                                                         HtmlDocument hap = new HtmlDocument();
                                                                         hap.LoadHtml(xmlReader.Value);
@@ -255,7 +255,7 @@ namespace LogDataTransformer_PISA_CA_V01
                                                                         HtmlNodeCollection nodes_responseTextArea = hap.DocumentNode.SelectNodes("//div[@class='responseTextArea']");
                                                                         if (nodes_responseTextArea != null)
                                                                             for (int i = 0; i < nodes_responseTextArea.Count; i++)
-                                                                                _EventValues.Add(_currentElement + "_mathTextArea_" + i, nodes_responseTextArea[i].InnerText);
+                                                                                _EventValues.Add(_currentElement + "_responseTextArea_" + i, nodes_responseTextArea[i].InnerText);
 
                                                                         _currentValue = xmlReader.Value;
 

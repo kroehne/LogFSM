@@ -10,6 +10,8 @@ using NPOI.SS.Formula.Functions;
 using NPOI.SS.UserModel;
 using NPOI.Util;
 using NPOI.XSSF.UserModel;
+using SpssLib.DataReader;
+using SpssLib.SpssDataset;
 using StataLib;
 using System;
 using System.Collections.Generic;
@@ -20,6 +22,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using static NPOI.HSSF.Util.HSSFColor;
 #endregion
 
 namespace LogFSM_LogX2019
@@ -233,7 +236,7 @@ namespace LogFSM_LogX2019
                 maxEventIDByPerson[element.PersonIdentifier] = element.EventID;
 
             TimeSpan _relativeTimeSpan = RelativeTimesAreSeconds ? TimeSpan.FromSeconds(element.RelativeTime) : TimeSpan.FromMilliseconds(element.RelativeTime);
-             
+
             logxLogDataRow rootParentLine = new logxLogDataRow()
             {
                 PersonIdentifier = _personIdentifier,
@@ -245,7 +248,7 @@ namespace LogFSM_LogX2019
                 ParentPath = uniqueValues["ParentPath"]["(no parent)"],
                 EventID = element.EventID,
                 EventName = uniqueValues["EventName"][element.EventName],
-
+                ChildEvents = new List<logxLogDataRow>(),
                 AttributValues = new List<Tuple<int, int>>(),
             };
 
@@ -290,9 +293,12 @@ namespace LogFSM_LogX2019
                 Path = uniqueValues["Path"][path],
                 ParentPath = uniqueValues["ParentPath"][parentPath],
                 EventName = parentLine.EventName,
+                ChildEvents = new List<logxLogDataRow>(),
                 AttributValues = new List<Tuple<int, int>>()
             };
-             
+
+            parentLine.ChildEvents.Add(newChildLine);
+
             if (!logDataTables.ContainsKey(path))
                 logDataTables.Add(path, new List<logxLogDataRow>());
 
@@ -601,77 +607,15 @@ namespace LogFSM_LogX2019
                      
                     // Data
 
-                    int _linecounter = 0;
-                    foreach (string _id in logDataTables.Keys)
+                    int _linecounter = 0; 
+                    for (int i = 0; i < logDataTables[rootLogName].Count; i++)
                     {
-                        if (_id != rootLogName)
-                        {
-                            foreach (var v in logDataTables[_id])
-                            {
-                                object[] _line = new object[_varlist.Count];
-
-                                _line[0] = _linecounter;
-                                _line[1] = v.PersonIdentifier;
-
-                                _line[2] = v.Element;
-                                if (v.TimeStamp.Year == 1)
-                                    _line[3] = StataLib.StataMissingValues._empty;
-                                else
-                                    _line[3] = Math.Round((v.TimeStamp - dt1960).TotalMilliseconds, 0);
-
-                                _line[4] = Math.Round(v.RelativeTime.TotalMilliseconds, 0);
-                                _line[5] = v.EventID;
-                                _line[6] = v.ParentEventID;
-                                _line[7] = v.Path;
-                                _line[8] = v.ParentPath;
-                                _line[9] = v.EventName;
-
-                                for (int i = 0; i < _colnames.Count; i++)
-                                {
-                                    string _colname = _colnames[i];
-                                    if (logDataTableColnames[_id].Contains(_colname))
-                                    {
-                                        int _i = logDataTableColnames[_id].IndexOf(_colname);
-                                        int _value = -1;
-                                        foreach (var p in v.AttributValues)
-                                        {
-                                            if (p.Item1 == _i)
-                                            {
-                                                _value = p.Item2;
-                                                break;
-                                            }
-                                        }
-                                        if (_value == -1)
-                                        {
-                                            if (_varlist[10 + i].VarType == StataVariable.StataVarType.String || _varlist[10 + i].VarType == StataVariable.StataVarType.FixedString)
-                                                _line[10 + i] = _attributeNotExpected;
-                                            else if (_varlist[10 + i].VarType == StataVariable.StataVarType.Int || _varlist[10 + i].VarType == StataVariable.StataVarType.Long || _varlist[10 + i].VarType == StataVariable.StataVarType.Byte)
-                                            {
-                                                _line[10 + i] = _value;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            _line[10 + i] = _value; 
-                                        }
-                                    }   
-                                    else
-                                    {
-                                        if (_varlist[10 + i].VarType == StataVariable.StataVarType.String || _varlist[10 + i].VarType == StataVariable.StataVarType.FixedString)
-                                            _line[10 + i] = _attributeNotDefinded;
-                                        else if (_varlist[10 + i].VarType == StataVariable.StataVarType.Int || _varlist[10 + i].VarType == StataVariable.StataVarType.Long || _varlist[10 + i].VarType == StataVariable.StataVarType.Byte)
-                                        {
-                                            _line[10 + i] = -2;
-                                        } 
-                                    }  
-                                }
-
-                                _dtaFile.AppendDataLine(_line);
-                                _linecounter++;
-                            }
+                        foreach (var rootChild in logDataTables[rootLogName][i].ChildEvents)
+                        { 
+                            _linecounter = dtaFlatExportEvent(_attributeNotDefinded, _attributeNotExpected, dt1960, _varlist, _colnames, _dtaFile, _linecounter, rootChild);
                         }
                     }
-                      
+                     
                     _dtaFile.AddValueLabel("l_" + "ParentEventID", -1, "(no parent)");
                     _dtaFile.AddValueLabel("l_" + "Timestamp", -1, "(missing)");
 
@@ -811,6 +755,78 @@ namespace LogFSM_LogX2019
                zip.Save(filename);
            }
        }
+
+        private int dtaFlatExportEvent(string _attributeNotDefinded, string _attributeNotExpected, DateTime dt1960, List<StataVariable> _varlist, List<string> _colnames, StataFileWriter _dtaFile, int _linecounter, logxLogDataRow rootChild)
+        {
+            object[] _line = new object[_varlist.Count];
+
+            _line[0] = _linecounter++;
+            _line[1] = rootChild.PersonIdentifier;
+
+            _line[2] = rootChild.Element;
+            if (rootChild.TimeStamp.Year == 1)
+                _line[3] = StataLib.StataMissingValues._empty;
+            else
+                _line[3] = Math.Round((rootChild.TimeStamp - dt1960).TotalMilliseconds, 0);
+
+            _line[4] = Math.Round(rootChild.RelativeTime.TotalMilliseconds, 0);
+            _line[5] = rootChild.EventID;
+            _line[6] = rootChild.ParentEventID;
+            _line[7] = rootChild.Path;
+            _line[8] = rootChild.ParentPath;
+            _line[9] = rootChild.EventName;
+
+            for (int j = 0; j < _colnames.Count; j++)
+            {
+                string _colname = _colnames[j];
+                string _id = uniqueValuesLookup["Path"][rootChild.Path];
+
+                if (logDataTableColnames[_id].Contains(_colname))
+                {
+                    int _i = logDataTableColnames[_id].IndexOf(_colname);
+                    int _value = -1;
+                    foreach (var p in rootChild.AttributValues)
+                    {
+                        if (p.Item1 == _i)
+                        {
+                            _value = p.Item2;
+                            break;
+                        }
+                    }
+                    if (_value == -1)
+                    {
+                        if (_varlist[10 + j].VarType == StataVariable.StataVarType.String || _varlist[10 + j].VarType == StataVariable.StataVarType.FixedString)
+                            _line[10 + j] = _attributeNotExpected;
+                        else if (_varlist[10 + j].VarType == StataVariable.StataVarType.Int || _varlist[10 + j].VarType == StataVariable.StataVarType.Long || _varlist[10 + j].VarType == StataVariable.StataVarType.Byte)
+                        {
+                            _line[10 + j] = _value;
+                        }
+                    }
+                    else
+                    {
+                        _line[10 + j] = _value;
+                    }
+                }
+                else
+                {
+                    if (_varlist[10 + j].VarType == StataVariable.StataVarType.String || _varlist[10 + j].VarType == StataVariable.StataVarType.FixedString)
+                        _line[10 + j] = _attributeNotDefinded;
+                    else if (_varlist[10 + j].VarType == StataVariable.StataVarType.Int || _varlist[10 + j].VarType == StataVariable.StataVarType.Long || _varlist[10 + j].VarType == StataVariable.StataVarType.Byte)
+                    {
+                        _line[10 + j] = -2;
+                    }
+                }
+            }
+
+            _dtaFile.AppendDataLine(_line);
+
+            foreach (var child in rootChild.ChildEvents)
+            {
+                _linecounter = dtaFlatExportEvent(_attributeNotDefinded, _attributeNotExpected, dt1960, _varlist, _colnames, _dtaFile, _linecounter, child);
+            }
+
+            return _linecounter;
+        }
 
         public void ExportSPSS(CommandLineArguments ParsedCommandLineArguments)
         {
@@ -1012,81 +1028,19 @@ namespace LogFSM_LogX2019
                     string _dataSetName = CodebookDictionary.GetMetaData("StudyName", "", _language);
                     var options = new SpssLib.DataReader.SpssOptions();
 
-                    int _linecounter = 0;
+                    
                     using (FileStream fileStream = new FileStream(_tmpfile, FileMode.Create, FileAccess.Write))
                     {
                         using (var writer = new SpssLib.DataReader.SpssWriter(fileStream, _varlist, options))
                         {
-                            foreach (string _id in logDataTables.Keys)
+                            int _linecounter = 0;
+                            for (int i = 0; i < logDataTables[rootLogName].Count; i++)
                             {
-                                if (_id != rootLogName)
-                                {
-                                    foreach (var v in logDataTables[_id])
-                                    {
-                                        var _line = writer.CreateRecord();
-                                        _line[0] = (double)_linecounter;
-                                        _line[1] = (double)v.PersonIdentifier;
-
-                                        _line[2] = (double)v.Element;
-                                        if (v.TimeStamp.Year == 1)
-                                        {
-                                            _line[3] = (double)-1;
-                                        }
-                                        else
-                                        {
-                                            _line[3] = (double)Math.Round((v.TimeStamp - dt1960).TotalMilliseconds, 0);
-                                        }
-                                        _line[4] = (double)(Math.Round(v.RelativeTime.TotalMilliseconds, 0));
-                                        _line[5] = (double)v.EventID;
-                                        _line[6] = (double)v.ParentEventID;
-                                        _line[7] = (double)v.Path;
-                                        _line[8] = (double)v.ParentPath;
-                                        _line[9] = (double)v.EventName;
-
-                                        for (int i = 0; i < _colnames.Count; i++)
-                                        {
-                                            string _colname = _colnames[i];
-                                            if (logDataTableColnames[_id].Contains(_colname))
-                                            {
-                                                int _i = logDataTableColnames[_id].IndexOf(_colname);
-                                                int _value = -1;
-                                                foreach (var p in v.AttributValues)
-                                                {
-                                                    if (p.Item1 == _i)
-                                                    {
-                                                        _value = p.Item2;
-                                                        break;
-                                                    }
-                                                }
-                                                if (_value == -1)
-                                                {
-                                                    if (_varlist[10 + i].Type ==  SpssLib.SpssDataset.DataType.Text)
-                                                        _line[10 + i] = _attributeNotExpected;
-                                                    else if (_varlist[10 + i].Type== SpssLib.SpssDataset.DataType.Numeric)
-                                                        _line[10 + i] = (double)_value;
-                                                }
-                                                else
-                                                {
-                                                    _line[10 + i] = (double)_value;
-                                                }
-                                            }
-                                            else
-                                            { 
-                                                if (_varlist[10 + i].Type == SpssLib.SpssDataset.DataType.Text)
-                                                    _line[10 + i] = _attributeNotDefinded;
-                                                else if (_varlist[10 + i].Type == SpssLib.SpssDataset.DataType.Numeric)
-                                                    _line[10 + i] = (double)-2;
-                                               
-                                            }
-                                        }
-
-                                        writer.WriteRecord(_line);
-                                        _linecounter++;
-                                    }
+                                foreach (var rootChild in logDataTables[rootLogName][i].ChildEvents)
+                                {                                   
+                                    _linecounter = savFlatExportEvent(_attributeNotDefinded, _attributeNotExpected, dt1960, _varlist, _colnames, writer, _linecounter, rootChild);
                                 }
-                            }
-
-                            
+                            }                                                        
                         }
                     }
                     zip.AddFile(_tmpfile).FileName = "FlatAndSparseLogDataTable.sav";
@@ -1191,7 +1145,77 @@ namespace LogFSM_LogX2019
                 zip.Save(filename);
             }
         }
- 
+
+        private int savFlatExportEvent(string _attributeNotDefinded, string _attributeNotExpected, DateTime dt1960, List<Variable> _varlist, List<string> _colnames, SpssWriter writer, int _linecounter, logxLogDataRow rootChild)
+        {
+            var _line = writer.CreateRecord();
+            _line[0] = (double)_linecounter++;
+            _line[1] = (double)rootChild.PersonIdentifier;
+
+            _line[2] = (double)rootChild.Element;
+            if (rootChild.TimeStamp.Year == 1)
+            {
+                _line[3] = (double)-1;
+            }
+            else
+            {
+                _line[3] = (double)Math.Round((rootChild.TimeStamp - dt1960).TotalMilliseconds, 0);
+            }
+            _line[4] = (double)(Math.Round(rootChild.RelativeTime.TotalMilliseconds, 0));
+            _line[5] = (double)rootChild.EventID;
+            _line[6] = (double)rootChild.ParentEventID;
+            _line[7] = (double)rootChild.Path;
+            _line[8] = (double)rootChild.ParentPath;
+            _line[9] = (double)rootChild.EventName;
+
+            string _id = uniqueValuesLookup["Path"][rootChild.Path];
+            for (int j = 0; j < _colnames.Count; j++)
+            {
+                string _colname = _colnames[j];
+                if (logDataTableColnames[_id].Contains(_colname))
+                {
+                    int _i = logDataTableColnames[_id].IndexOf(_colname);
+                    int _value = -1;
+                    foreach (var p in rootChild.AttributValues)
+                    {
+                        if (p.Item1 == _i)
+                        {
+                            _value = p.Item2;
+                            break;
+                        }
+                    }
+                    if (_value == -1)
+                    {
+                        if (_varlist[10 + j].Type == SpssLib.SpssDataset.DataType.Text)
+                            _line[10 + j] = _attributeNotExpected;
+                        else if (_varlist[10 + j].Type == SpssLib.SpssDataset.DataType.Numeric)
+                            _line[10 + j] = (double)_value;
+                    }
+                    else
+                    {
+                        _line[10 + j] = (double)_value;
+                    }
+                }
+                else
+                {
+                    if (_varlist[10 + j].Type == SpssLib.SpssDataset.DataType.Text)
+                        _line[10 + j] = _attributeNotDefinded;
+                    else if (_varlist[10 + j].Type == SpssLib.SpssDataset.DataType.Numeric)
+                        _line[10 + j] = (double)-2;
+
+                }
+            }
+
+            writer.WriteRecord(_line);
+
+            foreach (var child in rootChild.ChildEvents)
+            {
+                _linecounter = savFlatExportEvent(_attributeNotDefinded, _attributeNotExpected, dt1960, _varlist, _colnames, writer, _linecounter, child); ;
+            }
+
+            return _linecounter;
+        }
+
         public void ExportCSV(CommandLineArguments ParsedCommandLineArguments)
         {
             string filename = ParsedCommandLineArguments.Transform_OutputZCSV;
@@ -1319,62 +1343,13 @@ namespace LogFSM_LogX2019
                         sw.WriteLine();
 
                         int _linecounter = 0;
-                        foreach (string _id in logDataTables.Keys)
+                        for (int i=0; i< logDataTables[rootLogName].Count; i++)
                         {
-                            if (_id != rootLogName)
+                            foreach (var rootChild in logDataTables[rootLogName][i].ChildEvents)
                             {
-                                foreach (var v in logDataTables[_id])
-                                {
-                                    sw.Write(_linecounter);
-                                    if (PersonIdentifierIsNumber)
-                                        sw.Write(_sep + StringToCSVCell(v.PersonIdentifier.ToString()));
-                                    else
-                                        sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["PersonIdentifier"][(int)v.PersonIdentifier]));
-
-                                    sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["Element"][v.Element]));
-                                    sw.Write(_sep + StringToCSVCell(v.TimeStamp.ToString(_outputTimeStampFormatString)));
-
-                                    if (_outputRelativeTimeFormatString.Trim() == "")
-                                        sw.Write(_sep + StringToCSVCell(Math.Round(v.RelativeTime.TotalMilliseconds, 0).ToString()));
-                                    else
-                                        sw.Write(_sep + StringToCSVCell(v.RelativeTime.ToString(_outputRelativeTimeFormatString)));
-                                    
-                                    sw.Write(_sep + StringToCSVCell(v.EventID.ToString()));
-                                    sw.Write(_sep + StringToCSVCell(v.ParentEventID.ToString()));
-                                    sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["Path"][v.Path]));
-                                    sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["ParentPath"][v.ParentPath]));
-
-                                    sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["EventName"][v.EventName]));
-
-                                    foreach (var _colname in _colnames)
-                                    {
-                                        if (logDataTableColnames[_id].Contains(_colname))
-                                        {
-                                            int _i = logDataTableColnames[_id].IndexOf(_colname);
-                                            int _value = -1;
-                                            foreach (var p in v.AttributValues)
-                                            {
-                                                if (p.Item1 == _i)
-                                                {
-                                                    _value = p.Item2;
-                                                    break;
-                                                }
-                                            }
-                                            if (_value == -1)
-                                                sw.Write(_sep + StringToCSVCell(_attributeNotDefinded));
-                                            else
-                                                sw.Write(_sep + StringToCSVCell(uniqueValuesLookup[logDataTableColnames[_id][_i]][_value]));
-                                        }
-                                        else
-                                            sw.Write(_sep + StringToCSVCell(_attributeNotExpected));
-                                    }
-
-                                    _linecounter++;
-                                    sw.WriteLine();
-                                }
+                                _linecounter = csvFlatExportEvent(_outputTimeStampFormatString, _outputRelativeTimeFormatString, _attributeNotDefinded, _attributeNotExpected, _sep, sw, _colnames, _linecounter, rootChild);                                
                             }
-                        }
-
+                        }                         
                     }
 
                     zip.AddFile(_tmpFlatFile).FileName = "FlatAndSparseLogDataTable.csv";
@@ -1448,6 +1423,64 @@ namespace LogFSM_LogX2019
                 zip.Save(filename);
             }
         }
+
+        private int csvFlatExportEvent(string _outputTimeStampFormatString, string _outputRelativeTimeFormatString, string _attributeNotDefinded, string _attributeNotExpected, string _sep, StreamWriter sw, List<string> _colnames, int _linecounter, logxLogDataRow rootChild)
+        { 
+            sw.Write(_linecounter++);
+
+            if (PersonIdentifierIsNumber)
+                sw.Write(_sep + StringToCSVCell(rootChild.PersonIdentifier.ToString()));
+            else
+                sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["PersonIdentifier"][(int)rootChild.PersonIdentifier]));
+
+            sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["Element"][rootChild.Element]));
+            sw.Write(_sep + StringToCSVCell(rootChild.TimeStamp.ToString(_outputTimeStampFormatString)));
+
+            if (_outputRelativeTimeFormatString.Trim() == "")
+                sw.Write(_sep + StringToCSVCell(Math.Round(rootChild.RelativeTime.TotalMilliseconds, 0).ToString()));
+            else
+                sw.Write(_sep + StringToCSVCell(rootChild.RelativeTime.ToString(_outputRelativeTimeFormatString)));
+
+            sw.Write(_sep + StringToCSVCell(rootChild.EventID.ToString()));
+            sw.Write(_sep + StringToCSVCell(rootChild.ParentEventID.ToString()));
+            sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["Path"][rootChild.Path]));
+            sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["ParentPath"][rootChild.ParentPath])); 
+            sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["EventName"][rootChild.EventName]));
+             
+            string _id = uniqueValuesLookup["Path"][rootChild.Path];
+            foreach (var _colname in _colnames)
+            {
+                if (logDataTableColnames[_id].Contains(_colname))
+                {
+                    int _i = logDataTableColnames[_id].IndexOf(_colname);
+                    int _value = -1;
+                    foreach (var p in rootChild.AttributValues)
+                    {
+                        if (p.Item1 == _i)
+                        {
+                            _value = p.Item2;
+                            break;
+                        }
+                    }
+                    if (_value == -1)
+                        sw.Write(_sep + StringToCSVCell(_attributeNotDefinded));
+                    else
+                        sw.Write(_sep + StringToCSVCell(uniqueValuesLookup[logDataTableColnames[_id][_i]][_value]));
+                }
+                else
+                    sw.Write(_sep + StringToCSVCell(_attributeNotExpected));
+            }
+            sw.WriteLine();
+
+
+            foreach (var child in rootChild.ChildEvents)
+            {
+                _linecounter = csvFlatExportEvent(_outputTimeStampFormatString, _outputRelativeTimeFormatString, _attributeNotDefinded, _attributeNotExpected, _sep, sw, _colnames, _linecounter, child);
+            }
+
+            return _linecounter;
+        }
+         
 
         public void ExportXLSX(CommandLineArguments ParsedCommandLineArguments)
         {
@@ -2360,6 +2393,8 @@ namespace LogFSM_LogX2019
         public int ParentPath { get; set; }
         public int EventName { get; set; }
         public List<Tuple<int, int>> AttributValues { get; set; }
+
+        public List<logxLogDataRow> ChildEvents { get; set; } 
     }
 
     public class logxGenericResultElement

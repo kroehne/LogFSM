@@ -26,13 +26,4 @@ setPathVariable <-  function(pkgname){
 
   logFSMworkerPathAndExecutable <<- file.path(logFSMworkerPath, logFSMWorkerFile)
 
-#  if(!file.exists(logFSMworkerPathAndExecutable)) {
-#    stop(paste0("The binary worker '",logFSMworkerPathAndExecutable,"' was not found at '",logFSMworkerPath,"'. \nPackage will not work."))
-#  }
-#
-#  logFSMWorkerTest <- system(paste0("\"",logFSMworkerPathAndExecutable,"\""," \"?job=info\""),intern=TRUE)
-#  if (substr(logFSMWorkerTest,1,2) != "OK"){
-#    stop(paste0("Package loading failed. ", logFSMWorkerTest))
-#  }
-
 }

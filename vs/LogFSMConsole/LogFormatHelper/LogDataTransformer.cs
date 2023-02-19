@@ -95,6 +95,15 @@ namespace LogFSMConsole
 
                 LogDataTransformer_PISA_CA_V01.LogDataTransformer_PISACA_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
             }
+            else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_timsst19zip01a)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                Console.WriteLine("Module: Transform 'TIMSS T19'.");
+                Console.ResetColor();
+
+                LogDataTransformer_TIMSSeT19_V01.LogDataTransformer_TIMSSeT19_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
+            }
+           
 
             else
             {
@@ -105,6 +114,7 @@ namespace LogFSMConsole
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_irtlib01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_ibfirebase01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_taopci01a + "', '" +
+                    CommandLineArguments._CMDA_JOB_TRANSFORM_input_timsst19zip01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01b + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01c + "' or '" + 

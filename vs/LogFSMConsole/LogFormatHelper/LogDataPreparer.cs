@@ -18,6 +18,7 @@ using LogDataTransformer_PIAAC_R1_V01;
 using CsvHelper;
 using NPOI.SS.Formula.Functions;
 using CsvHelper.Configuration;
+using NPOI.POIFS.FileSystem;
 #endregion
 
 
@@ -158,7 +159,25 @@ namespace LogFSMConsole
                                         _inMemoryTempDataEvents = EventDataListExtension.SortByTimeStamp(_inMemoryTempDataEvents, sort);
                                         _inMemoryTempDataEvents.ComputeTimedifferencePrevious();
                                     }
-                                     
+
+                                    if (outputZipFile.ContainsEntry(_personIdentifier + ".json"))
+                                    {
+                                        // FSLDT was not sorted  
+
+                                        outputZipFile.Save(OutFileName);
+
+                                        string _tmpPath = Path.GetTempPath();
+                                        outputZipFile.ExtractSelectedEntries(_personIdentifier + ".json", "", _tmpPath, ExtractExistingFileAction.OverwriteSilently);
+                                        outputZipFile.RemoveEntry(_personIdentifier + ".json");
+                                          
+                                        var _exitingEvents = JsonConvert.DeserializeObject<List<EventData>>(File.ReadAllText(Path.Combine(_tmpPath, _personIdentifier + ".json")));
+                                        foreach (EventData _event in _exitingEvents)
+                                            _inMemoryTempDataEvents.Add(_event);
+                                           
+                                        File.Delete(Path.Combine(_tmpPath, _personIdentifier + ".json"));                                        
+                                    }
+                                    _inMemoryTempDataEvents.Sort((x, y) => x.TimeStamp.CompareTo(y.TimeStamp));
+
                                     outputZipFile.AddEntry(_personIdentifier + ".json", JsonConvert.SerializeObject(_inMemoryTempDataEvents, Newtonsoft.Json.Formatting.Indented));
                                     _inMemoryTempDataEvents = new List<EventData>();
 
@@ -190,7 +209,7 @@ namespace LogFSMConsole
                                     e.RelativeTime = _relativeTime;
                                 }
                                 else
-                                {
+                                { 
                                     if (!DateTime.TryParseExact(row[_timeStampColumnName].ToString(), _timeStampFormatString, provider, DateTimeStyles.None, out _timeStamp))
                                         Console.WriteLine("Date time format error for time stamp (value '" + row[_timeStampColumnName].ToString() + "' does not match the format string '" + _timeStampFormatString + "' provided as argument for  'timestampformatstring')");
 
@@ -522,13 +541,9 @@ namespace LogFSMConsole
                                             TimeStamp = _timeStamp,
                                             EventValues = _eventValues
                                         });
-                                    }
-                                   
-
-                                }
-
-                            }
-
+                                    } 
+                                } 
+                            } 
                         }
 
                         if (Verbose)
