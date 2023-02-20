@@ -17,9 +17,9 @@ using System.Xml.Serialization;
 using NPOI.SS.Formula.Functions;
 #endregion
 
-namespace LogDataTransformer_PISA_BQ_V01
+namespace LogDataTransformer_PISA15to22BQ_Module_V01
 {
-    public class LogDataTransformer_PISABQ_Module_V01
+    public class LogDataTransformer_PISA15to22BQ_Module_V01
     {
         public static void ProcessLogFilesOnly(Stopwatch Watch, CommandLineArguments ParsedCommandLineArguments)
         {

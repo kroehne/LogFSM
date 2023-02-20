@@ -495,6 +495,9 @@ namespace LogDataTransformer_IRTlibPlayer_V01
                                                             }
 
                                                         }
+                                                        else if (entry.FileName.StartsWith("Monitoring"))
+                                                        {
+                                                        }
                                                         else
                                                         {
                                                             Console.WriteLine("Unknown file type (file: '" + entry.FileName + "' in archive: '" + zip.Name + "'");

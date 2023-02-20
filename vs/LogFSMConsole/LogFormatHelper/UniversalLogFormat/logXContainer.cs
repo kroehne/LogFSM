@@ -20,6 +20,7 @@ using System.Dynamic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Xml.Linq;
 using static NPOI.HSSF.Util.HSSFColor;
@@ -237,6 +238,8 @@ namespace LogFSM_LogX2019
 
             TimeSpan _relativeTimeSpan = RelativeTimesAreSeconds ? TimeSpan.FromSeconds(element.RelativeTime) : TimeSpan.FromMilliseconds(element.RelativeTime);
 
+            
+
             logxLogDataRow rootParentLine = new logxLogDataRow()
             {
                 PersonIdentifier = _personIdentifier,
@@ -429,14 +432,14 @@ namespace LogFSM_LogX2019
                     if (PersonIdentifierIsNumber)
                         _varlist.Add(new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", _language) });
                     else
-                        _varlist.Add(new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", _language), ValueLabelName = "l_" + "PersonIdentifier" });
+                        _varlist.Add(new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", _language), ValueLabelName = "l_" + "PersonIdentifier" });
 
                     _varlist.Add(new StataVariable() { Name = "Element", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("Element", _language), ValueLabelName = "l_" + "Element" });
                     _varlist.Add(new StataVariable() { Name = "TimeStamp", VarType = StataVariable.StataVarType.Double, DisplayFormat = @"%tcMonth_dd,_CCYY_HH:MM:SS.sss", Description = CodebookDictionary.GetColumnNameDescription("TimeStamp", _language) , ValueLabelName = "l_" + "Timestamp" });
                     _varlist.Add(new StataVariable() { Name = "RelativeTime", VarType = StataVariable.StataVarType.Double, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("RelativeTime", _language), ValueLabelName = "l_" + "RelativeTime" });
 
-                    _varlist.Add(new StataVariable() { Name = "EventID", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("EventID", _language) });
-                    _varlist.Add(new StataVariable() { Name = "ParentEventID", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("ParentEventID", _language), ValueLabelName = "l_" + "ParentEventID" });
+                    _varlist.Add(new StataVariable() { Name = "EventID", VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("EventID", _language) });
+                    _varlist.Add(new StataVariable() { Name = "ParentEventID", VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("ParentEventID", _language), ValueLabelName = "l_" + "ParentEventID" });
                     _varlist.Add(new StataVariable() { Name = "Path", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%40.0g", Description = CodebookDictionary.GetColumnNameDescription("Path", _language), ValueLabelName = "l_" + "Path" });
                     _varlist.Add(new StataVariable() { Name = "ParentPath", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%40.0g", Description = CodebookDictionary.GetColumnNameDescription("ParentPath", _language), ValueLabelName = "l_" + "ParentPath" });
                     _varlist.Add(new StataVariable() { Name = "EventName", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("EventName", _language), ValueLabelName = "l_" + "EventName" });
@@ -527,7 +530,9 @@ namespace LogFSM_LogX2019
 
                             }
                         }
+
                         _dtaFile.AppendDataLine(_line);
+
                         _linecounter++;
                     }
                      
@@ -575,14 +580,14 @@ namespace LogFSM_LogX2019
                     if (PersonIdentifierIsNumber)
                         _varlist.Add(new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", _language) });
                     else
-                        _varlist.Add(new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", _language), ValueLabelName = "l_" + "PersonIdentifier" });
+                        _varlist.Add(new StataVariable() { Name = PersonIdentifierName, VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("PersonIdentifier", _language), ValueLabelName = "l_" + "PersonIdentifier" });
 
                     _varlist.Add(new StataVariable() { Name = "Element", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("Element", _language), ValueLabelName = "l_" + "Element" });
                     _varlist.Add(new StataVariable() { Name = "TimeStamp", VarType = StataVariable.StataVarType.Double, DisplayFormat = @"%tcMonth_dd,_CCYY_HH:MM:SS.sss", Description = CodebookDictionary.GetColumnNameDescription("TimeStamp", _language), ValueLabelName = "l_" + "Timestamp" });
                     _varlist.Add(new StataVariable() { Name = "RelativeTime", VarType = StataVariable.StataVarType.Double, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("RelativeTime", _language), ValueLabelName = "l_" + "RelativeTime" });
 
-                    _varlist.Add(new StataVariable() { Name = "EventID", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("EventID", _language) });
-                    _varlist.Add(new StataVariable() { Name = "ParentEventID", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("ParentEventID", _language), ValueLabelName = "l_" + "ParentEventID" });
+                    _varlist.Add(new StataVariable() { Name = "EventID", VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("EventID", _language) });
+                    _varlist.Add(new StataVariable() { Name = "ParentEventID", VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("ParentEventID", _language), ValueLabelName = "l_" + "ParentEventID" });
                     _varlist.Add(new StataVariable() { Name = "Path", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%40.0g", Description = CodebookDictionary.GetColumnNameDescription("Path", _language), ValueLabelName = "l_" + "Path" });
                     _varlist.Add(new StataVariable() { Name = "ParentPath", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%40.0g", Description = CodebookDictionary.GetColumnNameDescription("ParentPath", _language), ValueLabelName = "l_" + "ParentPath" });
                     _varlist.Add(new StataVariable() { Name = "EventName", VarType = StataVariable.StataVarType.Int, DisplayFormat = @"%20.0g", Description = CodebookDictionary.GetColumnNameDescription("EventName", _language), ValueLabelName = "l_" + "EventName" });
@@ -2302,7 +2307,7 @@ namespace LogFSM_LogX2019
         public static void ExportLogXContainerData(CommandLineArguments ParsedCommandLineArguments, logXContainer _ret)
         {
             bool _skipRelativeTimeUpdate = false; 
-            if (ParsedCommandLineArguments.Flags.Contains("SKIPRELATIVETIMEUPDATE"))
+            if (ParsedCommandLineArguments.Flags.Contains("SKIPRELATIVETIMEUPDATE")  || ParsedCommandLineArguments.RelativeTime)
                 _skipRelativeTimeUpdate = true;
 
             if (!_skipRelativeTimeUpdate)

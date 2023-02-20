@@ -215,7 +215,12 @@ namespace LogFSMConsole
         /// 
         /// </summary>
         public const string _CMDA_JOB_TRANSFORM_input_pisabqzip01c = "pisabqzip01c";
-         
+
+        /// <summary>
+        /// PISA 2012 (OECD Download)
+        /// </summary>
+        public const string _CMDA_JOB_TRANSFORM_input_pisa2012zip01a = "pisa2012zip01a";
+                 
         /// <summary>
         /// 
         /// </summary>
@@ -225,9 +230,7 @@ namespace LogFSMConsole
         /// 
         /// </summary>
         public const string _CMDA_JOB_TRANSFORM_input_piaacldazip01a = "piaacldazip01a";
-
-        
-
+         
         /// <summary>
         /// 
         /// </summary>
@@ -847,6 +850,15 @@ namespace LogFSMConsole
                 return (DataFileType.Trim().ToLower() == _CMDA_JOB_TRANSFORM_input_timsst19zip01a && ZIPFileName.Trim() != "");
             }
         }
+
+        public bool DataFileTypeIsPISA12ZipVersion01A
+        {
+            get
+            {
+                return (DataFileType.Trim().ToLower() == _CMDA_JOB_TRANSFORM_input_pisa2012zip01a && ZIPFileName.Trim() != "");
+            }
+        }
+        
 
         public CommandLineArguments(string[] args, string Application, string Version)
         {

@@ -179,7 +179,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                     {
                         _element = "(plattform: " + _cbaVers + ")";
                     }
-                     
+
                     if (entry.Type == "TasksViewVisible")
                     {
                         #region TasksViewVisible
@@ -464,7 +464,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
                             indexPath = entry.Details["indexPath"].ToString(),
-                            userDefId = entry.Details["userDefId"].ToString(),                             
+                            userDefId = entry.Details["userDefId"].ToString(),
                             oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
@@ -1169,7 +1169,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         #endregion
                     }
                     else if (entry.Type == "RichText" || entry.Type == "RichTextField") // Note: "RichTextField" is outdated
-                    { 
+                    {
                         #region RichText 
                         RichText details = new RichText()
                         {
@@ -1835,7 +1835,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         #endregion
                     }
                     else if (entry.Type == "Snapshot")
-                    { 
+                    {
                         #region SnapshotData
                         SnapshotData details = new SnapshotData()
                         {
@@ -1850,7 +1850,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaName = _pageAreaName,
                             Page = _page,
                             PageAreaType = _pageAreaType,
-                             
+
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1858,10 +1858,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         details.snapShot = entry.Details.ToString();
-                         
+
                         _ret.Add(details);
                         #endregion
-                        
+
 
                         //
                         // TODO: Implement with example data (or ignore!?)
@@ -1905,12 +1905,18 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                     else if (entry.Type == "PauseResume")
                     {
                         #region PauseResume
-                       
-                        #endregion 
+                        // TODO: Implement with example data
+                        #endregion
+                    }
+                    else if (entry.Type == "GridArea")
+                    {
+                        #region GridArea
+                        // TODO: Implement with example data
+                        #endregion
                     }
                     else
                     {
-
+                        Console.WriteLine(entry.Type);
                     }
                 }
             }

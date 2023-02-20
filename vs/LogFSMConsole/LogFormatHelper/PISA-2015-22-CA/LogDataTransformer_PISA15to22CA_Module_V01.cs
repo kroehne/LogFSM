@@ -22,9 +22,9 @@ using static NPOI.POIFS.Crypt.CryptoFunctions;
 using HtmlAgilityPack;
 #endregion
 
-namespace LogDataTransformer_PISA_CA_V01
+namespace LogDataTransformer_PISA15to22CA_Module_V01
 {
-    public class LogDataTransformer_PISACA_Module_V01
+    public class LogDataTransformer_PISA15to22CA_Module_V01
     {
         public static void ProcessLogFilesOnly(Stopwatch Watch, CommandLineArguments ParsedCommandLineArguments)
         {

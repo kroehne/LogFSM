@@ -85,7 +85,7 @@ namespace LogFSMConsole
                 Console.WriteLine("Module: Transform 'PISA Background Questionnaire' (2015 / 2018, data form session2-zip files).");
                 Console.ResetColor();
 
-                LogDataTransformer_PISA_BQ_V01.LogDataTransformer_PISABQ_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
+                LogDataTransformer_PISA15to22BQ_Module_V01.LogDataTransformer_PISA15to22BQ_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
             }
             else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisacazip01a)
             {
@@ -93,7 +93,7 @@ namespace LogFSMConsole
                 Console.WriteLine("Module: Transform 'PISA Cognitive Assessment' (2015 / 2018, data form session1-zip files).");
                 Console.ResetColor();
 
-                LogDataTransformer_PISA_CA_V01.LogDataTransformer_PISACA_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
+                LogDataTransformer_PISA15to22CA_Module_V01.LogDataTransformer_PISA15to22CA_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
             }
             else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_timsst19zip01a)
             {
@@ -103,7 +103,15 @@ namespace LogFSMConsole
 
                 LogDataTransformer_TIMSSeT19_V01.LogDataTransformer_TIMSSeT19_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
             }
-           
+            else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisa2012zip01a)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                Console.WriteLine("Module: Transform 'PISA Log Data 2012' (zip archives with SPSS files downloaded from OECD).");
+                Console.ResetColor();
+        
+                LogDataTransformer_PISA12CA_Module_V01.LogDataTransformer_PISA12CA_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
+            }
+
 
             else
             {
@@ -115,6 +123,7 @@ namespace LogFSMConsole
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_ibfirebase01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_taopci01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_timsst19zip01a + "', '" +
+                    CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisa2012zip01a + "', '" + 
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01b + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01c + "' or '" + 
