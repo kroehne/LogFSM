@@ -116,7 +116,11 @@ namespace LogDataTransformer_IRTlibPlayer_V01
                 string _personIdentifierColumnName = "PersonIdentifier";
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("personidentifier"))
                     _personIdentifierColumnName = ParsedCommandLineArguments.ParameterDictionary["personidentifier"];
-                 
+
+                bool _checkEventAttrbibutes = false;
+                if (ParsedCommandLineArguments.Flags.Contains("CHECKEVENTATTRIBUTES"))
+                    _checkEventAttrbibutes = true;
+
                 double _utcoffset = 0;
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("utcoffset"))
                     _utcoffset = double.Parse(ParsedCommandLineArguments.ParameterDictionary["utcoffset"]);
@@ -266,7 +270,7 @@ namespace LogDataTransformer_IRTlibPlayer_V01
                                                             try
                                                             {
 
-                                                                List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(_json, "IRTlibPlayer_V01");
+                                                                List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(_json, "IRTlibPlayer_V01", _checkEventAttrbibutes);
 
                                                                 // TODO: Add flag to extract full name (project.task) vs. short name (project)
 

@@ -57,7 +57,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
             return _ret;
         }
 
-        public static List<Log_IB_8_12__8_13> ParseLogElements(string line, string source)
+        public static List<Log_IB_8_12__8_13> ParseLogElements(string line, string source, bool check)
         {
             List<Log_IB_8_12__8_13> _ret = new List<Log_IB_8_12__8_13>();
 
@@ -208,7 +208,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                             if (_s.Contains("AllowScoreDebugging"))
                                 details.AllowScoreDebugging = bool.Parse(_s["AllowScoreDebugging"].ToString());
-
+                            
                             if (_s.Contains("AllowFSMDebugging"))
                                 details.AllowFSMDebugging = bool.Parse(_s["AllowFSMDebugging"].ToString());
 
@@ -472,11 +472,11 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
-
                         if (entry.Details.ContainsKey("subtype"))
                             details.subtype = entry.Details["subtype"].ToString();
 
+                        RetrievedEventDetials(entry, details, check);
+                         
                         _ret.Add(details);
                         #endregion
                     }
@@ -505,7 +505,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -535,7 +535,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -565,7 +565,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -594,7 +594,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -623,18 +623,13 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
                     }
                     else if (entry.Type == "ExternalPageFrame")
-                    {
-                        if (entry.Details.Count > 9)
-                        {
-                            // TODO: Check for additional event-specific attributes
-                        }
-
+                    { 
                         #region ExternalPageFrame
                         ExternalPageFrame details = new ExternalPageFrame()
                         {
@@ -657,7 +652,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -686,7 +681,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -715,7 +710,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -746,13 +741,13 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
-
                         if (entry.Details.ContainsKey("oldSelectedUserDefId"))
                             details.oldSelectedUserDefId = entry.Details["oldSelectedUserDefId"].ToString();
                         if (entry.Details.ContainsKey("newSelectedUserDefId"))
                             details.newSelectedUserDefId = entry.Details["newSelectedUserDefId"].ToString();
 
+                        RetrievedEventDetials(entry, details, check);
+                         
                         _ret.Add(details);
                         #endregion
                     }
@@ -782,14 +777,14 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
-
                         if (entry.Details.ContainsKey("tableUserDefIdPath"))
                             details.tableUserDefIdPath = entry.Details["tableUserDefIdPath"].ToString();
                         if (entry.Details.ContainsKey("tableUserDefId"))
                             details.tableUserDefId = entry.Details["tableUserDefId"].ToString();
                         if (entry.Details.ContainsKey("oldSelected"))
                             details.oldSelected = bool.Parse(entry.Details["oldSelected"].ToString());
+
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -823,9 +818,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
-
-                        if (entry.Details.ContainsKey("tableUserDefIdPath"))
+                       if (entry.Details.ContainsKey("tableUserDefIdPath"))
                             details.tableUserDefIdPath = entry.Details["tableUserDefIdPath"].ToString();
                         if (entry.Details.ContainsKey("tableUserDefId"))
                             details.tableUserDefId = entry.Details["tableUserDefId"].ToString();
@@ -835,6 +828,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             details.newEvaluatedValue = double.Parse(entry.Details["newEvaluatedValue"].ToString());
                         if (entry.Details.ContainsKey("errorInFormula"))
                             details.errorInFormula = entry.Details["errorInFormula"].ToString();
+
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -865,7 +860,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -894,7 +889,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -924,7 +919,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -946,15 +941,17 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            currentTextValue = entry.Details["currentTextValue"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToString(), 
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
+                        if (entry.Details.ContainsKey("currentTextValue"))
+                            details.currentTextValue = entry.Details["currentTextValue"].ToString();
+
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -975,24 +972,26 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaName = _pageAreaName,
                             Page = _page,
                             PageAreaType = _pageAreaType,
-
                             indexPath = entry.Details["indexPath"].ToString(),
-                            oldTextValue = entry.Details["oldTextValue"].ToString(),
-                            newTextValue = entry.Details["newTextValue"].ToString(),
-                            origin = entry.Details["origin"].ToString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
                             SendTimestamp = _sendTimestamp
                         };
-
-                        ExtrectEventDetials(entry, details);
-
+                         
                         if (entry.Details.ContainsKey("validationPattern"))
                             details.validationPattern = entry.Details["validationPattern"].ToString();
                         if (entry.Details.ContainsKey("invalidTextValue"))
                             details.invalidTextValue = entry.Details["invalidTextValue"].ToString();
+                        if (entry.Details.ContainsKey("oldTextValue"))
+                            details.oldTextValue = entry.Details["oldTextValue"].ToString();
+                        if (entry.Details.ContainsKey("newTextValue"))
+                            details.newTextValue = entry.Details["newTextValue"].ToString();
+                        if (entry.Details.ContainsKey("origin"))
+                            details.origin = entry.Details["origin"].ToString();
 
+                        RetrievedEventDetials(entry, details, check);
+                         
                         _ret.Add(details);
                         #endregion
                     }
@@ -1021,7 +1020,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -1053,31 +1052,112 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
-
                         if (entry.Details.ContainsKey("validationPattern"))
                             details.validationPattern = entry.Details["validationPattern"].ToString();
                         if (entry.Details.ContainsKey("invalidTextValue"))
                             details.invalidTextValue = entry.Details["invalidTextValue"].ToString();
 
+                        RetrievedEventDetials(entry, details, check);
+
                         _ret.Add(details);
                         #endregion
                     }
                     else if (entry.Type == "ValueInput")
-                    {
-                        // TODO: Implement final version
+                    { 
+                        #region ValueInput
+
+                        ValueInput details = new ValueInput()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
+
+                            indexPath = entry.Details["indexPath"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
+                        };
+
+                        RetrievedEventDetials(entry, details, check);
+
+                        _ret.Add(details);
+                        #endregion                        
+                        
                     }
                     else if (entry.Type == "ValueInputFieldModified")
                     {
                         // TODO: Implement final version
+
+                        Console.WriteLine("Not implemented: " + entry.Type);
+
                     }
                     else if (entry.Type == "ScaleValueInput")
                     {
-                        // TODO: Implement final version
+                        #region ScaleValueInput
+                        ScaleValueInput details = new ScaleValueInput()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
+
+                            indexPath = entry.Details["indexPath"].ToString(), 
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
+                        };
+
+                        RetrievedEventDetials(entry, details, check);
+
+                        _ret.Add(details);
+                        #endregion 
                     }
                     else if (entry.Type == "SpinnerValueInput")
                     {
-                        // TODO: Implement final version
+                        #region SpinnerValueInput
+
+                        SpinnerValueInput details = new SpinnerValueInput()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
+
+                            indexPath = entry.Details["indexPath"].ToString(), 
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
+                        };
+  
+                        RetrievedEventDetials(entry, details, check);
+
+                        _ret.Add(details);
+                        #endregion                        
                     }
                     else if (entry.Type == "ValueDisplay")
                     {
@@ -1105,7 +1185,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -1133,7 +1213,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             LoginTimestamp = _loginTimestamp,
                             SendTimestamp = _sendTimestamp
                         };
-                        ExtrectEventDetials(entry, details);
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -1163,7 +1243,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -1193,7 +1273,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -1221,8 +1301,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             LoginTimestamp = _loginTimestamp,
                             SendTimestamp = _sendTimestamp
                         };
-
-                        // TODO 
+                         
                         if (entry.Details.ContainsKey("clientX"))
                             details.clientX = long.Parse(entry.Details["clientX"].ToString());
                         if (entry.Details.ContainsKey("clientY"))
@@ -1275,7 +1354,6 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                         _ret.Add(details);
                         #endregion
-
                     }
                     else if (entry.Type == "AudioPlayer" || entry.Type == "AudioPlayerControl")
                     {
@@ -1430,7 +1508,6 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                         _ret.Add(details);
                         #endregion
-
                     }
                     else if (entry.Type == "ScrollbarLogEntry")
                     {
@@ -1670,7 +1747,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        ExtrectEventDetials(entry, details);
+                        RetrievedEventDetials(entry, details, check);
 
                         _ret.Add(details);
                         #endregion
@@ -1738,19 +1815,125 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                         _ret.Add(details);
                         #endregion
-
                     }
                     else if (entry.Type == "CutCopyPaste")
                     {
-                        // TODO: Implement with example data
+                        #region CutCopyPaste 
+                        CutCopyPaste details = new CutCopyPaste()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
+
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
+                        };
+
+                        if (entry.Details.ContainsKey("userDefIdPath"))
+                            details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
+                        if (entry.Details.ContainsKey("indexPath"))
+                            details.indexPath = entry.Details["indexPath"].ToString();
+                        if (entry.Details.ContainsKey("userDefId"))
+                            details.userDefId = entry.Details["userDefId"].ToString();
+                        if (entry.Details.ContainsKey("triggerType"))
+                            details.triggerType = entry.Details["triggerType"].ToString();
+                        if (entry.Details.ContainsKey("triggerIndexPath"))
+                            details.triggerIndexPath = entry.Details["triggerIndexPath"].ToString();
+
+                        if (entry.Details.ContainsKey("triggerUserDefIdPath"))
+                            details.triggerUserDefIdPath = entry.Details["triggerUserDefIdPath"].ToString();
+                        if (entry.Details.ContainsKey("triggerUserDefId"))
+                            details.triggerUserDefId = entry.Details["triggerUserDefId"].ToString();
+                        if (entry.Details.ContainsKey("operation"))
+                            details.operation = entry.Details["operation"].ToString();
+                        if (entry.Details.ContainsKey("contentIndexPath"))
+                            details.contentIndexPath = entry.Details["contentIndexPath"].ToString();
+                        if (entry.Details.ContainsKey("contentUserDefIdPath"))
+                            details.contentUserDefIdPath = entry.Details["contentUserDefIdPath"].ToString();
+                        if (entry.Details.ContainsKey("contentUserDefId"))
+                            details.contentUserDefId = entry.Details["contentUserDefId"].ToString();
+                        if (entry.Details.ContainsKey("content"))
+                            details.content = entry.Details["content"].ToString();
+                        if (entry.Details.ContainsKey("isPerformed"))
+                            details.isPerformed = entry.Details["isPerformed"].ToString();
+                         
+                        RetrievedEventDetials(entry, details, check);
+
+                        _ret.Add(details);
+                        #endregion                         
                     }
                     else if (entry.Type == "Bookmark")
                     {
-                        // TODO: Implement with example data
+                        #region Bookmark 
+                        Bookmark details = new Bookmark()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
+
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
+                        };
+
+                        if (entry.Details.ContainsKey("userDefIdPath"))
+                            details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
+                        if (entry.Details.ContainsKey("indexPath"))
+                            details.indexPath = entry.Details["indexPath"].ToString();
+                        if (entry.Details.ContainsKey("userDefId"))
+                            details.userDefId = entry.Details["userDefId"].ToString();
+                        if (entry.Details.ContainsKey("triggerType"))
+                            details.triggerType = entry.Details["triggerType"].ToString();
+                        if (entry.Details.ContainsKey("triggerIndexPath"))
+                            details.triggerIndexPath = entry.Details["triggerIndexPath"].ToString();
+
+                        if (entry.Details.ContainsKey("triggerUserDefIdPath"))
+                            details.triggerUserDefIdPath = entry.Details["triggerUserDefIdPath"].ToString();
+                        if (entry.Details.ContainsKey("triggerUserDefId"))
+                            details.triggerUserDefId = entry.Details["triggerUserDefId"].ToString();
+                        if (entry.Details.ContainsKey("operation"))
+                            details.operation = entry.Details["operation"].ToString();
+                        if (entry.Details.ContainsKey("ownerIndexPath"))
+                            details.ownerIndexPath = entry.Details["ownerIndexPath"].ToString();
+                        if (entry.Details.ContainsKey("ownerUserDefIdPath"))
+                            details.ownerUserDefIdPath = entry.Details["ownerUserDefIdPath"].ToString();
+                        if (entry.Details.ContainsKey("ownerUserDefId"))
+                            details.ownerUserDefId = entry.Details["ownerUserDefId"].ToString();
+                        if (entry.Details.ContainsKey("pageName"))
+                            details.pageName = entry.Details["pageName"].ToString();
+                        if (entry.Details.ContainsKey("pageUrl"))
+                            details.pageUrl = entry.Details["pageUrl"].ToString();
+
+                        RetrievedEventDetials(entry, details, check);
+
+                        _ret.Add(details);
+                        #endregion                         
+                         
                     }
                     else if (entry.Type == "Fullscreen")
                     {
                         // TODO: Implement with example data
+
+                        Console.WriteLine("Not implemented: " + entry.Type);
                     }
                     else if (entry.Type == "ApplicationVisibility")
                     {
@@ -1836,8 +2019,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                     }
                     else if (entry.Type == "Snapshot")
                     {
-                        #region SnapshotData
-                        SnapshotData details = new SnapshotData()
+                        #region Snapshot
+                        Snapshot details = new Snapshot()
                         {
                             Element = _element,
                             EventID = int.Parse(entry.EntryId),
@@ -1860,19 +2043,15 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         details.snapShot = entry.Details.ToString();
 
                         _ret.Add(details);
-                        #endregion
-
-
-                        //
-                        // TODO: Implement with example data (or ignore!?)
+                        #endregion 
                     }
-                    else if (entry.Type == "Recommend")
+                    else if (entry.Type == "Recommend") // TODO: Implement with example data (or ignore!?)
                     {
-                        // TODO: Implement with example data
+                        Console.WriteLine("Not implemented: " + entry.Type);
                     }
-                    else if (entry.Type == "Rectangle")
+                    else if (entry.Type == "Rectangle") // TODO: Implement with example data
                     {
-                        // TODO: Implement with example data
+                        Console.WriteLine("Not implemented: " + entry.Type);
                     }
                     else if (entry.Type == "ApplicationFullScreen")
                     {
@@ -1902,21 +2081,281 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         _ret.Add(details);
                         #endregion                         
                     }
-                    else if (entry.Type == "PauseResume")
+                    else if (entry.Type == "PauseResume")   
                     {
                         #region PauseResume
-                        // TODO: Implement with example data
-                        #endregion
+                        PauseResume details = new PauseResume()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
+
+                            type = entry.Details["type"].ToString(), 
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
+                        };
+
+                        _ret.Add(details);
+                        #endregion              
                     }
                     else if (entry.Type == "GridArea")
-                    {
-                        #region GridArea
-                        // TODO: Implement with example data
+                    { 
+                        #region GridArea 
+                        GridArea details = new GridArea()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
+
+                            indexPath = entry.Details["indexPath"].ToString(), 
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
+                        };
+
+                        RetrievedEventDetials(entry, details, check);
                         #endregion
+
+                    }
+                    else if (entry.Type == "TreeNode")
+                    {
+                        #region TreeNode 
+                        TreeNode details = new TreeNode()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
+
+                            indexPath = entry.Details["indexPath"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
+                        };                         
+                        if (entry.Details.ContainsKey("operation"))
+                            details.operation = entry.Details["operation"].ToString();
+                        if (entry.Details.ContainsKey("nodeName"))
+                            details.nodeName = entry.Details["nodeName"].ToString();
+                        if (entry.Details.ContainsKey("nodeType"))
+                            details.nodeType = entry.Details["nodeType"].ToString();
+                        if (entry.Details.ContainsKey("nodePathId"))
+                            details.nodePathId = entry.Details["nodePathId"].ToString(); 
+
+                        RetrievedEventDetials(entry, details, check);
+
+                        _ret.Add(details);
+                        #endregion         
+                    }
+                    else if (entry.Type == "TreeViewNode")
+                    { 
+                        #region TreeViewNode 
+                        TreeViewNode details = new TreeViewNode()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
+
+                            indexPath = entry.Details["indexPath"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
+                        };
+                          
+                        if (entry.Details.ContainsKey("operation"))
+                            details.operation = entry.Details["operation"].ToString();
+                        if (entry.Details.ContainsKey("oldValue"))
+                            details.oldValue = entry.Details["oldValue"].ToString();
+                        if (entry.Details.ContainsKey("newValue"))
+                            details.newValue = entry.Details["newValue"].ToString();
+                        if (entry.Details.ContainsKey("columnName"))
+                            details.columnName = entry.Details["columnName"].ToString(); 
+                        if (entry.Details.ContainsKey("nodeName"))
+                            details.nodeName = entry.Details["nodeName"].ToString();
+                        if (entry.Details.ContainsKey("nodeType"))
+                            details.nodeType = entry.Details["nodeType"].ToString();
+                        if (entry.Details.ContainsKey("nodePathId"))
+                            details.nodePathId = entry.Details["nodePathId"].ToString();
+                        if (entry.Details.ContainsKey("triggeredEvent"))
+                            details.triggeredEvent = entry.Details["triggeredEvent"].ToString();
+                         
+                        RetrievedEventDetials(entry, details, check);
+
+                        _ret.Add(details);
+                        #endregion                             
+                    }
+                    else if (entry.Type == "TreeViewSort")
+                    { 
+                        #region TreeViewSort 
+                        TreeViewSort details = new TreeViewSort()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
+
+                            indexPath = entry.Details["indexPath"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
+                        };
+                          
+                        if (entry.Details.ContainsKey("sortDirection"))
+                            details.sortDirection = entry.Details["sortDirection"].ToString(); 
+
+                        RetrievedEventDetials(entry, details, check);
+
+                        _ret.Add(details);
+                        #endregion                    
+                    }
+                    else if (entry.Type == "TreeChildArea")
+                    { 
+                        #region TreeChildArea 
+                        TreeChildArea details = new TreeChildArea()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
+
+                            indexPath = entry.Details["indexPath"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
+                        };
+ 
+                        RetrievedEventDetials(entry, details, check);
+
+                        _ret.Add(details);
+                        #endregion     
+                    }
+                    else if (entry.Type == "ListItem")
+                    {
+                        #region ListItem 
+                        ListItem details = new ListItem()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
+
+                            indexPath = entry.Details["indexPath"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
+                        };
+
+                        if (entry.Details.ContainsKey("newSelected"))
+                            details.newSelected = entry.Details["newSelected"].ToString();
+                        if (entry.Details.ContainsKey("newSelectedUserDefId"))
+                            details.newSelectedUserDefId = entry.Details["newSelectedUserDefId"].ToString();
+                        if (entry.Details.ContainsKey("oldSelected"))
+                            details.oldSelected = entry.Details["oldSelected"].ToString();
+                        if (entry.Details.ContainsKey("oldSelectedUserDefId"))
+                            details.oldSelectedUserDefId = entry.Details["oldSelectedUserDefId"].ToString();
+
+                        RetrievedEventDetials(entry, details, check);
+
+                        _ret.Add(details);
+                        #endregion     
+                         
+                    }
+                    else if (entry.Type == "ValueInputModified")
+                    {
+                        #region ValueInputModified 
+                        ValueInputModified details = new ValueInputModified()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
+
+                            indexPath = entry.Details["indexPath"].ToString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
+                        };
+
+                        if (entry.Details.ContainsKey("newValue"))
+                            details.newValue = entry.Details["newValue"].ToString();
+                        else
+                            details.newValue = "";
+
+                        RetrievedEventDetials(entry, details, check);
+                         
+                        _ret.Add(details);
+                        #endregion    
                     }
                     else
                     {
-                        Console.WriteLine(entry.Type);
+                        Console.WriteLine("Not implemented: " + entry.Type);
                     }
                 }
             }
@@ -1925,12 +2364,15 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
             return _ret;
         }
 
-        private static void ExtrectEventDetials(ItemBuilder_React_Runtime_trace_element entry, VisualEventBase details)
+        private static void RetrievedEventDetials(ItemBuilder_React_Runtime_trace_element entry, VisualEventBase details, bool check)
         {
             if (entry.Details.ContainsKey("userDefIdPath"))
                 details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
             if (entry.Details.ContainsKey("userDefId"))
-                details.userDefIdPath = entry.Details["userDefId"].ToString();
+                details.userDefId = entry.Details["userDefId"].ToString();
+            else
+                details.userDefId = "";
+
             if (entry.Details.ContainsKey("clientX"))
                 details.clientX = double.Parse(entry.Details["clientX"].ToString());
             if (entry.Details.ContainsKey("clientY"))
@@ -1943,8 +2385,39 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                 details.screenX = double.Parse(entry.Details["screenX"].ToString());
             if (entry.Details.ContainsKey("screenY"))
                 details.screenY = double.Parse(entry.Details["screenY"].ToString());
+              
+            if (check)
+            {
+                var p = details.GetAllPropertyAsString();
+                foreach (JProperty property in entry.Details.Properties())
+                {
+                    if (!p.Contains(property.Value.ToString()))
+                    {
+                        Console.WriteLine("For an event of type '" + entry.Type + "' the property  '" + property.Name + "' was not expected. \n Details: " + entry.ToString());
+                    }
+                }
+            }
+                         
         }
 
+
+        public static List<string> GetAllPropertyAsString(this object obj)
+        {
+            return obj.GetType()
+                .GetProperties() 
+                .Select(pi => pi.GetValue(obj).ToString())
+                .ToList();
+        }
+
+        public static List<TProperty> GetAllPropertyValuesOfType<TProperty>(this object obj)
+        {
+            return obj.GetType()
+                .GetProperties()
+                .Where(prop => prop.PropertyType == typeof(TProperty))
+                .Select(pi => (TProperty)pi.GetValue(obj))
+                .ToList();
+        }
+        
         public static string XmlSerializeToString(this object objectInstance)
         {
             var serializer = new XmlSerializer(objectInstance.GetType());
@@ -2204,8 +2677,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
         public string loginTimestamp { get; set; }
 
         public string userId { get; set; }
-
-
+         
     }
 
     public partial class ItemBuilder_React_Runtime_trace_element
@@ -2276,15 +2748,15 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
         [XmlIgnore] public string EventName { get; set; }
 
         [XmlAttribute] public long TraceId { get; set; }
-        [XmlAttribute] public string Task { get; set; }
-        [XmlAttribute] public string Test { get; set; }
-        [XmlAttribute] public string PageAreaName { get; set; }
-        [XmlAttribute] public string Page { get; set; }
-        [XmlAttribute] public string PageAreaType { get; set; }
-         
-        [XmlAttribute] public string CbaVers { get; set; }
+        [XmlAttribute] public string Task { get; set; } = "";
+        [XmlAttribute] public string Test { get; set; } = "";
+        [XmlAttribute] public string PageAreaName { get; set; } = "";
+        [XmlAttribute] public string Page { get; set; } = "";
+        [XmlAttribute] public string PageAreaType { get; set; } = "";
 
-        [XmlAttribute] public string SessionId { get; set; }
+        [XmlAttribute] public string CbaVers { get; set; } = "";
+
+        [XmlAttribute] public string SessionId { get; set; } = "";
 
         [XmlAttribute] public DateTime LoginTimestamp { get; set; }
 
@@ -2306,15 +2778,15 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
     public class PlatformTraceLog : Log_IB_8_12__8_13
     {
-        [XmlAttribute] public string Trigger { get; set; }
+        [XmlAttribute] public string Trigger { get; set; } = "";
 
-        [XmlAttribute] public string Sender { get; set; }
+        [XmlAttribute] public string Sender { get; set; } = "";
 
-        [XmlAttribute] public string Log { get; set; }
-        [XmlAttribute] public string SessonId { get; set; }
-        [XmlAttribute] public string Booklet { get; set; }
+        [XmlAttribute] public string Log { get; set; } = "";
+        [XmlAttribute] public string SessonId { get; set; } = "";
+        [XmlAttribute] public string Booklet { get; set; } = "";
 
-        [XmlAttribute] public string Preview { get; set; }
+        [XmlAttribute] public string Preview { get; set; } = "";
 
         public virtual new  Dictionary<string, string> GetPropertyList()
         {
@@ -2331,15 +2803,9 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
     public class VisualEventBase : Log_IB_8_12__8_13
     {
-        [XmlAttribute] public string indexPath { get; set; }
-         /*
-        [XmlAttribute] public string Task { get; set; }
-        [XmlAttribute] public string PageAreaType { get; set; }
-        [XmlAttribute] public string PageAreaName { get; set; }
-        [XmlAttribute] public string Page { get; set; }
-         */
-        [XmlAttribute] public string userDefIdPath { get; set; }
-        [XmlAttribute] public string userDefId { get; set; }
+        [XmlAttribute] public string indexPath { get; set; } = "";
+        [XmlAttribute] public string userDefIdPath { get; set; } = "";
+        [XmlAttribute] public string userDefId { get; set; } = "";
         [XmlAttribute] public double clientX { get; set; }
         [XmlAttribute] public double clientY { get; set; }
         [XmlAttribute] public double pageX { get; set; }
@@ -2367,7 +2833,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
     public class Button : VisualEventBase
     {
         [XmlAttribute] public bool oldSelected { get; set; }
-        [XmlAttribute] public string subtype { get; set; }
+        [XmlAttribute] public string subtype { get; set; } = "";
 
         public override string GetType() => nameof(Button);
         public override Dictionary<string, string> GetPropertyList()
@@ -2444,9 +2910,9 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
     public class Combobox : VisualEventBase
     {
         [XmlAttribute] public int oldSelected { get; set; }
-        [XmlAttribute] public string oldSelectedUserDefId { get; set; }
+        [XmlAttribute] public string oldSelectedUserDefId { get; set; } = "";
         [XmlAttribute] public int newSelected { get; set; }
-        [XmlAttribute] public string newSelectedUserDefId { get; set; }
+        [XmlAttribute] public string newSelectedUserDefId { get; set; } = "";
 
         public override string GetType() => nameof(Combobox);
         public override Dictionary<string, string> GetPropertyList()
@@ -2461,8 +2927,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
     }
     public class TableCell : VisualEventBase
     {
-        [XmlAttribute] public string tableUserDefIdPath { get; set; }
-        [XmlAttribute] public string tableUserDefId { get; set; }
+        [XmlAttribute] public string tableUserDefIdPath { get; set; } = "";
+        [XmlAttribute] public string tableUserDefId { get; set; } = "";
         [XmlAttribute] public int row { get; set; }
         [XmlAttribute] public int column { get; set; }
         [XmlAttribute] public bool oldSelected { get; set; }
@@ -2482,16 +2948,16 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
     public class TableCellModified : VisualEventBase
     {
-        [XmlAttribute] public string tableUserDefIdPath { get; set; }
-        [XmlAttribute] public string tableUserDefId { get; set; }
+        [XmlAttribute] public string tableUserDefIdPath { get; set; } = "";
+        [XmlAttribute] public string tableUserDefId { get; set; } = "";
         [XmlAttribute] public int row { get; set; }
         [XmlAttribute] public int column { get; set; }
-        [XmlAttribute] public string cellType { get; set; }
-        [XmlAttribute] public string oldValue { get; set; }
-        [XmlAttribute] public string newValue { get; set; }
+        [XmlAttribute] public string cellType { get; set; } = "";
+        [XmlAttribute] public string oldValue { get; set; } = "";
+        [XmlAttribute] public string newValue { get; set; } = "";
         [XmlAttribute] public double oldEvaluatedValue { get; set; }
         [XmlAttribute] public double newEvaluatedValue { get; set; }
-        [XmlAttribute] public string errorInFormula { get; set; }
+        [XmlAttribute] public string errorInFormula { get; set; } = "";
 
         public override string GetType() => nameof(TableCellModified);
         public override Dictionary<string, string> GetPropertyList()
@@ -2512,8 +2978,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
     public class BrowserTab : VisualEventBase
     {
-        [XmlAttribute] public string tab { get; set; }
-        [XmlAttribute] public string page { get; set; }
+        [XmlAttribute] public string tab { get; set; } = "";
+        [XmlAttribute] public string page { get; set; } = "";
 
         public override string GetType() => nameof(BrowserTab);
         public override Dictionary<string, string> GetPropertyList()
@@ -2545,7 +3011,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
     public class SingleLineInputField : VisualEventBase
     {
-        [XmlAttribute] public string currentTextValue { get; set; }
+        [XmlAttribute] public string currentTextValue { get; set; } = "";
 
         public override string GetType() => nameof(SingleLineInputField);
         public override Dictionary<string, string> GetPropertyList()
@@ -2558,11 +3024,11 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
     public class SingleLineInputFieldModified : VisualEventBase
     {
-        [XmlAttribute] public string oldTextValue { get; set; }
-        [XmlAttribute] public string newTextValue { get; set; }
-        [XmlAttribute] public string origin { get; set; }
-        [XmlAttribute] public string validationPattern { get; set; }
-        [XmlAttribute] public string invalidTextValue { get; set; }
+        [XmlAttribute] public string oldTextValue { get; set; } = "";
+        [XmlAttribute] public string newTextValue { get; set; } = "";
+        [XmlAttribute] public string origin { get; set; } = "";
+        [XmlAttribute] public string validationPattern { get; set; } = "";
+        [XmlAttribute] public string invalidTextValue { get; set; } = "";
 
         public override string GetType() => nameof(SingleLineInputFieldModified);
         public override Dictionary<string, string> GetPropertyList()
@@ -2578,7 +3044,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
     }
     public class InputField : VisualEventBase
     {
-        [XmlAttribute] public string currentTextValue { get; set; }
+        [XmlAttribute] public string currentTextValue { get; set; } = "";
 
         public override string GetType() => nameof(InputField);
         public override Dictionary<string, string> GetPropertyList()
@@ -2588,14 +3054,14 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
             return result;
         }
     }
-
+ 
     public class InputFieldModified : VisualEventBase
     {
-        [XmlAttribute] public string oldTextValue { get; set; }
-        [XmlAttribute] public string newTextValue { get; set; }
-        [XmlAttribute] public string origin { get; set; }
-        [XmlAttribute] public string validationPattern { get; set; }
-        [XmlAttribute] public string invalidTextValue { get; set; }
+        [XmlAttribute] public string oldTextValue { get; set; } = "";
+        [XmlAttribute] public string newTextValue { get; set; } = "";
+        [XmlAttribute] public string origin { get; set; } = "";
+        [XmlAttribute] public string validationPattern { get; set; } = "";
+        [XmlAttribute] public string invalidTextValue { get; set; } = "";
 
         public override string GetType() => nameof(InputFieldModified);
         public override Dictionary<string, string> GetPropertyList()
@@ -2609,9 +3075,211 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
             return result;
         }
     }
+
+
+    public class ScaleValueInput : VisualEventBase
+    {
+        [XmlAttribute] public string oldTextValue { get; set; } = "";
+        [XmlAttribute] public string newTextValue { get; set; } = "";
+        [XmlAttribute] public string origin { get; set; } = "";
+        [XmlAttribute] public string validationPattern { get; set; } = "";
+        [XmlAttribute] public string invalidTextValue { get; set; } = "";
+
+        public override string GetType() => nameof(InputFieldModified);
+        public override Dictionary<string, string> GetPropertyList()
+        {
+            var result = base.GetPropertyList();
+            result.Add(nameof(oldTextValue), oldTextValue);
+            result.Add(nameof(newTextValue), newTextValue);
+            result.Add(nameof(origin), origin);
+            result.Add(nameof(validationPattern), validationPattern);
+            result.Add(nameof(invalidTextValue), invalidTextValue);
+            return result;
+        }
+    }
+     
+
+    public class ValueInput : VisualEventBase
+    {
+        public override string GetType() => nameof(ValueInput);
+    }
+
+    public class SpinnerValueInput : VisualEventBase
+    { 
+        public override string GetType() => nameof(SpinnerValueInput);        
+    }
+     
+    public class TreeNode : VisualEventBase
+    {
+        [XmlAttribute] public string operation { get; set; } = "";
+        [XmlAttribute] public string nodeName { get; set; } = "";
+        [XmlAttribute] public string nodeType { get; set; } = "";
+        [XmlAttribute] public string nodePathId { get; set; } = "";
+
+        public override string GetType() => nameof(TreeNode);
+        public override Dictionary<string, string> GetPropertyList()
+        {
+            var result = base.GetPropertyList();
+            result.Add(nameof(operation), operation);
+            result.Add(nameof(nodeName), nodeName);
+            result.Add(nameof(nodeType), nodeType);
+            result.Add(nameof(nodePathId), nodePathId);
+  
+            return result;
+        }
+    }
+     
+    public class TreeViewNode : VisualEventBase
+    { 
+        [XmlAttribute] public string operation { get; set; } = "";
+        [XmlAttribute] public string oldValue { get; set; } = "";
+        [XmlAttribute] public string newValue { get; set; } = "";
+        [XmlAttribute] public string columnName { get; set; } = "";
+        [XmlAttribute] public string nodeType { get; set; } = "";
+        [XmlAttribute] public string nodePathId { get; set; } = "";
+        [XmlAttribute] public string nodeName { get; set; } = ""; 
+        [XmlAttribute] public string triggeredEvent { get; set; } = "";
+
+        public override string GetType() => nameof(TreeViewNode);
+        public override Dictionary<string, string> GetPropertyList()
+        {
+            var result = base.GetPropertyList();
+            result.Add(nameof(operation), operation);
+            result.Add(nameof(oldValue), oldValue);
+            result.Add(nameof(newValue), newValue);
+            result.Add(nameof(columnName), columnName);
+            result.Add(nameof(nodeType), nodeType);
+            result.Add(nameof(nodePathId), nodePathId);
+            result.Add(nameof(nodeName), nodeName);
+            result.Add(nameof(triggeredEvent), triggeredEvent);
+
+            return result;
+        }
+    }
+        
+   public class TreeViewSort : VisualEventBase
+    {
+        [XmlAttribute] public string sortDirection { get; set; } = "";
+
+        public override string GetType() => nameof(TreeViewSort);
+        public override Dictionary<string, string> GetPropertyList()
+        {
+            var result = base.GetPropertyList();
+            result.Add(nameof(sortDirection), sortDirection); 
+            return result;
+        }
+    }
+     
+    public class ListItem : VisualEventBase
+    {
+        [XmlAttribute] public string newSelected { get; set; } = "";
+        [XmlAttribute] public string newSelectedUserDefId { get; set; } = "";
+        [XmlAttribute] public string oldSelected { get; set; } = "";
+        [XmlAttribute] public string oldSelectedUserDefId { get; set; } = "";
+        public override string GetType() => nameof(ListItem);
+        public override Dictionary<string, string> GetPropertyList()
+        {
+            var result = base.GetPropertyList();
+            result.Add(nameof(newSelected), newSelected);
+            result.Add(nameof(newSelectedUserDefId), newSelectedUserDefId);
+            result.Add(nameof(oldSelected), oldSelected);
+            result.Add(nameof(oldSelectedUserDefId), oldSelectedUserDefId);
+            return result;
+        }
+    }
+     
+    public class ValueInputModified : VisualEventBase
+    {
+        [XmlAttribute] public string newValue { get; set; } = "";
+        public override string GetType() => nameof(ValueInputModified);
+        public override Dictionary<string, string> GetPropertyList()
+        {
+            var result = base.GetPropertyList();
+            result.Add(nameof(newValue), newValue); 
+            return result;
+        }
+    }
+
+
+    public class TreeChildArea : VisualEventBase
+    {
+        [XmlAttribute] public string sortDirection { get; set; } = "";
+
+        public override string GetType() => nameof(TreeChildArea);
+        public override Dictionary<string, string> GetPropertyList()
+        {
+            var result = base.GetPropertyList();
+            result.Add(nameof(sortDirection), sortDirection);
+            return result;
+        }
+    }
+     
+    public class CutCopyPaste : VisualEventBase
+    {
+        [XmlAttribute] public string triggerType { get; set; } = "";
+        [XmlAttribute] public string triggerIndexPath { get; set; } = "";
+        [XmlAttribute] public string triggerUserDefIdPath { get; set; } = "";
+        [XmlAttribute] public string triggerUserDefId { get; set; } = "";
+        [XmlAttribute] public string operation { get; set; } = "";
+        [XmlAttribute] public string contentIndexPath { get; set; } = "";
+        [XmlAttribute] public string contentUserDefIdPath { get; set; } = "";
+        [XmlAttribute] public string contentUserDefId { get; set; } = "";
+        [XmlAttribute] public string content { get; set; } = "";
+        [XmlAttribute] public string isPerformed { get; set; } = "";
+
+        public override string GetType() => nameof(CutCopyPaste);
+        public override Dictionary<string, string> GetPropertyList()
+        {
+            var result = base.GetPropertyList();
+            result.Add(nameof(triggerType), triggerType);
+            result.Add(nameof(triggerIndexPath), triggerIndexPath);
+            result.Add(nameof(triggerUserDefIdPath), triggerUserDefIdPath);
+            result.Add(nameof(triggerUserDefId), triggerUserDefId);
+            result.Add(nameof(operation), operation);
+            result.Add(nameof(contentIndexPath), contentIndexPath);
+            result.Add(nameof(contentUserDefIdPath), contentUserDefIdPath);
+            result.Add(nameof(contentUserDefId), contentUserDefId);
+            result.Add(nameof(content), content);
+            result.Add(nameof(isPerformed), isPerformed);
+            return result;
+        }
+    }
+     
+    public class Bookmark : VisualEventBase
+    {
+        [XmlAttribute] public string triggerType { get; set; } = "";
+        [XmlAttribute] public string triggerIndexPath { get; set; } = "";
+        [XmlAttribute] public string triggerUserDefIdPath { get; set; } = "";
+        [XmlAttribute] public string triggerUserDefId { get; set; } = "";
+        [XmlAttribute] public string operation { get; set; } = "";
+        [XmlAttribute] public string ownerIndexPath { get; set; } = "";
+        [XmlAttribute] public string ownerUserDefIdPath { get; set; } = "";
+        [XmlAttribute] public string ownerUserDefId { get; set; } = "";
+        [XmlAttribute] public string pageName { get; set; } = "";
+        [XmlAttribute] public string pageUrl { get; set; } = "";
+
+        public override string GetType() => nameof(Bookmark);
+        public override Dictionary<string, string> GetPropertyList()
+        {
+            var result = base.GetPropertyList();
+            result.Add(nameof(triggerType), triggerType);
+            result.Add(nameof(triggerIndexPath), triggerIndexPath);
+            result.Add(nameof(triggerUserDefIdPath), triggerUserDefIdPath);
+            result.Add(nameof(triggerUserDefId), triggerUserDefId);
+            result.Add(nameof(operation), operation);
+            result.Add(nameof(ownerIndexPath), ownerIndexPath);
+            result.Add(nameof(ownerUserDefIdPath), ownerUserDefIdPath);
+            result.Add(nameof(ownerUserDefId), ownerUserDefId);
+            result.Add(nameof(pageName), pageName);
+            result.Add(nameof(pageUrl), pageUrl);
+            return result;
+        }
+    }
+     
+
     public class ValueDisplay : VisualEventBase
     {
-        [XmlAttribute] public string displayType { get; set; }
+        [XmlAttribute] public string displayType { get; set; } = "";
 
         public override string GetType() => nameof(ValueDisplay);
         public override Dictionary<string, string> GetPropertyList()
@@ -2651,6 +3319,19 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
             return result;
         }
     }
+
+    public class GridArea : VisualEventBase
+    { 
+        public override string GetType() => nameof(GridArea);
+        public override Dictionary<string, string> GetPropertyList()
+        {
+            var result = base.GetPropertyList(); 
+            return result;
+        }
+    }
+
+    
+
     public class HeaderButton : VisualEventBase
     {
         [XmlAttribute] public int index { get; set; }
@@ -2666,8 +3347,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
     public class NavigationButton : VisualEventBase
     {
-        [XmlAttribute] public string navigationType { get; set; }
-        [XmlAttribute] public string navigationTarget { get; set; }
+        [XmlAttribute] public string navigationType { get; set; } = "";
+        [XmlAttribute] public string navigationTarget { get; set; } = "";
 
         public override string GetType() => nameof(NavigationButton);
         public override Dictionary<string, string> GetPropertyList()
@@ -2683,8 +3364,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
     public class RuntimeController : Log_IB_8_12__8_13
     {
         
-        [XmlAttribute] public string actionType { get; set; }
-        [XmlAttribute] public string details { get; set; }
+        [XmlAttribute] public string actionType { get; set; } = "";
+        [XmlAttribute] public string details { get; set; } = "";
 
         public override string GetType() => nameof(RuntimeController);
         public override Dictionary<string, string> GetPropertyList()
@@ -2699,9 +3380,9 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
     
     public class RichTextHighlight : Log_IB_8_12__8_13
     {
-        [XmlAttribute] public string indexPath { get; set; }
-        [XmlAttribute] public string userDefId { get; set; }
-         
+        [XmlAttribute] public string indexPath { get; set; } = "";
+        [XmlAttribute] public string userDefId { get; set; } = "";
+
         // TODO: Create data structure for selections
 
         [XmlArray("oldSelections")]
@@ -2909,8 +3590,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
             return result;
         }
     }
-
-
+ 
     public class PageSwitchTopLevel : Log_IB_8_12__8_13
     {
         [XmlAttribute] public string newPageAreaType { get; set; }
@@ -3003,6 +3683,19 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
     }
 
 
+    public class PauseResume : Log_IB_8_12__8_13
+    {
+        [XmlAttribute] public string type { get; set; } 
+
+        public override string GetType() => nameof(PauseResume);
+        public override Dictionary<string, string> GetPropertyList()
+        {
+            var result = base.GetPropertyList();
+            result.Add(nameof(type), type); 
+            return result;
+        }
+    }
+
     public class ApplicationFullScreen : Log_IB_8_12__8_13
     {
         [XmlAttribute] public string type { get; set; }
@@ -3066,7 +3759,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
         }
     }
      
-    public class SnapshotData : Log_IB_8_12__8_13
+    public class Snapshot : Log_IB_8_12__8_13
     {
         [XmlAttribute] public string origin { get; set; }
         [XmlAttribute] public string indexPath { get; set; }
@@ -3127,18 +3820,18 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
     public class TaskSwitch : Log_IB_8_12__8_13
     {
-        [XmlAttribute] public string oldTask { get; set; }
-        [XmlAttribute] public string oldItem { get; set; }
-        [XmlAttribute] public string oldTest { get; set; }
-        [XmlAttribute] public string newTask { get; set; }
-        [XmlAttribute] public string newItem { get; set; }
-        [XmlAttribute] public string newTest { get; set; }
+        [XmlAttribute] public string oldTask { get; set; } = "";
+        [XmlAttribute] public string oldItem { get; set; } = "";
+        [XmlAttribute] public string oldTest { get; set; } = "";
+        [XmlAttribute] public string newTask { get; set; } = "";
+        [XmlAttribute] public string newItem { get; set; } = "";
+        [XmlAttribute] public string newTest { get; set; } = "";
         [XmlAttribute] public long hitsAccumulated { get; set; }
         [XmlAttribute] public long hitsCount { get; set; }
         [XmlAttribute] public long missesAccumulated { get; set; }
         [XmlAttribute] public long missesCount { get; set; }
         [XmlAttribute] public double classMaxWeighed { get; set; }
-        [XmlAttribute] public string classMaxName { get; set; }
+        [XmlAttribute] public string classMaxName { get; set; } = "";
         [XmlAttribute] public double totalResult { get; set; }
         [XmlAttribute] public long nbUserInteractions { get; set; }
         [XmlAttribute] public long nbUserInteractionsTotal { get; set; }

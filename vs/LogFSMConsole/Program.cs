@@ -30,7 +30,7 @@ namespace LogFSMConsole
         {
             Stopwatch _watch = new Stopwatch();
             _watch.Start();
- 
+
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
              
             string[] _assemblyFullName = Assembly.GetExecutingAssembly().FullName.Split(',');

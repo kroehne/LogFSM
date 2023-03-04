@@ -155,6 +155,7 @@ namespace LogDataTransformer_PISA15to22CA_Module_V01
                                         {
                                             foreach (var innerZIPEntry in innerZIP.Entries)
                                             {
+                                                // 2015 / 2018
                                                 if (innerZIPEntry.FileName.StartsWith("trace/") && innerZIPEntry.FileName.EndsWith(".xml") && innerZIPEntry.UncompressedSize != 0)
                                                 {
                                                     using (MemoryStream innerZIPEntryMemoryStream = new MemoryStream())
@@ -273,6 +274,21 @@ namespace LogDataTransformer_PISA15to22CA_Module_V01
                                                         }
                                                     }
                                                 }
+                                                // 2022
+                                                else if (innerZIPEntry.FileName.StartsWith("trace/") && innerZIPEntry.FileName.EndsWith(".json") && innerZIPEntry.UncompressedSize != 0)
+                                                {
+                                                    using (MemoryStream innerZIPEntryMemoryStream = new MemoryStream())
+                                                    {
+                                                        innerZIPEntry.Password = ParsedCommandLineArguments.ZIPPassword;
+                                                        innerZIPEntry.Extract(innerZIPEntryMemoryStream);
+                                                        innerZIPEntryMemoryStream.Position = 0;
+
+                                                        var _sr = new StreamReader(innerZIPEntryMemoryStream);
+                                                        var _json = _sr.ReadToEnd();
+
+                                                    }
+                                                }
+
                                             }
                                         }
                                     }

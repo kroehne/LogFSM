@@ -253,7 +253,11 @@ namespace LogDataTransformer_Firebase_V01
                 string _personIdentifierColumnName = "PersonIdentifier";
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("personidentifier"))
                     _personIdentifierColumnName = ParsedCommandLineArguments.ParameterDictionary["personidentifier"];
-          
+
+                bool _checkEventAttrbibutes = false;
+                if (ParsedCommandLineArguments.Flags.Contains("CHECKEVENTATTRIBUTES"))
+                    _checkEventAttrbibutes = true;
+
                 // Create logXContainer 
 
                 logXContainer _ret = new LogFSM_LogX2019.logXContainer()
@@ -370,7 +374,7 @@ namespace LogDataTransformer_Firebase_V01
                                                         try
                                                         {
 
-                                                            List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(_json, "Firebase_V01");
+                                                            List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(_json, "Firebase_V01", _checkEventAttrbibutes);
 
                                                             // TODO: Add flag to extract full name (project.task) vs. short name (project)
 

@@ -25,6 +25,7 @@ using System.Text.Json;
 using SpssLib.SpssDataset;
 using NPOI.Util;
 using System.Collections;
+using NPOI.POIFS.Crypt;
 #endregion
 
 namespace LogDataTransformer_PISA12CA_Module_V01
@@ -226,15 +227,14 @@ namespace LogDataTransformer_PISA12CA_Module_V01
                                                 if (_qm != -1)
                                                 {
                                                     string _url = _details.Substring(0, _qm);
-                                                    string _query = _details.Substring(_qm, _details.Length - _qm);
-
-                                                    var dic = new Dictionary<string, string>();
+                                                    string _query = _details.Substring(_qm+1, _details.Length - _qm-1);                                                    
                                                     var reg = new Regex("(?:[?&]|^)([^&]+)=([^&]*)");
                                                     var matches = reg.Matches(_query);
                                                     foreach (System.Text.RegularExpressions.Match match in matches)
-                                                    {
-                                                        dic[match.Groups[1].Value] = Uri.UnescapeDataString(match.Groups[2].Value);
-                                                    }
+                                                        _EventValues.Add(match.Groups[1].Value, Uri.UnescapeDataString(match.Groups[2].Value));
+
+                                                    _EventValues.Remove("event_detail");
+
                                                 }
                                                
 
@@ -262,13 +262,10 @@ namespace LogDataTransformer_PISA12CA_Module_V01
 
                                             _ret.AddEvent(_newElement);
 
-                                        }
-
+                                        } 
                                     }
                                 }
-
-                                //if (_ret.GetNumberOfPersons >0)
-                                //    break;
+                                 
                             }
                         }
                     }

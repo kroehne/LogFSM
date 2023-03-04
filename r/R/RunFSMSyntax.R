@@ -80,7 +80,7 @@ RunFSMSyntax <- function(fsmsyntax, datafilename, zipfilename, title="title", wo
                          outputrelativetimeformatstring = "hh':'mm':'ss':'fff", ...){
 
   if(missing(workingdir)){
-    workingdir <- rappdirs::user_data_dir()
+    workingdir <- path.expand(rappdirs::user_data_dir())
   }
 
   if(!missing(datafilename)){

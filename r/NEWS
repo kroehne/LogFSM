@@ -1,9 +1,14 @@
 CHANGE-LOG
 ==========
 
+2023-02-19 0.4.5.27
+
+* Fixed bug (path.expand)
+* Added missing log events for CBA ItemBuilder data
+
 2023-02-19 0.4.5.26
 
-* Sorting of Flat and Sparse Log Data Table 
+* Sorting of Flat and Sparse Log Data Table
 
 2023-02-10 0.4.5.25
 
@@ -19,7 +24,7 @@ CHANGE-LOG
 
 2022-09-29 0.4.5.22
 
-* OpenSSL Bug 
+* OpenSSL Bug
 
 2022-09-19 0.4.5.21
 
