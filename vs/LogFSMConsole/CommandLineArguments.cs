@@ -226,6 +226,16 @@ namespace LogFSMConsole
         /// </summary>
         public const string _CMDA_JOB_TRANSFORM_input_pisacazip01a = "pisacazip01a";
 
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public const string _CMDA_JOB_TRANSFORM_input_pisacazip01b = "pisacazip01b";
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public const string _CMDA_JOB_TRANSFORM_input_pisacazip01c = "pisacazip01c";
         /// <summary>
         /// 
         /// </summary>
@@ -540,6 +550,8 @@ namespace LogFSMConsole
                     DataFileTypeIsPISABQZipVersion01B ||
                     DataFileTypeIsPISABQZipVersion01C ||
                     DataFileTypeIsPISACAZipVersion01A ||
+                    DataFileTypeIsPISACAZipVersion01B ||
+                    DataFileTypeIsPISACAZipVersion01C ||
                     DataFileTypeIsNDataFlatV01A || 
                     DataFileTypeIsPIAACLdaRawZipVersion01A)
                 {
@@ -834,7 +846,21 @@ namespace LogFSMConsole
                 return (DataFileType.Trim().ToLower() == _CMDA_JOB_TRANSFORM_input_pisacazip01a && ZIPFileName.Trim() != "");
             }
         }
-         
+        public bool DataFileTypeIsPISACAZipVersion01B
+        {
+            get
+            {
+                return (DataFileType.Trim().ToLower() == _CMDA_JOB_TRANSFORM_input_pisacazip01b && ZIPFileName.Trim() != "");
+            }
+        }
+        public bool DataFileTypeIsPISACAZipVersion01C
+        {
+            get
+            {
+                return (DataFileType.Trim().ToLower() == _CMDA_JOB_TRANSFORM_input_pisacazip01c && ZIPFileName.Trim() != "");
+            }
+        }
+
         public bool DataFileTypeIsPIAACLdaRawZipVersion01A
         {
             get

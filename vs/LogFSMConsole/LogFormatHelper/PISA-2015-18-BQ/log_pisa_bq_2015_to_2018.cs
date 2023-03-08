@@ -554,8 +554,8 @@ public partial class fte_dataVariable
 [System.Diagnostics.DebuggerStepThroughAttribute()]
 [System.ComponentModel.DesignerCategoryAttribute("code")]
 [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-[System.Xml.Serialization.XmlRootAttribute(Namespace = "", IsNullable = false)]
-public partial class log
+[System.Xml.Serialization.XmlRootAttribute(Namespace = "log", IsNullable = false)]
+public partial class log_pisa_bq_2015_to_2018
 {
 
     private logItemGroup[] itemGroupField;

@@ -62,7 +62,7 @@ namespace LogDataTransformer_TIMSSeT19_V01
 
 
                 DateTime dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-                XmlSerializer logSerializer = new XmlSerializer(typeof(log));
+                XmlSerializer logSerializer = new XmlSerializer(typeof(log_pisa_bq_2015_to_2018));
 
                 #region Search Source Files
 

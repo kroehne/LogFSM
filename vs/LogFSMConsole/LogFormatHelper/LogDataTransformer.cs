@@ -78,22 +78,38 @@ namespace LogFSMConsole
                 LogDataTransformer_TAOPCI_V01.LogDataTransformer_TAOPCI_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
             }            
             else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01a ||
-                ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01b ||
-                ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01c)
+                ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01b)
             {
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
                 Console.WriteLine("Module: Transform 'PISA Background Questionnaire' (2015 / 2018, data form session2-zip files).");
                 Console.ResetColor();
 
-                LogDataTransformer_PISA15to22BQ_Module_V01.LogDataTransformer_PISA15to22BQ_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
+                LogDataTransformer_PISA15to18BQ_Module_V01.LogDataTransformer_PISA15to18BQ_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
             }
-            else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisacazip01a)
+            else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01c)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                Console.WriteLine("Module: Transform 'PISA Background Questionnaire' (2022, data form session2-zip files).");
+                Console.ResetColor();
+
+                LogDataTransformer_PISA22BQ_Module_V01.LogDataTransformer_PISA22BQ_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
+            }
+            else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisacazip01a ||
+                ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisacazip01b)
             {
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
                 Console.WriteLine("Module: Transform 'PISA Cognitive Assessment' (2015 / 2018, data form session1-zip files).");
                 Console.ResetColor();
 
-                LogDataTransformer_PISA15to22CA_Module_V01.LogDataTransformer_PISA15to22CA_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
+                LogDataTransformer_PISA15to18CA_Module_V01.LogDataTransformer_PISA15to18CA_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
+            }
+            else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisacazip01c)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                Console.WriteLine("Module: Transform 'PISA Cognitive Assessment' (2022, data form session1-zip files).");
+                Console.ResetColor();
+
+                LogDataTransformer_PISA22CA_Module_V01.LogDataTransformer_PISA22CA_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
             }
             else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_timsst19zip01a)
             {

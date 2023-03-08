@@ -24,8 +24,7 @@ using System.Globalization;
 namespace LogFSMConsole
 {
     public class Program
-    {
-
+    { 
         public static void Main(string[] args)
         {
             Stopwatch _watch = new Stopwatch();
@@ -594,6 +593,7 @@ namespace LogFSMConsole
             {
                 LogDataPreparer.ReadLogDataFlatV01(ParsedCommandLineArguments.ZIPFileName, ParsedCommandLineArguments.OutFileName, ParsedCommandLineArguments.Elements, ParsedCommandLineArguments.Verbose, ParsedCommandLineArguments.MaxNumberOfCases, ParsedCommandLineArguments);
             } 
+            // TODO: Map A/B/C to 2015/2018/2022 (Instead of packaging)
             else if (ParsedCommandLineArguments.DataFileTypeIsPISABQZipVersion01A)
             {
                 LogDataPreparer.ReadPISA_from_ZIP__BQ_with_XML_files(ParsedCommandLineArguments.ZIPFileName, ParsedCommandLineArguments.OutFileName, ParsedCommandLineArguments.ZIPPassword, ParsedCommandLineArguments.Elements, ParsedCommandLineArguments.MaxNumberOfCases, ParsedCommandLineArguments.DataFileTypeDetails, ParsedCommandLineArguments.Verbose, ParsedCommandLineArguments);

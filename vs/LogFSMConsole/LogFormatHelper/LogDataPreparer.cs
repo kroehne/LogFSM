@@ -1157,7 +1157,7 @@ namespace LogFSMConsole
 
             DateTime dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, 0);
             List<EventData> _inMemoryTempDataEvents = new List<EventData>();
-            XmlSerializer logSerializer = new XmlSerializer(typeof(log));
+            XmlSerializer logSerializer = new XmlSerializer(typeof(log_pisa_bq_2015_to_2018));
             int numberOfStudents = 0;
             string _PreviousPersonIdentifier = "";
             string _PersonIdentifier = "";
@@ -1254,7 +1254,7 @@ namespace LogFSMConsole
         {
             DateTime dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, 0);
             List<EventData> _inMemoryTempDataEvents = new List<EventData>();
-            XmlSerializer logSerializer = new XmlSerializer(typeof(log));
+            XmlSerializer logSerializer = new XmlSerializer(typeof(log_pisa_bq_2015_to_2018));
             int numberOfPersons = 0;
 
             EventDataListExtension.ESortType sort = EventDataListExtension.ESortType.Time;
@@ -1337,7 +1337,7 @@ namespace LogFSMConsole
         {
             DateTime dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, 0);
             List<EventData> _inMemoryTempDataEvents = new List<EventData>();
-            XmlSerializer logSerializer = new XmlSerializer(typeof(log));
+            XmlSerializer logSerializer = new XmlSerializer(typeof(log_pisa_bq_2015_to_2018));
             int numberOfPersonss = 0;
 
             EventDataListExtension.ESortType sort = EventDataListExtension.ESortType.Time;
@@ -1413,7 +1413,7 @@ namespace LogFSMConsole
         private static void processPISA_BQ_single_XML(string[] Element, DateTime dt1970, List<EventData> _inMemoryTempDataEvents, XmlSerializer logSerializer, string _PersonIdentifier, string _xml)
         {
             var _tr = new StringReader(_xml);
-            log _log = (log)logSerializer.Deserialize(_tr);
+            log_pisa_bq_2015_to_2018 _log = (log_pisa_bq_2015_to_2018)logSerializer.Deserialize(_tr);
 
             if (_log.itemGroup != null)
             {
