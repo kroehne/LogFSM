@@ -393,17 +393,8 @@ namespace LogDataTransformer_PISA15to18BQ_Module_V01
 
                 }
  
-            }
-            else
-            {
-
-            }
-
-            if (_numberOFEventsForXML == 0)
-            {
-                Console.WriteLine(_xml);
-            }
-
+            } 
+              
             _tr.Close();
         }
  
