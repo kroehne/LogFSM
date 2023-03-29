@@ -1,7 +1,6 @@
 # LogFSM
  
-![LogFSM Package Build Script](https://github.com/kroehne/LogFSM/workflows/LogFSM%20Package%20Build%20Script/badge.svg?branch=master)
-
+[![LogFSM Build Source Package and Mac Binary Package (Master)](https://github.com/kroehne/LogFSM/actions/workflows/build_master_logfsm_source_and_mac_binary_packages.yml/badge.svg)](https://github.com/kroehne/LogFSM/actions/workflows/build_master_logfsm_source_and_mac_binary_packages.yml)
 
 ## R Package 'LogFSM'
 
