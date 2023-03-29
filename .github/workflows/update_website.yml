@@ -1,9 +1,8 @@
 name: LogFSM Update Website
 
 on:
-  push:
+  workflow_dispatch:
     branches:
-      - main
       - master
 
 jobs:

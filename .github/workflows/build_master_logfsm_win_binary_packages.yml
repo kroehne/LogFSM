@@ -1,10 +1,9 @@
 name: LogFSM Build Windows Binary Package (Master) 
 
 on:
-  push:
+  workflow_dispatch:
     branches:
-      - main
-      - master   
+      - master
 
 jobs:
   build_r_package:
