@@ -2,8 +2,9 @@ name: LogFSM Build Source Package and Mac Binary Package (Master)
 
 on:
   push:
-    branches:    
-      - master         
+    branches:
+      - main
+      - master      
 
 jobs:
   build_r_package:

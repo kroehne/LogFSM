@@ -2,8 +2,9 @@ name: LogFSM Update Website
 
 on:
   push:
-    branches:    
-      - master         
+    branches:
+      - main
+      - master
 
 jobs:
   build_website:
