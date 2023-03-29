@@ -57,13 +57,12 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
             return _ret;
         }
 
-        public static List<Log_IB_8_12__8_13> ParseLogElements(string line, string source, bool check)
+        public static List<Log_IB_8_12__8_13> ParseLogElements(string line, string source, bool check, string _personIdentifier)
         {
             List<Log_IB_8_12__8_13> _ret = new List<Log_IB_8_12__8_13>();
 
             ItemBuilder_React_Runtime_trace logFragment = null;
-            string _personIdentifier = "";
-
+            
             string _element = "";
             string _test = "";
             string _task = "";
@@ -72,7 +71,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
             if (source == "IRTlibPlayer_V01")
             {
                 try
-                { 
+                {
+                    // TODO: Make MaxDepth a Parameter
+                    // var _settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All, MaxDepth = 128 };
+                    // var _jsonSerializer = Newtonsoft.Json.JsonSerializer.Create(_settings);
                     var _trace = JsonConvert.DeserializeObject<LogDataTransformer_IRTlibPlayer_V01.TraceEvent>(line, new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Ignore, MaxDepth = 512 });
                     if (_trace.Trace == null)
                         return _ret;
@@ -83,8 +85,9 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                     _tracId = _trace.TraceID;
 
                     logFragment = JsonConvert.DeserializeObject<ItemBuilder_React_Runtime_trace>(_trace.Trace, new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Ignore, MaxDepth = 512 });
-
-                    _personIdentifier = logFragment.metaData.userId;
+  
+                    if (_personIdentifier == "")
+                        _personIdentifier = logFragment.metaData.userId;
                     if (_personIdentifier.Contains("\r"))
                         _personIdentifier = _personIdentifier.Replace("\r", "");
 
@@ -2420,7 +2423,9 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
         
         public static string XmlSerializeToString(this object objectInstance)
         {
-            var serializer = new XmlSerializer(objectInstance.GetType());
+            //var serializer = new System.Xml.Serialization.XmlSerializer(objectInstance.GetType());
+            XmlSerializer serializer = new System.Xml.Serialization.XmlSerializer(objectInstance.GetType());
+            //XmlSerializer serializer = XmlSerializer.FromTypes(new[] { objectInstance.GetType() })[0];
             var sb = new StringBuilder();
 
             using (TextWriter writer = new StringWriter(sb))

@@ -350,6 +350,8 @@ namespace LogDataTransformer_Firebase_V01
                                 foreach (var entry in zip)
                                 {
                                     string _sessionFileName = Path.GetFileNameWithoutExtension(zip.Name);
+                                    if (_sessionFileName.Contains("_"))
+                                        _sessionFileName = _sessionFileName.Substring(0, _sessionFileName.IndexOf("_"));
 
                                     using (MemoryStream zipStream = new MemoryStream())
                                     {
@@ -374,7 +376,7 @@ namespace LogDataTransformer_Firebase_V01
                                                         try
                                                         {
 
-                                                            List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(_json, "Firebase_V01", _checkEventAttrbibutes);
+                                                            List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(_json, "Firebase_V01", _checkEventAttrbibutes, _sessionFileName);
 
                                                             // TODO: Add flag to extract full name (project.task) vs. short name (project)
 

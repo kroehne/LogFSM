@@ -181,7 +181,7 @@ namespace LogDataTransformer_IBSD_V01
                                 {
 
                                     List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log =
-                                                            LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(line, "IBSD_V01", _checkEventAttrbibutes);
+                                                            LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(line, "IBSD_V01", _checkEventAttrbibutes, "");
 
                                     foreach (var _l in _log)
                                     {

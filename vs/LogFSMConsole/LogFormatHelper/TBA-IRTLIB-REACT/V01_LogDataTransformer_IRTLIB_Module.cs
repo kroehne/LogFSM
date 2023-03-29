@@ -121,6 +121,10 @@ namespace LogDataTransformer_IRTlibPlayer_V01
                 if (ParsedCommandLineArguments.Flags.Contains("CHECKEVENTATTRIBUTES"))
                     _checkEventAttrbibutes = true;
 
+                bool _allowFileRename = false;  
+                if (ParsedCommandLineArguments.Flags.Contains("ALLOWFILERENAME"))
+                    _allowFileRename = true;
+
                 double _utcoffset = 0;
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("utcoffset"))
                     _utcoffset = double.Parse(ParsedCommandLineArguments.ParameterDictionary["utcoffset"]);
@@ -220,6 +224,8 @@ namespace LogDataTransformer_IRTlibPlayer_V01
                                 foreach (var entry in zip)
                                 {
                                     string _sessionFileName = Path.GetFileNameWithoutExtension(zip.Name);
+                                    if (_sessionFileName.Contains("_"))
+                                        _sessionFileName = _sessionFileName.Substring(0, _sessionFileName.IndexOf("_"));
 
                                     using (MemoryStream zipStream = new MemoryStream())
                                     {
@@ -269,8 +275,11 @@ namespace LogDataTransformer_IRTlibPlayer_V01
 
                                                             try
                                                             {
+                                                                string _personIdentifier = "";
+                                                                if (_allowFileRename)
+                                                                    _personIdentifier = _sessionFileName;
 
-                                                                List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(_json, "IRTlibPlayer_V01", _checkEventAttrbibutes);
+                                                                List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(_json, "IRTlibPlayer_V01", _checkEventAttrbibutes, _personIdentifier);
 
                                                                 // TODO: Add flag to extract full name (project.task) vs. short name (project)
 
@@ -278,6 +287,8 @@ namespace LogDataTransformer_IRTlibPlayer_V01
                                                                 {
                                                                     if (_l.EventName == "")
                                                                         _l.Element = "(Platform)";
+
+                                                                    //TODO: FLAG: _l.PersonIdentifier = _l.SessionId
 
                                                                     var g = new logxGenericLogElement()
                                                                     {
@@ -340,7 +351,10 @@ namespace LogDataTransformer_IRTlibPlayer_V01
 
                                                                 string task = _itemScoreEvent.Context.Task;
                                                                 string item = _itemScoreEvent.Context.Item;
+                                                                 
                                                                 string personIdentifier = _itemScoreEvent.SessionId;
+                                                                if (_allowFileRename)
+                                                                    personIdentifier = _sessionFileName;
 
                                                                 LogDataTransformer_IB_REACT_8_12__8_13.itemScore _itemScore =
                                                                     LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseItemScore(_itemScoreEvent.ItemScore, task, item, personIdentifier);
@@ -420,7 +434,11 @@ namespace LogDataTransformer_IRTlibPlayer_V01
                                                             if (_json.EndsWith(","))
                                                                 _json = _json.Substring(0, _json.Length - 1);
 
-                                                            string personIdentifier = _sessionFileName;
+                                                            // TODO: Read Person Identifier from Data (not from file name)
+                                                            string personIdentifier = _sessionFileName;                                                            
+                                                            // if (_allowFileRename)
+                                                            //    personIdentifier = _sessionFileName;
+
                                                             logxGenericResultElement g = new logxGenericResultElement() { PersonIdentifier = personIdentifier };
 
                                                             JsonDocument doc = JsonDocument.Parse(_json);
@@ -478,7 +496,12 @@ namespace LogDataTransformer_IRTlibPlayer_V01
 
                                                                 foreach (var _l in _log)
                                                                 {
+
+                                                                    // TODO: Read Person Identifier from Data (not from file name)
                                                                     _l.PersonIdentifier = _sessionFileName;
+                                                                    //if (_allowFileRename)
+                                                                    //    _l.PersonIdentifier = _sessionFileName;
+
                                                                     var g = new logxGenericLogElement()
                                                                     {
                                                                         Item = _l.Element,

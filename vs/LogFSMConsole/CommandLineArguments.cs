@@ -900,7 +900,7 @@ namespace LogFSMConsole
             this.Verbose = GetParameterOrDefault(_CMDA_verbose, "").Trim().ToLower().StartsWith("t", StringComparison.InvariantCulture);
             this.Mask = GetParameterOrDefault(_CMDA_mask, "");
              
-            string _flags = GetParameterOrDefault(_CMDA_flags, "");
+            string _flags = GetParameterOrDefault(_CMDA_flags, "").Replace("|","-");
             this.Flags = _flags.Split('-').ToList();
             for (int i = 0; i < Flags.Count; i += 1)
             {

@@ -115,7 +115,7 @@ namespace LogFSM_LogX2019
         public void AddResults(logxGenericResultElement element)
         { 
             ContainsResultData = true;
-
+ 
             if (CondordanceTable.Count != 0)
             {
                  if (!CondordanceTable.ContainsKey(element.PersonIdentifier))
@@ -595,9 +595,12 @@ namespace LogFSM_LogX2019
                     List<string> _colnames = new List<string>();
                     foreach (var _table in logDataTableColnames)
                     {
-                        foreach (var _colname in _table.Value)
-                            if (!_colnames.Contains(_colname))
-                                _colnames.Add(_colname);
+                        if (_table.Key != "Results")
+                        {
+                            foreach (var _colname in _table.Value)
+                                if (!_colnames.Contains(_colname))
+                                    _colnames.Add(_colname);
+                        }
                     }
 
                     foreach (var _colname in _colnames)
@@ -1015,9 +1018,12 @@ namespace LogFSM_LogX2019
                     List<string> _colnames = new List<string>();
                     foreach (var _table in logDataTableColnames)
                     {
-                        foreach (var _colname in _table.Value)
-                            if (!_colnames.Contains(_colname))
-                                _colnames.Add(_colname);
+                        if (_table.Key != "Results")
+                        {
+                            foreach (var _colname in _table.Value)
+                                if (!_colnames.Contains(_colname))
+                                    _colnames.Add(_colname);
+                        }
                     }
 
                     foreach (var _colname in _colnames)
@@ -1337,9 +1343,12 @@ namespace LogFSM_LogX2019
                         List<string> _colnames = new List<string>();
                         foreach (var _table in logDataTableColnames)
                         {
-                            foreach (var _colname in _table.Value)
-                                if (!_colnames.Contains(_colname))
-                                    _colnames.Add(_colname);
+                            if (_table.Key != "Results")
+                            {
+                                foreach (var _colname in _table.Value)
+                                    if (!_colnames.Contains(_colname))
+                                        _colnames.Add(_colname);
+                            }
                         }
 
                         foreach (var _colname in _colnames)
@@ -1668,9 +1677,12 @@ namespace LogFSM_LogX2019
                     List<string> _colnames = new List<string>();
                     foreach (var _table in logDataTableColnames)
                     {
-                        foreach (var _colname in _table.Value)
-                            if (!_colnames.Contains(_colname))
-                                _colnames.Add(_colname);
+                        if (_table.Key != "Results")
+                        {
+                            foreach (var _colname in _table.Value)
+                                if (!_colnames.Contains(_colname))
+                                    _colnames.Add(_colname);
+                        }
                     }
 
                     int _colIndex = 10;
