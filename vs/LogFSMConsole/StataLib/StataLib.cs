@@ -450,6 +450,8 @@ namespace StataLib
         private Dictionary<UInt32, Dictionary<string, UInt32>> GSO = new Dictionary<UInt32, Dictionary<string, UInt32>>();
 
         private Dictionary<string, SortedDictionary<Int32, string>> ValueLabels = new Dictionary<string, SortedDictionary<Int32, string>>();
+
+        private Encoding outputEncoding = Encoding.GetEncoding(1252);
         #endregion
 
         #region GetZeroedFixedString
@@ -726,7 +728,7 @@ namespace StataLib
                     case StataVariable.StataVarType.FixedString:
                         {
                             string s = data[i].ToString().PadRight(item.FixedStringLength, (char)0x00).Substring(0, item.FixedStringLength);
-                            writeData.Add(new Action(() => bw.Write(env.GetString(Encoding.Default.GetBytes(s)))));
+                            writeData.Add(new Action(() => bw.Write(env.GetString(outputEncoding.GetBytes(s)))));
                         }
                         break;
                     #endregion
@@ -734,7 +736,7 @@ namespace StataLib
                     #region GSO Strings
                     case StataVariable.StataVarType.String:
                         {
-                            string s = env.GetString(Encoding.Default.GetBytes(data[i].ToString()));
+                            string s = env.GetString(outputEncoding.GetBytes(data[i].ToString()));
 
                             UInt32 v = 0;
                             UInt32 o = 0;
@@ -856,8 +858,9 @@ namespace StataLib
                     bw.Write((UInt32)item.Key);
                 }
                 foreach (var item in VLItem.Value)
-                { 
-                    bw.Write(env.GetString(Encoding.Default.GetBytes(item.Value)));
+                {                   
+                    //bw.Write(env.GetString(Encoding.Default.GetBytes(item.Value)));
+                    bw.Write(env.GetString(outputEncoding.GetBytes(item.Value)));
                     bw.Write((byte)0x00);
                 }
                 var totalDataSize = bw.BaseStream.Position - fpos;

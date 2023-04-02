@@ -438,8 +438,7 @@ namespace LogFSM
                             var fileName = Path.GetTempFileName();
                             if (ParsedCommandLineArguments.Verbose)
                                 Console.WriteLine("--> temp file: " + fileName);
-
-
+                             
                             using (FileStream fileStream = File.OpenWrite(fileName))
                             {
                                 e.Extract(fileStream);
@@ -556,9 +555,7 @@ namespace LogFSM
                                             _eventValues.Add(_key, _value);
 
                                         }
-                                    }
-
-
+                                    } 
                                 }
 
                                 bool _add = true;
@@ -629,20 +626,16 @@ namespace LogFSM
                         string _personIdentifier = row[_columnNamePersonIdentifier].ToString();
                         string _eventName = row[_columnNameEventName].ToString();
                         string _element = row[_columnNameElement].ToString();
-                        DateTime _timeStamp = DateTime.MinValue;
-
+                        DateTime _timeStamp = DateTime.MinValue;                        
                         if (!RelativeTime)
+                        {
                             DateTime.TryParse(row[_columnNameTimeStamp].ToString(), out _timeStamp);
+                        }                            
                         else
                         {
-                            try
-                            {
-                                _timeStamp = dt1960.AddMilliseconds(double.Parse(row[_columnNameTimeStamp].ToString()));
-                            }
-                            catch
-                            {
-                                //TODO VERSION 0.3: Add a more proper check for invalid time stamps
-                            }
+                            double _inc = 0;
+                            if (double.TryParse(row[_columnNameTimeStamp].ToString(), out _inc))
+                                _timeStamp = dt1960.AddMilliseconds(_inc);                             
                         }
 
                         var _eventValues = new Dictionary<string, string>();

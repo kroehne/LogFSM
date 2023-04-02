@@ -19,6 +19,11 @@ using CsvHelper;
 using NPOI.SS.Formula.Functions;
 using CsvHelper.Configuration;
 using NPOI.POIFS.FileSystem;
+using NPOI.HPSF;
+using static Org.BouncyCastle.Math.EC.ECCurve;
+using SixLabors.ImageSharp.ColorSpaces;
+using System.Security.Cryptography;
+using SpssLib.SpssDataset;
 #endregion
 
 
@@ -341,16 +346,13 @@ namespace LogFSMConsole
         #endregion
 
         #region Universal log format
-        public static void ReadLogDataGenericV01(string ZipFileName, string OutFileName, string[] Elements, bool Verbose,
+ 
+        public static void ReadLogDataGenericV01(string ZipFileName, string OutFileName, bool RelativeTime, string[] Elements, bool Verbose,
             CommandLineArguments ParsedCommandLineArguments)
         {
             Console.WriteLine("Module: Read log data in the universal log format V01.");
-       
-            bool _absolute = true;
-            if (ParsedCommandLineArguments.RelativeTime)
-                _absolute = false;
-
-            string _columnNamePersonIdentifier = "caseid";
+         
+            string _columnNamePersonIdentifier = "PersonIdentifier";
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("columnnamepersonidentifier"))
                 _columnNamePersonIdentifier = ParsedCommandLineArguments.ParameterDictionary["columnnamepersonidentifier"];
 
@@ -372,6 +374,9 @@ namespace LogFSMConsole
             if (ParsedCommandLineArguments.Flags.Contains("ORDER_WITHIN_ELEMENTS"))
                 sort = EventDataListExtension.ESortType.ElementAndTime;
 
+            // TODO:
+            //  - XLSX / Excel not supported
+            //  - XES not implemented yet
 
             if (!CheckReadLogDataGenericV01(ZipFileName, _columnNamePersonIdentifier, _columnNameEventName, _columnNameElement, _columnNameTimeStamp, Verbose, true))
             {
@@ -400,7 +405,9 @@ namespace LogFSMConsole
             {
                 foreach (ZipEntry e in zip.Entries)
                 { 
-                    if (e.FileName != "Log.dta")
+                    if (Path.GetFileNameWithoutExtension(e.FileName) != "Log" && 
+                        Path.GetFileNameWithoutExtension(e.FileName) != "Results" &&
+                        Path.GetFileNameWithoutExtension(e.FileName) != "FlatAndSparseLogDataTable")
                     {
                         if (Verbose)
                             Console.Write("Read file '" + e.FileName + "' ");
@@ -409,130 +416,316 @@ namespace LogFSMConsole
                         {
                             e.Extract(zipStream);
                             zipStream.Position = 0;
-                            var str = new StataFileReader(zipStream, true);
 
-                            // cache variables 
-
-                            Dictionary<int, StataVariable> _eventDataKeys = new Dictionary<int, StataVariable>();
-                            var vardict = new Dictionary<string, Tuple<int, StataVariable>>();
-                            for (int i = 0; i < str.Variables.Count; i++)
+                            #region - STATA
+                            if (e.FileName.EndsWith(".dta"))
                             {
-                                vardict.Add(str.Variables[i].Name, new Tuple<int, StataVariable>(i, str.Variables[i]));
-                                if (!_notEventSpecificValues.Contains(str.Variables[i].Name))
-                                    _eventDataKeys.Add(i, str.Variables[i]);
-                            }
+                                var dta = new StataFileReader(zipStream, true);
 
-                            // cache value labels 
+                                // cache variables 
 
-                            Dictionary<string, Dictionary<int, string>> valuedict = new Dictionary<string, Dictionary<int, string>>();
-                            foreach (var v in str.ValueLabels)
-                            {
-                                if (!valuedict.ContainsKey(v.Item1))
-                                    valuedict.Add(v.Item1, new Dictionary<int, string>());
-
-                                valuedict[v.Item1].Add(v.Item2, v.Item3);
-                            }
-
-                            // cache element list 
-
-                            List<string> _selectedElements = new List<string>();
-                            string _elementLabelSetName = vardict[_columnNameElement].Item2.ValueLabelName;
-                            if (_elementLabelSetName!= "")
-                            {
-                                var _elementLabelSet = valuedict[_elementLabelSetName];
-                                foreach (var v in _elementLabelSet.Keys)
+                                var _eventDataKeys = new Dictionary<int, StataVariable>();
+                                var vardict = new Dictionary<string, Tuple<int, StataVariable>>();
+                                for (int i = 0; i < dta.Variables.Count; i++)
                                 {
-                                    _selectedElements.Add(v.ToString());
+                                    vardict.Add(dta.Variables[i].Name, new Tuple<int, StataVariable>(i, dta.Variables[i]));
+                                    if (!_notEventSpecificValues.Contains(dta.Variables[i].Name))
+                                        _eventDataKeys.Add(i, dta.Variables[i]);
+                                }
+
+                                // cache value labels 
+
+                                Dictionary<string, Dictionary<int, string>> valuedict = new Dictionary<string, Dictionary<int, string>>();
+                                foreach (var v in dta.ValueLabels)
+                                {
+                                    if (!valuedict.ContainsKey(v.Item1))
+                                        valuedict.Add(v.Item1, new Dictionary<int, string>());
+
+                                    valuedict[v.Item1].Add(v.Item2, v.Item3);
+                                }
+
+                                // cache element list 
+
+                                List<string> _selectedElements = new List<string>();
+                                string _elementLabelSetName = vardict[_columnNameElement].Item2.ValueLabelName;
+                                if (_elementLabelSetName != "")
+                                {
+                                    var _elementLabelSet = valuedict[_elementLabelSetName];
+                                    foreach (var v in _elementLabelSet.Keys)
+                                    {
+                                        _selectedElements.Add(v.ToString());
+                                    }
+                                }
+
+                                int _elementColumnIndex = vardict[_columnNameElement].Item1;
+                                Dictionary<int, string> _elementValueLabelDict = new Dictionary<int, string>();
+                                if (vardict[_columnNameElement].Item2.ValueLabelName != "")
+                                {
+                                    _elementValueLabelDict = valuedict[vardict[_columnNameElement].Item2.ValueLabelName];
+                                }
+
+                                int _personIdentifierColumnIndex = vardict[_columnNamePersonIdentifier].Item1;
+                                Dictionary<int, string> _personIdentifierValueLabelDict = new Dictionary<int, string>();
+                                if (vardict[_columnNamePersonIdentifier].Item2.ValueLabelName != "")
+                                {
+                                    _personIdentifierValueLabelDict = valuedict[vardict[_columnNamePersonIdentifier].Item2.ValueLabelName];
+                                }
+
+                                int _eventNameColumnIndex = vardict[_columnNameEventName].Item1;
+                                Dictionary<int, string> _eventNameValueLabelDict = new Dictionary<int, string>();
+                                if (vardict[_columnNameEventName].Item2.ValueLabelName != "")
+                                {
+                                    _eventNameValueLabelDict = valuedict[vardict[_columnNameEventName].Item2.ValueLabelName];
+                                }
+
+                                int _timeStampColumnIndex = vardict[_columnNameTimeStamp].Item1;
+                                Dictionary<int, string> _timeStampLabelDict = new Dictionary<int, string>();
+                                if (vardict[_columnNameTimeStamp].Item2.ValueLabelName != "")
+                                {
+                                    _timeStampLabelDict = valuedict[vardict[_columnNameTimeStamp].Item2.ValueLabelName];
+                                }
+
+                                foreach (var _line in dta)
+                                {
+                                    if (_selectedElements.Count == 0 || _selectedElements.Contains(_line[_elementColumnIndex].ToString()))
+                                    {
+                                        string _eventName = _line[_eventNameColumnIndex].ToString();
+                                        if (_eventNameValueLabelDict.Count > 0)
+                                            _eventName = _eventNameValueLabelDict[int.Parse(_eventName)];
+
+                                        string _personIdentifier = _line[_personIdentifierColumnIndex].ToString();
+                                        if (_personIdentifierValueLabelDict.Count > 0)
+                                            _personIdentifier = _personIdentifierValueLabelDict[int.Parse(_personIdentifier)];
+
+                                        string _element = _line[_elementColumnIndex].ToString();
+                                        if (_elementValueLabelDict.Count > 0 && _elementValueLabelDict.ContainsKey(int.Parse(_element)))
+                                            _element = _elementValueLabelDict[int.Parse(_element)];
+
+                                        string _timeStampeValue = _line[_timeStampColumnIndex].ToString();
+                                        DateTime _timeStamp = DateTime.MinValue;
+                                        if (RelativeTime)
+                                            DateTime.TryParse(_timeStampeValue, out _timeStamp);
+                                        else
+                                        {
+                                            double _inc = 0;
+                                            if (double.TryParse(_timeStampeValue, out _inc))
+                                                _timeStamp = dt1960.AddMilliseconds(_inc);
+                                        }
+
+                                        var _eventValues = new Dictionary<string, string>();
+                                        foreach (var v in _eventDataKeys.Keys)
+                                        {
+                                            string _dictName = vardict[_eventDataKeys[v].Name].Item2.ValueLabelName;
+                                            if (valuedict.ContainsKey(_dictName))
+                                            {
+                                                var _dict = valuedict[_dictName];
+                                                string _value = _line[v].ToString();
+                                                if (_dict.ContainsKey(int.Parse(_value)))
+                                                    _value = _dict[int.Parse(_value)].ToString();
+
+                                                _eventValues.Add(_eventDataKeys[v].Name, _value);
+                                            }
+                                            else
+                                                _eventValues.Add(_eventDataKeys[v].Name, _line[v].ToString());
+                                        }
+                                       
+                                        bool _add = true;
+                                        if (ParsedCommandLineArguments.Elements.Length != 0 && !ParsedCommandLineArguments.Elements.Contains<string>(_element))
+                                            _add = false;
+                                        else if (ParsedCommandLineArguments.Events.Length != 0 && !ParsedCommandLineArguments.Events.Contains<string>(_eventName))
+                                            _add = false;
+                                        else if (ParsedCommandLineArguments.ExcludedElements.Length != 0 && ParsedCommandLineArguments.ExcludedElements.Contains<string>(_element))
+                                            _add = false;
+                                        else if (ParsedCommandLineArguments.ExcludedEvents.Length != 0 && ParsedCommandLineArguments.ExcludedEvents.Contains<string>(_eventName))
+                                            _add = false;
+
+                                        if (_add)
+                                        {
+                                            if (!_inMemoryTempData.ContainsKey(_personIdentifier))
+                                                _inMemoryTempData.Add(_personIdentifier, new List<EventData>());
+
+                                            _inMemoryTempData[_personIdentifier].Add(new EventData()
+                                            {
+                                                Element = _element,
+                                                EventName = _eventName,
+                                                PersonIdentifier = _personIdentifier,
+                                                TimeStamp = _timeStamp,
+                                                EventValues = _eventValues
+                                            });
+                                        } 
+                                    }
                                 }
                             }
-                            
-                            int _elementColumnIndex = vardict[_columnNameElement].Item1;
-                            Dictionary<int, string> _elementValueLabelDict = new Dictionary<int, string>();
-                            if (vardict[_columnNameElement].Item2.ValueLabelName!= "")
-                            {
-                                 _elementValueLabelDict = valuedict[vardict[_columnNameElement].Item2.ValueLabelName];
-                            }
-                            
-                            int _personIdentifierColumnIndex = vardict[_columnNamePersonIdentifier].Item1;
-                            Dictionary<int, string> _personIdentifierValueLabelDict = new Dictionary<int, string>();
-                            if (vardict[_columnNamePersonIdentifier].Item2.ValueLabelName != "")
-                            {
-                                _personIdentifierValueLabelDict = valuedict[vardict[_columnNamePersonIdentifier].Item2.ValueLabelName];
-                            }
-
-                            int _eventNameColumnIndex = vardict[_columnNameEventName].Item1;
-                            Dictionary<int, string> _eventNameValueLabelDict = new Dictionary<int, string>();
-                            if (vardict[_columnNameEventName].Item2.ValueLabelName != "")
-                            {
-                                _eventNameValueLabelDict = valuedict[vardict[_columnNameEventName].Item2.ValueLabelName];
-                            }
+                            #endregion
                              
-                            int _timeStampColumnIndex = vardict[_columnNameTimeStamp].Item1;
-                            Dictionary<int, string> _timeStampLabelDict = new Dictionary<int, string>();
-                            if (vardict[_columnNameTimeStamp].Item2.ValueLabelName != "")
+                            #region - CSV
+                            if (e.FileName.EndsWith(".csv"))
                             {
-                                _timeStampLabelDict = valuedict[vardict[_columnNameTimeStamp].Item2.ValueLabelName];
-                            }
-
-                            foreach (var _line in str)
-                            {
-                                if (_selectedElements.Count == 0 ||_selectedElements.Contains(_line[_elementColumnIndex].ToString()))
-                                { 
-                                    string _eventName = _line[_eventNameColumnIndex].ToString();
-                                    if (_eventNameValueLabelDict.Count > 0)
-                                        _eventName = _eventNameValueLabelDict[int.Parse(_eventName)];
-
-                                    string _personIdentifier = _line[_personIdentifierColumnIndex].ToString();
-                                    if (_personIdentifierValueLabelDict.Count > 0)
-                                        _personIdentifier = _personIdentifierValueLabelDict[int.Parse(_personIdentifier)];
-
-                                    string _element = _line[_elementColumnIndex].ToString();
-                                    if (_elementValueLabelDict.Count > 0 && _elementValueLabelDict.ContainsKey(int.Parse(_element)))
-                                        _element = _elementValueLabelDict[int.Parse(_element)];
-
-                                    DateTime _timeStamp = DateTime.MinValue;
-                                    if (!_absolute)
+                                using (var reader = new StreamReader(zipStream))
+                                {
+                                    var config = new CsvConfiguration(CultureInfo.InvariantCulture)
                                     {
-                                        DateTime.TryParse(_line[_timeStampColumnIndex].ToString(), out _timeStamp);
-                                    }
-                                    else
+                                        DetectDelimiter = true
+                                    };
+                                    using (var csv = new CsvReader(reader, config))
                                     {
-                                        try
+                                        csv.Read();
+                                        csv.ReadHeader();
+                                        var _data_rows = csv.GetRecords<dynamic>();
+                                        List<string> _columnNames = csv.HeaderRecord.ToList<string>();
+
+                                        foreach (IDictionary<string, object> row in _data_rows)
                                         {
-                                            _timeStamp = dt1960.AddMilliseconds(double.Parse(_line[_timeStampColumnIndex].ToString()));
-                                        }
-                                        catch
-                                        {
-                                            //TODO VERSION 0.3: Add a more proper check for invalid time stamps
-                                        }
-                                    }
+                                            string _eventName = row[_columnNameEventName].ToString();
+                                            string _personIdentifier = row[_columnNamePersonIdentifier].ToString();
+                                            string _element = row[_columnNameElement].ToString();
+                                            var _eventValues = new Dictionary<string, string>();
+                                            DateTime _timeStamp = DateTime.MinValue;
+                                            string _timeStampeValue = row[_columnNameTimeStamp].ToString();
 
-                                    var _eventValues = new Dictionary<string, string>();
-                                    foreach (var v in _eventDataKeys.Keys)
-                                    {
-                                        string _dictName = vardict[_eventDataKeys[v].Name].Item2.ValueLabelName;
-                                        if (valuedict.ContainsKey(_dictName))
-                                        { 
-                                            var _dict = valuedict[_dictName];
-                                            string _value = _line[v].ToString();
-                                            if (_dict.ContainsKey(int.Parse(_value)))
+                                            if (RelativeTime)
                                             {
-                                                _value = _dict[int.Parse(_value)].ToString();
+                                                double _inc = 0;
+                                                if (double.TryParse(_timeStampeValue, out _inc))
+                                                    _timeStamp = dt1960.AddMilliseconds(_inc);
                                             }
-                                                
-                                            _eventValues.Add(_eventDataKeys[v].Name, _value);
+                                            else
+                                            {
+                                                DateTime.TryParse(_timeStampeValue, out _timeStamp);
+                                            } 
+
+                                            foreach (var _c in _columnNames)
+                                            {
+                                                if (!_notEventSpecificValues.Contains(_c))
+                                                    _eventValues.Add(_c, row[_c].ToString());
+                                            }
+
+                                            bool _add = true;
+                                            if (ParsedCommandLineArguments.Elements.Length != 0 && !ParsedCommandLineArguments.Elements.Contains<string>(_element))
+                                                _add = false;
+                                            else if (ParsedCommandLineArguments.Events.Length != 0 && !ParsedCommandLineArguments.Events.Contains<string>(_eventName))
+                                                _add = false;
+                                            else if (ParsedCommandLineArguments.ExcludedElements.Length != 0 && ParsedCommandLineArguments.ExcludedElements.Contains<string>(_element))
+                                                _add = false;
+                                            else if (ParsedCommandLineArguments.ExcludedEvents.Length != 0 && ParsedCommandLineArguments.ExcludedEvents.Contains<string>(_eventName))
+                                                _add = false;
+
+                                            if (_add)
+                                            {
+                                                if (!_inMemoryTempData.ContainsKey(_personIdentifier))
+                                                    _inMemoryTempData.Add(_personIdentifier, new List<EventData>());
+                                                 
+                                                _inMemoryTempData[_personIdentifier].Add(new EventData()
+                                                {
+                                                    Element = _element,
+                                                    EventName = _eventName,
+                                                    PersonIdentifier = _personIdentifier,
+                                                    TimeStamp = _timeStamp,
+                                                    EventValues = _eventValues
+                                                });
+                                            } 
+                                        }
+
+                                    }
+                                }
+                            }
+                            #endregion
+
+                            #region - SAV
+                            if (e.FileName.EndsWith(".sav"))
+                            {
+                                SpssLib.DataReader.SpssReader sav = new SpssLib.DataReader.SpssReader(zipStream);
+                                foreach (var record in sav.Records)
+                                {
+                                    string _personIdentifier = "";
+                                    string _eventName = "";
+                                    string _element = "";
+                                    DateTime _timeStamp = DateTime.MinValue;
+                                    var _eventValues = new Dictionary<string, string>();
+
+                                    foreach (var variable in sav.Variables)
+                                    {
+                                        if (variable.Name == _columnNamePersonIdentifier)
+                                        {
+                                            _personIdentifier = record.GetValue(variable).ToString();
+                                            if (variable.ValueLabels.Count > 0)
+                                            {
+                                                double _doubleValue = (double)record.GetValue(variable);
+                                                if (variable.ValueLabels.ContainsKey(_doubleValue))
+                                                    _personIdentifier = variable.ValueLabels[_doubleValue];
+                                            }
+                                        }
+                                        else if (variable.Name == _columnNameEventName)
+                                        {
+                                            _eventName = record.GetValue(variable).ToString();
+                                            if (variable.ValueLabels.Count > 0)
+                                            {
+                                                double _doubleValue = (double)record.GetValue(variable);
+                                                if (variable.ValueLabels.ContainsKey(_doubleValue))
+                                                    _eventName = variable.ValueLabels[_doubleValue];
+                                            }
+                                        }
+                                        else if (variable.Name == _columnNameElement)
+                                        {
+                                            _element = record.GetValue(variable).ToString();
+                                            if (variable.ValueLabels.Count > 0)
+                                            {
+                                                double _doubleValue = (double)record.GetValue(variable);
+                                                if (variable.ValueLabels.ContainsKey(_doubleValue))
+                                                    _element = variable.ValueLabels[_doubleValue];
+                                            }
+                                        }
+                                        else if (variable.Name == _columnNameTimeStamp)
+                                        {
+                                            string _timeStampeValue = record.GetValue(variable).ToString();
+                                            if (variable.ValueLabels.Count > 0)
+                                            {
+                                                double _doubleValue = (double)record.GetValue(variable);
+                                                if (variable.ValueLabels.ContainsKey(_doubleValue))
+                                                    _timeStampeValue = variable.ValueLabels[_doubleValue];
+                                            }
+                                             
+                                           if (RelativeTime)
+                                                DateTime.TryParse(_timeStampeValue, out _timeStamp);
+                                            else
+                                            {
+                                                double _inc = 0;
+                                                if (double.TryParse(_timeStampeValue, out _inc))
+                                                    _timeStamp = dt1960.AddMilliseconds(_inc);
+                                            }                                             
                                         }
                                         else
                                         {
-                                            _eventValues.Add(_eventDataKeys[v].Name, _line[v].ToString());
-                                        }   
+                                            if (!_notEventSpecificValues.Contains(variable.Name))
+                                            {
+                                                string _key = variable.Name;
+                                                string _value = record.GetValue(variable).ToString();
+                                                if (variable.ValueLabels.Count > 0)
+                                                {
+                                                    double _doubleValue = (double)record.GetValue(variable);
+                                                    if (variable.ValueLabels.ContainsKey(_doubleValue))
+                                                        _value = variable.ValueLabels[_doubleValue];
+                                                } 
+                                                _eventValues.Add(_key, _value); 
+                                            }
+                                        }
                                     }
 
-                                    if (!_inMemoryTempData.ContainsKey(_personIdentifier))
-                                        _inMemoryTempData.Add(_personIdentifier, new List<EventData>());
+                                    bool _add = true;
+                                    if (ParsedCommandLineArguments.Elements.Length != 0 && !ParsedCommandLineArguments.Elements.Contains<string>(_element))
+                                        _add = false;
+                                    else if (ParsedCommandLineArguments.Events.Length != 0 && !ParsedCommandLineArguments.Events.Contains<string>(_eventName))
+                                        _add = false;
+                                    else if (ParsedCommandLineArguments.ExcludedElements.Length != 0 && ParsedCommandLineArguments.ExcludedElements.Contains<string>(_element))
+                                        _add = false;
+                                    else if (ParsedCommandLineArguments.ExcludedEvents.Length != 0 && ParsedCommandLineArguments.ExcludedEvents.Contains<string>(_eventName))
+                                        _add = false;
 
-                                    if (Elements.Length == 0 || Elements.Contains<string>(_element))
-                                    {
+                                    if (_add)
+                                    { 
+                                        if (!_inMemoryTempData.ContainsKey(_personIdentifier))
+                                            _inMemoryTempData.Add(_personIdentifier, new List<EventData>());
+                                         
                                         _inMemoryTempData[_personIdentifier].Add(new EventData()
                                         {
                                             Element = _element,
@@ -541,10 +734,13 @@ namespace LogFSMConsole
                                             TimeStamp = _timeStamp,
                                             EventValues = _eventValues
                                         });
-                                    } 
+                                    }
+
                                 } 
-                            } 
-                        }
+                            }
+                            #endregion
+
+                            }
 
                         if (Verbose)
                             Console.WriteLine("ok.");
@@ -552,7 +748,10 @@ namespace LogFSMConsole
 
                 }
             }
-             
+
+            if (Verbose)
+                Console.Write("Write '" + Path.GetFileName(OutFileName) + "'");
+
             using (ZipFile outzip = new ZipFile())
             {
                 List<string> _persons = _inMemoryTempData.Keys.ToList<string>();
@@ -581,7 +780,8 @@ namespace LogFSMConsole
                 outzip.Save(OutFileName);
             }
 
-
+            if (Verbose)
+                Console.WriteLine("ok.");
         }
 
 
@@ -593,7 +793,9 @@ namespace LogFSMConsole
             {
                 foreach (ZipEntry e in zip.Entries)
                 {
-                    if (e.FileName != "Log.dta")
+                    if (Path.GetFileNameWithoutExtension(e.FileName) != "Log" &&
+                     Path.GetFileNameWithoutExtension(e.FileName) != "Results" &&
+                     Path.GetFileNameWithoutExtension(e.FileName) != "FlatAndSparseLogDataTable")
                     {
                         if (Verbose)
                             Console.Write("Check file '" + e.FileName + "' ");
@@ -602,25 +804,56 @@ namespace LogFSMConsole
                         {
                             e.Extract(zipStream);
                             zipStream.Position = 0;
-                            var str = new StataFileReader(zipStream, false);
-                            bool valid = true;
 
-                            if (str.Variables.FindIndex(f => f.Name == ColumnNameEventName) == -1)
+                            List<string> _columnNames = new List<string>();
+
+                            if (e.FileName.EndsWith(".dta"))
+                            {
+                                var dta = new StataFileReader(zipStream, false);
+                                foreach (var s in dta.Variables)
+                                    _columnNames.Add(s.Name);
+                            }
+                            else if (e.FileName.EndsWith(".sav"))
+                            {
+                                SpssLib.DataReader.SpssReader sav = new SpssLib.DataReader.SpssReader(zipStream);
+                                foreach (var s in sav.Variables)
+                                    _columnNames.Add(s.Name);
+                            }
+                            else if (e.FileName.EndsWith(".csv"))
+                            {
+                                var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+                                {
+                                    DetectDelimiter = true
+                                };
+
+                                using (var reader = new StreamReader(zipStream))
+                                {
+                                    using (var csv = new CsvReader(reader, config))
+                                    {
+                                        csv.Read();
+                                        csv.ReadHeader();
+                                        _columnNames = csv.HeaderRecord.ToList<string>();
+                                    }
+                                }
+                            }
+
+                            bool valid = true;
+                            if (_columnNames.FindIndex(f => f == ColumnNameEventName) == -1)
                             {
                                 Console.WriteLine("Column '" + ColumnNameEventName + "' not found in file '" + e.FileName + "'. Provide the name of the column that contains the event name using the argument 'ColumnNameEventName'.");
                                 valid = false;
                             }
-                            else if (str.Variables.FindIndex(f => f.Name == ColumnNameElement) == -1)
+                            else if (_columnNames.FindIndex(f => f == ColumnNameElement) == -1)
                             {
                                 Console.WriteLine("Column '" + ColumnNameElement + "' not found in file '" + e.FileName + "'. Provide the name of the column that contains the name of the element (i.e., item, unit, ...) using the argument 'ColumnNameElement'.");
                                 valid = false;
                             }
-                            else if (str.Variables.FindIndex(f => f.Name == ColumnNamePersonIdentifier) == -1)
+                            else if (_columnNames.FindIndex(f => f == ColumnNamePersonIdentifier) == -1)
                             {
                                 Console.WriteLine("Column '" + ColumnNamePersonIdentifier + "' not found in file '" + e.FileName + "'. Provide the name of the column that contains the person identifier using the argument 'ColumnNamePersonIdentifier'.");
                                 valid = false;
                             }
-                            else if (str.Variables.FindIndex(f => f.Name == ColumnNameTimeStamp) == -1)
+                            else if (_columnNames.FindIndex(f => f == ColumnNameTimeStamp) == -1)
                             {
                                 Console.WriteLine("Column '" + ColumnNameTimeStamp + "' not found in file '" + e.FileName + "'. Provide the name of the column that contains the time stamp using the argument 'ColumnNameTimeStamp'.");
                                 valid = false;
@@ -631,9 +864,9 @@ namespace LogFSMConsole
                                 if (Verbose)
                                 {
                                     Console.WriteLine("failed. Found the following column names in file '" + e.FileName + "':");
-                                    foreach (var v in str.Variables)
+                                    foreach (var s in _columnNames)
                                     {
-                                        Console.WriteLine("- '" + v.Name + "': " + v.Description);
+                                        Console.WriteLine("- '" + s);
                                     }
                                 }
 

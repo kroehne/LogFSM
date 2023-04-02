@@ -1,6 +1,13 @@
 CHANGE-LOG
 ==========
 
+2023-04-02 0.4.5.29
+
+* Bug fixing JSON deserialization (Newtonsoft.Json)
+* Implemted PrepareLogData for "Universal Log Format" (Stata/CSV/SPSS)
+* Changed encoding in generated Stata files to "windows-1252"
+* Renamed data file type "nepszip01a" to "universal01"
+
 2023-03-29 0.4.5.28
 
 * Added Flag "ALLOWFILERENAME" to read data when filenames (inputformat: irtlibv01a) are renamed (and no longer identical to the PersonIdentifier)

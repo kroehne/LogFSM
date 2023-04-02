@@ -477,7 +477,7 @@ namespace LogFSMConsole
                         {
                             foreach (var entry in zip)
                             {
-                                if ((DataFileFilter != "" && FitsMask(entry.FileName, DataFileFilter)) || (entry.FileName == DataFileName))
+                                if ((DataFileFilter != "" && FitsMask(entry.FileName, DataFileFilter)) || (entry.FileName == DataFileName) || DataFileFilter == "")
                                     _matchedFilesInZIP += 1;
                             }
                         }
@@ -545,14 +545,14 @@ namespace LogFSMConsole
             {
                 #region job: prepare
 
-                if (DataFileTypeIsNEPSZipVersion01A || 
-                    DataFileTypeIsPISABQZipVersion01A ||
+                if (DataFileTypeIsPISABQZipVersion01A ||
                     DataFileTypeIsPISABQZipVersion01B ||
                     DataFileTypeIsPISABQZipVersion01C ||
                     DataFileTypeIsPISACAZipVersion01A ||
                     DataFileTypeIsPISACAZipVersion01B ||
                     DataFileTypeIsPISACAZipVersion01C ||
-                    DataFileTypeIsNDataFlatV01A || 
+                    DataFileTypeIsNDataFlatV01A ||
+                    DataFileTypeIsUniversalLogFormat ||
                     DataFileTypeIsPIAACLdaRawZipVersion01A)
                 {
                     if (!File.Exists(ZIPFileName))
@@ -806,14 +806,7 @@ namespace LogFSMConsole
                 return (DataFileType.Trim().ToLower() == "dataflatv01a" && ZIPFileName.Trim() != "");
             }
         }
-
-        public bool DataFileTypeIsNEPSZipVersion01A
-        {
-            get
-            {
-                return (DataFileType.Trim().ToLower() == "nepszip01a" && ZIPFileName.Trim() != "");
-            }
-        }
+         
 
         public bool DataFileTypeIsPISABQZipVersion01A
         {

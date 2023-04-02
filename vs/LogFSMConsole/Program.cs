@@ -29,7 +29,7 @@ namespace LogFSMConsole
         {
             Stopwatch _watch = new Stopwatch();
             _watch.Start();
-
+ 
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
              
             string[] _assemblyFullName = Assembly.GetExecutingAssembly().FullName.Split(',');
@@ -196,6 +196,8 @@ namespace LogFSMConsole
                 sort = EventDataListExtension.ESortType.None;
             else if (ParsedCommandLineArguments.Flags.Contains("ORDER_WITHIN_ELEMENTS"))
                 sort = EventDataListExtension.ESortType.ElementAndTime;
+             
+            // Process data 
 
             if (ParsedCommandLineArguments.DataFileTypeIsEE || ParsedCommandLineArguments.DataFileTypeIsLogFSMJson || ParsedCommandLineArguments.DataFileTypeIsJsonLite)
             {
@@ -220,21 +222,49 @@ namespace LogFSMConsole
                 // extract list of person identifiers from log file
                 
                 List<string> _personIdentifiers = LogDataReader.GetListOfPersonIdentifiersFromUniversalLogFormat(ParsedCommandLineArguments.ZIPFileName, ParsedCommandLineArguments);
-               
-                // loop over all person identifiers 
+
+                // check number of cases
+
+                bool _runAnayway = true;
+                int _numberOfPersonIdentifiers = 0;
                 foreach (string _p in _personIdentifiers)
                 {
                     if (ParsedCommandLineArguments.MaxNumberOfCases > 0 && ParsedCommandLineArguments.currentNumberOfPersons >= ParsedCommandLineArguments.MaxNumberOfCases)
                         break;
 
                     if (ParsedCommandLineArguments.DataFileFilter == "" | CommandLineArguments.FitsMask(_p, ParsedCommandLineArguments.DataFileFilter))
+                        _numberOfPersonIdentifiers++;
+                }
+
+                if (_numberOfPersonIdentifiers > 10)
+                {
+                    Console.WriteLine("Reading more than 10 data from Universal Log Format directly might take some time. Consider to convert data to 'logfsmjson' before calling 'RunFSMSyntax'.");
+                    if (!ParsedCommandLineArguments.Flags.Contains("RUNANYWAY"))
                     {
-                        _logData = LogDataReader.ReadLogUniversalLogFormat(ParsedCommandLineArguments.ZIPFileName, _p, ParsedCommandLineArguments.RelativeTime, ParsedCommandLineArguments, ParsedCommandLineArguments.Elements, sort);
-                        ILogFSM _myGeneratedFSM = (ILogFSM)_compiledFSMAssembly.CreateInstance("LogFSMTests" + "." + "LogFSMTests");
-                        _temporaryResultFiles.AddRange(ProcessLogData(ParsedCommandLineArguments, _myGeneratedFSM, _logData));
+                        Console.WriteLine("Provide the flag 'RUNANYWAY' to overwrite this warning.");
+                        _runAnayway = false;
+                    }                        
+                }
+                    
+
+                // loop over all person identifiers 
+
+                if (_runAnayway)
+                {
+                    foreach (string _p in _personIdentifiers)
+                    {
+                        if (ParsedCommandLineArguments.MaxNumberOfCases > 0 && ParsedCommandLineArguments.currentNumberOfPersons >= ParsedCommandLineArguments.MaxNumberOfCases)
+                            break;
+
+                        if (ParsedCommandLineArguments.DataFileFilter == "" | CommandLineArguments.FitsMask(_p, ParsedCommandLineArguments.DataFileFilter))
+                        {
+                            _logData = LogDataReader.ReadLogUniversalLogFormat(ParsedCommandLineArguments.ZIPFileName, _p, ParsedCommandLineArguments.RelativeTime, ParsedCommandLineArguments, ParsedCommandLineArguments.Elements, sort);
+                            ILogFSM _myGeneratedFSM = (ILogFSM)_compiledFSMAssembly.CreateInstance("LogFSMTests" + "." + "LogFSMTests");
+                            _temporaryResultFiles.AddRange(ProcessLogData(ParsedCommandLineArguments, _myGeneratedFSM, _logData));
+                        }
                     }
                 }
-                 
+
             }
             else if (ParsedCommandLineArguments.DataFileTypeIsEEZip || ParsedCommandLineArguments.DataFileTypeIsLogFSMJsonZip || ParsedCommandLineArguments.DataFileTypeIsJsonLiteZip)
             {
@@ -247,8 +277,7 @@ namespace LogFSMConsole
                         ExtractAndProcessFlatAndSparseLogFileTables(ParsedCommandLineArguments, entry, _logData, _temporaryResultFiles, _myGeneratedFSM, sort);
                     }
                     else if (ParsedCommandLineArguments.DataFileFilter != "")
-                    {
-                         
+                    { 
                         foreach (var entry in zip)
                         {
                             if (ParsedCommandLineArguments.MaxNumberOfCases > 0 && ParsedCommandLineArguments.currentNumberOfPersons >= ParsedCommandLineArguments.MaxNumberOfCases)
@@ -257,10 +286,8 @@ namespace LogFSMConsole
                             {
                                 ILogFSM _myGeneratedFSM = (ILogFSM)_compiledFSMAssembly.CreateInstance("LogFSMTests" + "." + "LogFSMTests");
                                 ExtractAndProcessFlatAndSparseLogFileTables(ParsedCommandLineArguments, entry, _logData, _temporaryResultFiles, _myGeneratedFSM, sort);
-                            }
-
-                        }
-                       
+                            } 
+                        } 
                     }
                     else
                     {
@@ -322,7 +349,8 @@ namespace LogFSMConsole
                     for (int i = 0; i < _temporaryResultFiles.Count; i += 1)
                     {
                         string _json = File.ReadAllText(_temporaryResultFiles[i]);
-                        LogFSMResultJSON _singleResults = JsonConvert.DeserializeObject<LogFSMResultJSON>(_json);
+                        var settings = new JsonSerializerSettings { Converters = new[] { new TypeInferringDataTableConverter() } };
+                        LogFSMResultJSON _singleResults = JsonConvert.DeserializeObject<LogFSMResultJSON>(_json, settings);
 
                         foreach (var key in _singleResults.Tables.Keys)
                         {
@@ -348,10 +376,8 @@ namespace LogFSMConsole
                                             _transitionFrequencyTotalsTableCounter[_transitionFrequencyTotalsTableCounterKey] += _value;
                                     }
                                 }
-                            }
-                            #endregion
-
-
+                                #endregion
+                            }                             
                         }
                         if ((int)Math.Round((double)(100 * i) / _temporaryResultFiles.Count) > _progress)
                         {
@@ -463,8 +489,7 @@ namespace LogFSMConsole
 
                         #endregion
                     }
-                     
-
+                      
                     string _newfile = ParsedCommandLineArguments.OutFileName;
                     using (StreamWriter file = File.CreateText(_newfile))
                     {
@@ -500,8 +525,7 @@ namespace LogFSMConsole
                     _labelFontSize = ParsedCommandLineArguments.ParameterDictionary["DOTLABELFONTSIZE"];
                  
                 if (_syntax != null && !ParsedCommandLineArguments.Flags.Contains("SKIP_POST_PROCESSING_UML_CHART"))
-                {
-
+                { 
                     // Create readable label
 
                     // TODO: Modify that labels are only changed conditional on the transition (i.e., start state, beginning of the DOT syntax line)
@@ -583,11 +607,10 @@ namespace LogFSMConsole
         }
 
         private static void runJobPrepare(Stopwatch Watch, CommandLineArguments ParsedCommandLineArguments)
-        {
-
-            if (ParsedCommandLineArguments.DataFileTypeIsNEPSZipVersion01A)
+        { 
+            if (ParsedCommandLineArguments.DataFileTypeIsUniversalLogFormat)
             {
-                LogDataPreparer.ReadLogDataGenericV01(ParsedCommandLineArguments.ZIPFileName, ParsedCommandLineArguments.OutFileName, ParsedCommandLineArguments.Elements, ParsedCommandLineArguments.Verbose, ParsedCommandLineArguments);
+                LogDataPreparer.ReadLogDataGenericV01(ParsedCommandLineArguments.ZIPFileName, ParsedCommandLineArguments.OutFileName, ParsedCommandLineArguments.RelativeTime,  ParsedCommandLineArguments.Elements, ParsedCommandLineArguments.Verbose, ParsedCommandLineArguments);
             }
             if (ParsedCommandLineArguments.DataFileTypeIsNDataFlatV01A)
             {
@@ -855,7 +878,7 @@ namespace LogFSMConsole
                                 else if (c == "TimeDifference")
                                     _value = e.TimeDifferencePrevious.TotalMilliseconds.ToString();
                                 else if (e.EventValues.Keys.Contains(c))
-                                    _value = e.EventValues[c];
+                                    _value = e.EventValues[c].ToString();
                                 _row[c] = _value;
 
                             }
@@ -1347,10 +1370,10 @@ namespace LogFSMConsole
                     serializer.Serialize(file, _resultJsonObject);
                 }
 
-                _tmpReturn.Add(_newfile);
+                _tmpReturn.Add(_newfile);                            
 
                 #endregion
- 
+
             }
 
             return _tmpReturn;

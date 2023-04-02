@@ -550,12 +550,9 @@ namespace LogFSM_LogX2019
                         foreach (var _colname in logDataTableColnames[_id])
                         {
                             if (listOfLabelContainers.ContainsKey(_colname))
-                            {
-                                // TODO: Check for other special characters
-
+                            { 
                                 for (int _i = 0; _i < uniqueValues[_colname].Count; _i++)
-                                    _dtaFile.AddValueLabel(listOfLabelContainers[_colname], _i, uniqueValuesLookup[_colname][_i].Replace("ë", "e"));
-
+                                    _dtaFile.AddValueLabel(listOfLabelContainers[_colname], _i, uniqueValuesLookup[_colname][_i]);
                                 _dtaFile.AddValueLabel("l_" + _colname, -1, _attributeNotDefinded);
                             }                           
                         }
