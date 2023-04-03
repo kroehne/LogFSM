@@ -368,6 +368,10 @@ namespace LogFSMConsole
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("columnnametimestamp"))
                 _columnNameTimeStamp = ParsedCommandLineArguments.ParameterDictionary["columnnametimestamp"];
 
+            string _columnDelimiter = ";";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("columndelimiter"))
+                _columnDelimiter = ParsedCommandLineArguments.ParameterDictionary["columndelimiter"];
+
             EventDataListExtension.ESortType sort = EventDataListExtension.ESortType.Time;
             if (ParsedCommandLineArguments.Flags.Contains("DONT_ORDER_EVENTS"))
                 sort = EventDataListExtension.ESortType.None;
@@ -378,7 +382,7 @@ namespace LogFSMConsole
             //  - XLSX / Excel not supported
             //  - XES not implemented yet
 
-            if (!CheckReadLogDataGenericV01(ZipFileName, _columnNamePersonIdentifier, _columnNameEventName, _columnNameElement, _columnNameTimeStamp, Verbose, true))
+            if (!CheckReadLogDataGenericV01(ZipFileName, _columnNamePersonIdentifier, _columnNameEventName, _columnNameElement, _columnNameTimeStamp, Verbose, true, _columnDelimiter))
             {
                 Console.WriteLine("Data not in the expected generic log format. Check format and consider to provide an alternative value for the attribute 'datafiletype'.");
                 return;
@@ -565,7 +569,7 @@ namespace LogFSMConsole
                                 {
                                     var config = new CsvConfiguration(CultureInfo.InvariantCulture)
                                     {
-                                        DetectDelimiter = true
+                                        Delimiter = _columnDelimiter
                                     };
                                     using (var csv = new CsvReader(reader, config))
                                     {
@@ -785,7 +789,7 @@ namespace LogFSMConsole
         }
 
 
-        private static bool CheckReadLogDataGenericV01(string ZipFileName, string ColumnNamePersonIdentifier, string ColumnNameEventName, string ColumnNameElement, string ColumnNameTimeStamp, bool Verbose, bool CheckFirstFileOnly)
+        private static bool CheckReadLogDataGenericV01(string ZipFileName, string ColumnNamePersonIdentifier, string ColumnNameEventName, string ColumnNameElement, string ColumnNameTimeStamp, bool Verbose, bool CheckFirstFileOnly, string _columnDelimiter)
         {
             // Check a) the first [CheckFirstFileOnly == TRUE] or b) all [CheckFirstFileOnly == false] Stata files if the required column names are present 
 
@@ -823,7 +827,7 @@ namespace LogFSMConsole
                             {
                                 var config = new CsvConfiguration(CultureInfo.InvariantCulture)
                                 {
-                                    DetectDelimiter = true
+                                    Delimiter = _columnDelimiter
                                 };
 
                                 using (var reader = new StreamReader(zipStream))

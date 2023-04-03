@@ -1,5 +1,6 @@
 ﻿#region usings
 using CsvHelper;
+using CsvHelper.Configuration;
 using ICSharpCode.SharpZipLib.GZip;
 using Ionic.Zip;
 using LogFSM;
@@ -10,6 +11,7 @@ using NPOI.SS.Formula.Functions;
 using NPOI.SS.UserModel;
 using NPOI.Util;
 using NPOI.XSSF.UserModel;
+using SixLabors.ImageSharp.ColorSpaces;
 using SpssLib.DataReader;
 using SpssLib.SpssDataset;
 using StataLib;
@@ -22,6 +24,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.Unicode;
 using System.Xml.Linq;
 using static NPOI.HSSF.Util.HSSFColor;
 #endregion
@@ -1224,6 +1227,8 @@ namespace LogFSM_LogX2019
             return _linecounter;
         }
 
+        // TODO: Check Quotation
+
         public void ExportCSV(CommandLineArguments ParsedCommandLineArguments)
         {
             string filename = ParsedCommandLineArguments.Transform_OutputZCSV;
@@ -1252,11 +1257,19 @@ namespace LogFSM_LogX2019
             if (ParsedCommandLineArguments.Flags.Contains("SKIPRESULTS"))
                 _skipResultTable = true;
 
+            string _columnDelimiter = ";";
+            if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("columndelimiter"))
+                _columnDelimiter = ParsedCommandLineArguments.ParameterDictionary["columndelimiter"];
+
             string _language = "ENG";
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("language"))
                 _language = ParsedCommandLineArguments.ParameterDictionary["language"];
 
-            string _sep = ";";
+            var _config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                ShouldQuote = args => true,
+                Delimiter = _columnDelimiter
+            };
 
             using (ZipFile zip = new ZipFile())
             { 
@@ -1265,43 +1278,51 @@ namespace LogFSM_LogX2019
                 foreach (string _id in logDataTables.Keys)
                 {
                     string _tmpfile = GetTempFileName("csv");
-                    using (StreamWriter sw = new StreamWriter(new FileStream(_tmpfile, FileMode.OpenOrCreate), Encoding.UTF8))
+
+                    using (StreamWriter writer = new StreamWriter(new FileStream(_tmpfile, FileMode.OpenOrCreate), Encoding.UTF8))
+                    using (var csv = new CsvWriter(writer,  _config))
                     {
-                        sw.Write("Line" + _sep + "PersonIdentifier" + _sep + "Element" + _sep + "TimeStamp" + _sep + "RelativeTime" + _sep + "EventID" + _sep + "ParentEventID" + _sep + "Path" + _sep + "ParentPath" + _sep + "EventName");
-                        if (logDataTableColnames.ContainsKey(_id))
-                        {
-                            foreach (var _colname in logDataTableColnames[_id])
-                                sw.Write(_sep + "a_" + _colname);
-                        }
-                        sw.WriteLine();
+                        // header 
+
+                        List<string> _header = new List<string>() { "Line", "PersonIdentifier", "Element", "TimeStamp", "RelativeTime", "EventID", "ParentEventID", "Path", "ParentPath", "EventName" };
+                        foreach (var _colname in logDataTableColnames[_id])
+                            _header.Add("a_" + _colname);
+                         
+                        foreach (var h in _header)
+                            csv.WriteField(h);
+
+                        csv.NextRecord();
+
+                        // data
 
                         int _linecounter = 0;
                         foreach (var v in logDataTables[_id])
                         {
-                            sw.Write(_linecounter);
+                            csv.WriteField(_linecounter);
+                             
                             if (PersonIdentifierIsNumber)
-                                sw.Write(_sep + StringToCSVCell(v.PersonIdentifier.ToString()));
+                                csv.WriteField(v.PersonIdentifier.ToString());
                             else
-                                sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["PersonIdentifier"][(int)v.PersonIdentifier]));
+                                csv.WriteField(uniqueValuesLookup["PersonIdentifier"][(int)v.PersonIdentifier]);
 
-                            sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["Element"][v.Element])); 
-                            sw.Write(_sep + StringToCSVCell(v.TimeStamp.ToString(_outputTimeStampFormatString)));
-
-                            if (_outputRelativeTimeFormatString.Trim()== "")
-                                sw.Write(_sep + StringToCSVCell(Math.Round(v.RelativeTime.TotalMilliseconds, 0).ToString()));
+                            csv.WriteField(uniqueValuesLookup["Element"][v.Element] );
+                            csv.WriteField(v.TimeStamp.ToString(_outputTimeStampFormatString));
+                         
+                            if (_outputRelativeTimeFormatString.Trim() == "")
+                                csv.WriteField(Math.Round(v.RelativeTime.TotalMilliseconds, 0).ToString() );                            
                             else
-                                sw.Write(_sep + StringToCSVCell(v.RelativeTime.ToString(_outputRelativeTimeFormatString)));
-                            
-                            sw.Write(_sep + StringToCSVCell(v.EventID.ToString()));
-                            sw.Write(_sep + StringToCSVCell(v.ParentEventID.ToString()));
-                            sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["Path"][v.Path]));
-                            sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["ParentPath"][v.ParentPath]));
-                            sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["EventName"][v.EventName]));
+                                csv.WriteField(v.RelativeTime.ToString(_outputRelativeTimeFormatString) );
 
+                            csv.WriteField(v.EventID.ToString() );
+                            csv.WriteField(v.ParentEventID.ToString() );
+                            csv.WriteField(uniqueValuesLookup["Path"][v.Path] );
+                            csv.WriteField(uniqueValuesLookup["ParentPath"][v.ParentPath] );
+                            csv.WriteField(uniqueValuesLookup["EventName"][v.EventName]);
+                              
                             if (logDataTableColnames.ContainsKey(_id))
                             {
                                 for (int _i = 0; _i < logDataTableColnames[_id].Count; _i++)
-                                {
+                                {                                     
                                     int _value = -1;
                                     foreach (var p in v.AttributValues)
                                     {
@@ -1311,17 +1332,21 @@ namespace LogFSM_LogX2019
                                             break;
                                         }
                                     }
+                                
                                     if (_value == -1)
-                                        sw.Write(_sep + StringToCSVCell(_attributeNotDefinded));
+                                        csv.WriteField(_attributeNotDefinded);
                                     else
-                                        sw.Write(_sep + StringToCSVCell(uniqueValuesLookup[logDataTableColnames[_id][_i]][_value]));
+                                        csv.WriteField(uniqueValuesLookup[logDataTableColnames[_id][_i]][_value]);                                     
                                 }
-                            } 
+                            }
                             _linecounter++;
-                            sw.WriteLine();
-                        }
-                    }
 
+                            csv.NextRecord();
+
+                        }
+                         
+                    }
+                     
                     zip.AddFile(_tmpfile).FileName = _id + ".csv";
 
                 }
@@ -1333,10 +1358,12 @@ namespace LogFSM_LogX2019
                 if (_includeFlatAndSparseLogDataTable)
                 { 
                     string _tmpFlatFile = GetTempFileName("csv");
-
-                    using (StreamWriter sw = new StreamWriter(new FileStream(_tmpFlatFile, FileMode.OpenOrCreate), Encoding.UTF8))
+                    using (StreamWriter writer = new StreamWriter(new FileStream(_tmpFlatFile, FileMode.OpenOrCreate), Encoding.UTF8))
+                    using (var csv = new CsvWriter(writer, _config))
                     {
-                        sw.Write("Line" + _sep + "PersonIdentifier" + _sep + "Element" + _sep + "TimeStamp" + _sep + "RelativeTime" + _sep + "EventID" + _sep + "ParentEventID" + _sep + "Path" + _sep + "ParentPath" + _sep + "EventName");
+                        // header 
+
+                        List<string> _header = new List<string>() { "Line", "PersonIdentifier", "Element", "TimeStamp", "RelativeTime", "EventID", "ParentEventID", "Path", "ParentPath", "EventName" };
                         List<string> _colnames = new List<string>();
                         foreach (var _table in logDataTableColnames)
                         {
@@ -1347,58 +1374,70 @@ namespace LogFSM_LogX2019
                                         _colnames.Add(_colname);
                             }
                         }
-
                         foreach (var _colname in _colnames)
-                            sw.Write(_sep + "a_" + _colname);
+                            _header.Add("a_" + _colname);
 
-                        sw.WriteLine();
+                        csv.NextRecord();
 
+                        // data
+                         
                         int _linecounter = 0;
-                        for (int i=0; i< logDataTables[rootLogName].Count; i++)
+                        for (int i = 0; i < logDataTables[rootLogName].Count; i++)
                         {
                             foreach (var rootChild in logDataTables[rootLogName][i].ChildEvents)
                             {
-                                _linecounter = csvFlatExportEvent(_outputTimeStampFormatString, _outputRelativeTimeFormatString, _attributeNotDefinded, _attributeNotExpected, _sep, sw, _colnames, _linecounter, rootChild);                                
+                                _linecounter = csvFlatExportEvent(_outputTimeStampFormatString, _outputRelativeTimeFormatString, _attributeNotDefinded, _attributeNotExpected, csv, _colnames, _linecounter, rootChild);
                             }
-                        }                         
+                        }
+                         
                     }
-
+ 
                     zip.AddFile(_tmpFlatFile).FileName = "FlatAndSparseLogDataTable.csv";
                 }
 
                 #endregion 
-
+                
+                 
+                 
                 #region Result Data
 
                 if (ContainsResultData && !_skipResultTable)
                 {
                     string _id = "Results";
-                    string _tmpfile = GetTempFileName("csv");
-                    using (StreamWriter sw = new StreamWriter(new FileStream(_tmpfile, FileMode.OpenOrCreate), Encoding.UTF8))
+                    string _tmpfile = GetTempFileName("csv"); 
+                    using (StreamWriter writer = new StreamWriter(new FileStream(_tmpfile, FileMode.OpenOrCreate), Encoding.UTF8))
+                    using (var csv = new CsvWriter(writer, _config))
                     {
-                        // Head
-                        sw.Write("LINE" + _sep + "PersonIdentifier");
+                        // header 
+
+                        List<string> _header = new List<string>() { "Line", "PersonIdentifier"};
                         if (logDataTableColnames.ContainsKey(_id))
                         {
                             for (int _i = 0; _i < resultDataTableColnames.Count; _i++)
                             {
                                 string _key = resultDataTableColnames.Keys.ToArray<string>()[_i];
                                 if (!CodebookDictionary.IgnoreResultVariable(_key))
-                                    sw.Write(_sep + CodebookDictionary.GetResultVariableName(_key)); 
+                                    _header.Add(CodebookDictionary.GetResultVariableName(_key));
                             }
-                             
                         }
-                        sw.WriteLine();
 
-                        // Data 
-                        int id = 0;
+                        foreach (var h in _header)
+                            csv.WriteField(h);
+
+                        csv.NextRecord();
+
+                        // data
+
+                        int _linecounter = 0;  
                         foreach (var v in resultDataTable.Keys)
-                        { 
+                        {
+                            csv.WriteField(_linecounter);
+
                             if (PersonIdentifierIsNumber)
-                                sw.Write(id + _sep + resultDataTable[v].PersonIdentifier);
+                                csv.WriteField(resultDataTable[v].PersonIdentifier);
                             else
-                                sw.Write(id + _sep + uniqueValuesLookup["PersonIdentifier"][(int)resultDataTable[v].PersonIdentifier]);
-  
+                                csv.WriteField(uniqueValuesLookup["PersonIdentifier"][(int)resultDataTable[v].PersonIdentifier]);
+
                             for (int _i = 0; _i < resultDataTableColnames.Count; _i++)
                             {
                                 string _key = resultDataTableColnames.Keys.ToArray<string>()[_i];
@@ -1414,50 +1453,52 @@ namespace LogFSM_LogX2019
                                         }
                                     }
                                     if (_value == -1)
-                                        sw.Write(_sep + StringToCSVCell(_attributeNotDefinded));
+                                        csv.WriteField(_attributeNotDefinded);
                                     else
-                                        sw.Write(_sep + StringToCSVCell(uniqueValuesLookup[logDataTableColnames[_id][_i]][_value]));
-                                }  
+                                        csv.WriteField(uniqueValuesLookup[logDataTableColnames[_id][_i]][_value]);
+                                }
                             }
-                            sw.WriteLine();
+                            csv.NextRecord();
 
-                            id++;
+                            _linecounter++;
                         }
-
                     }
+
+                     
                     zip.AddFile(_tmpfile).FileName = _id + ".csv";
                 }
 
                 #endregion
 
+                
                 zip.UseZip64WhenSaving = Zip64Option.Always;
                 zip.Save(filename);
             }
         }
 
-        private int csvFlatExportEvent(string _outputTimeStampFormatString, string _outputRelativeTimeFormatString, string _attributeNotDefinded, string _attributeNotExpected, string _sep, StreamWriter sw, List<string> _colnames, int _linecounter, logxLogDataRow rootChild)
-        { 
-            sw.Write(_linecounter++);
+        private int csvFlatExportEvent(string _outputTimeStampFormatString, string _outputRelativeTimeFormatString, string _attributeNotDefinded, string _attributeNotExpected, CsvWriter csv, List<string> _colnames, int _linecounter, logxLogDataRow rootChild)
+        {
+            csv.WriteField(_linecounter++);
 
             if (PersonIdentifierIsNumber)
-                sw.Write(_sep + StringToCSVCell(rootChild.PersonIdentifier.ToString()));
+                csv.WriteField(rootChild.PersonIdentifier.ToString());
             else
-                sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["PersonIdentifier"][(int)rootChild.PersonIdentifier]));
+                csv.WriteField(uniqueValuesLookup["PersonIdentifier"][(int)rootChild.PersonIdentifier]);
 
-            sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["Element"][rootChild.Element]));
-            sw.Write(_sep + StringToCSVCell(rootChild.TimeStamp.ToString(_outputTimeStampFormatString)));
+            csv.WriteField(uniqueValuesLookup["Element"][rootChild.Element]);
+            csv.WriteField(rootChild.TimeStamp.ToString(_outputTimeStampFormatString));
 
             if (_outputRelativeTimeFormatString.Trim() == "")
-                sw.Write(_sep + StringToCSVCell(Math.Round(rootChild.RelativeTime.TotalMilliseconds, 0).ToString()));
+                csv.WriteField(Math.Round(rootChild.RelativeTime.TotalMilliseconds, 0).ToString());
             else
-                sw.Write(_sep + StringToCSVCell(rootChild.RelativeTime.ToString(_outputRelativeTimeFormatString)));
+                csv.WriteField(rootChild.RelativeTime.ToString(_outputRelativeTimeFormatString));
 
-            sw.Write(_sep + StringToCSVCell(rootChild.EventID.ToString()));
-            sw.Write(_sep + StringToCSVCell(rootChild.ParentEventID.ToString()));
-            sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["Path"][rootChild.Path]));
-            sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["ParentPath"][rootChild.ParentPath])); 
-            sw.Write(_sep + StringToCSVCell(uniqueValuesLookup["EventName"][rootChild.EventName]));
-             
+            csv.WriteField(rootChild.EventID.ToString());
+            csv.WriteField(rootChild.ParentEventID.ToString());
+            csv.WriteField(uniqueValuesLookup["Path"][rootChild.Path]);
+            csv.WriteField(uniqueValuesLookup["ParentPath"][rootChild.ParentPath]);
+            csv.WriteField(uniqueValuesLookup["EventName"][rootChild.EventName]);
+
             string _id = uniqueValuesLookup["Path"][rootChild.Path];
             foreach (var _colname in _colnames)
             {
@@ -1474,24 +1515,22 @@ namespace LogFSM_LogX2019
                         }
                     }
                     if (_value == -1)
-                        sw.Write(_sep + StringToCSVCell(_attributeNotDefinded));
+                        csv.WriteField(_attributeNotDefinded);
                     else
-                        sw.Write(_sep + StringToCSVCell(uniqueValuesLookup[logDataTableColnames[_id][_i]][_value]));
+                        csv.WriteField(uniqueValuesLookup[logDataTableColnames[_id][_i]][_value]);
                 }
                 else
-                    sw.Write(_sep + StringToCSVCell(_attributeNotExpected));
+                    csv.WriteField(_attributeNotExpected);
             }
-            sw.WriteLine();
 
-
+            csv.NextRecord();
+          
             foreach (var child in rootChild.ChildEvents)
-            {
-                _linecounter = csvFlatExportEvent(_outputTimeStampFormatString, _outputRelativeTimeFormatString, _attributeNotDefinded, _attributeNotExpected, _sep, sw, _colnames, _linecounter, child);
-            }
+                _linecounter = csvFlatExportEvent(_outputTimeStampFormatString, _outputRelativeTimeFormatString, _attributeNotDefinded, _attributeNotExpected, csv, _colnames, _linecounter, child);
 
             return _linecounter;
         }
-         
+
 
         public void ExportXLSX(CommandLineArguments ParsedCommandLineArguments)
         {
