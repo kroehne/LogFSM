@@ -1377,6 +1377,9 @@ namespace LogFSM_LogX2019
                         foreach (var _colname in _colnames)
                             _header.Add("a_" + _colname);
 
+                        foreach (var h in _header)
+                            csv.WriteField(h);
+
                         csv.NextRecord();
 
                         // data
@@ -1389,7 +1392,6 @@ namespace LogFSM_LogX2019
                                 _linecounter = csvFlatExportEvent(_outputTimeStampFormatString, _outputRelativeTimeFormatString, _attributeNotDefinded, _attributeNotExpected, csv, _colnames, _linecounter, rootChild);
                             }
                         }
-                         
                     }
  
                     zip.AddFile(_tmpFlatFile).FileName = "FlatAndSparseLogDataTable.csv";
