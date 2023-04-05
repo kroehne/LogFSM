@@ -23,6 +23,7 @@ using HtmlAgilityPack;
 using System.Text.Json.Nodes;
 using System.Text.Json;
 using SpssLib.SpssDataset;
+using SpssLib.DataReader;
 #endregion
 
 namespace LogDataTransformer_TIMSSeT19_V01
@@ -67,6 +68,7 @@ namespace LogDataTransformer_TIMSSeT19_V01
                 #region Search Source Files
 
                 List<string> _listOfZIPArchivesWithSPSSFiles = new List<string>();
+                List<string> _listOfSPSSFiles = new List<string>();
 
                 foreach (string inFolder in ParsedCommandLineArguments.Transform_InputFolders)
                 {
@@ -77,8 +79,11 @@ namespace LogDataTransformer_TIMSSeT19_V01
                         if (inFolder.ToLower().EndsWith(".zip"))
                         {
                             // Single ZIP file 
-
                             _listOfZIPArchivesWithSPSSFiles.Add(inFolder);
+                        }
+                        else if (inFolder.ToLower().EndsWith(".sav"))
+                        {
+                            _listOfSPSSFiles.Add(inFolder);
                         }
                     }
                     else
@@ -95,6 +100,11 @@ namespace LogDataTransformer_TIMSSeT19_V01
 
                         foreach (string s in _tmpZIPFileList)
                             _listOfZIPArchivesWithSPSSFiles.Add(s);
+
+                        var _tmpSAVFileList = Directory.GetFiles(inFolder, "*.sav", SearchOption.AllDirectories);
+
+                        foreach (string s in _tmpSAVFileList)
+                            _listOfSPSSFiles.Add(s);
                     }
 
                 }
@@ -118,142 +128,36 @@ namespace LogDataTransformer_TIMSSeT19_V01
                             Console.WriteLine("Found " + _ret.CondordanceTable.Count + " lines.");
                     }
                 }
-                 
+
                 foreach (string zfilename in _listOfZIPArchivesWithSPSSFiles)
                 {
                     try
                     {
                         using (var outerInputZipFile = ZipFile.Read(zfilename))
                         {
-                             
+
                             foreach (var outerInputZipEntry in outerInputZipFile.Entries)
                             {
                                 if (outerInputZipEntry.FileName.EndsWith(".sav") && outerInputZipEntry.UncompressedSize != 0)
                                 {
-                                    using (MemoryStream outerZIPEntryMemoryStream = new MemoryStream())
-                                    { 
-                                        if (ParsedCommandLineArguments.Verbose)
-                                        {
-                                            Console.WriteLine("Read '" + outerInputZipEntry.FileName + "'");
-                                        }
+                                    string _tmp = System.IO.Path.GetTempPath();
+                                    outerInputZipEntry.Extract(_tmp, ExtractExistingFileAction.OverwriteSilently);
 
-                                        outerInputZipEntry.Password = ParsedCommandLineArguments.ZIPPassword;
-                                        outerInputZipEntry.Extract(outerZIPEntryMemoryStream);
-                                        outerZIPEntryMemoryStream.Position = 0;
-
-                                        SpssLib.DataReader.SpssReader spssDataset = new SpssLib.DataReader.SpssReader(outerZIPEntryMemoryStream);
-                                        foreach (var record in spssDataset.Records)
-                                        {
-
-                                            string _PersonIdentifier = "";
-                                            string _EventName = "";
-                                            string _ItemName = ""; 
-                                            Dictionary<string, string> _EventValues = new Dictionary<string, string>();
-
-                                            foreach (var variable in spssDataset.Variables)
-                                            {
-                                                
-                                                if (variable.Name == "idstud")
-                                                {
-                                                    _PersonIdentifier = GetValueFromSPSS(record, variable);
-                                                }
-                                                else if (variable.Name == "eventname")
-                                                {
-                                                    _EventName = GetValueFromSPSS(record, variable).Replace(":", "");
-                                                }
-                                                else if (variable.Name == "information")
-                                                {
-                                                    if (record.GetValue(variable) != null)
-                                                    {
-                                                        string _valueString = GetValueFromSPSS(record, variable);
-                                                        if (_valueString.StartsWith("{"))
-                                                        {
-                                                            using (JsonDocument document = JsonDocument.Parse(_valueString))
-                                                            {
-                                                                foreach (JsonProperty property in document.RootElement.EnumerateObject())
-                                                                {
-                                                                    if (property.Value.ValueKind.ToString() == "Object")
-                                                                    {
-                                                                        foreach (JsonProperty innerProperty in property.Value.EnumerateObject())
-                                                                            _EventValues.Add("information_" + property.Name + "_" + innerProperty.Name, innerProperty.Value.ToString());
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        _EventValues.Add("information_" + property.Name, property.Value.ToString());
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            _EventValues.Add("information", _valueString);
-                                                        }
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    if (record.GetValue(variable) != null)
-                                                    {
-
-                                                        _EventValues.Add(variable.Name, GetValueFromSPSS(record, variable));
-                                                    }
-                                                }
-                                            }
-
-                                            DateTime _TimeStamp = DateTime.MinValue;
-                                            if (_EventValues.ContainsKey("timeunixsec"))
-                                            {
-                                                _TimeStamp = dt1970.AddSeconds(long.Parse(_EventValues["timeunixsec"]));
-                                            } else if (_EventValues.ContainsKey("TimeUnixSec"))
-                                            {
-                                                _TimeStamp = dt1970.AddSeconds(long.Parse(_EventValues["TimeUnixSec"]));
-                                            }
-
-                                            if (_EventValues.ContainsKey("timemilisec"))
-                                            {
-                                                _TimeStamp = _TimeStamp.AddMilliseconds(long.Parse(_EventValues["timemilisec"]));
-                                            }
-                                            else if (_EventValues.ContainsKey("TimeMilisec"))
-                                            {
-                                                _TimeStamp = _TimeStamp.AddMilliseconds(long.Parse(_EventValues["TimeMilisec"]));
-                                            }
-
-                                            _ItemName = "";
-                                            if (_EventValues.ContainsKey("BlockName"))
-                                            {
-                                                _ItemName = _EventValues["BlockName"].Replace("[", "").Replace("]", "");
-                                            }
-
-                                            if (_ItemName == "")
-                                                _ItemName = "empty";
-
-                                            if (_EventName == "")
-                                                _EventName = "empty";
-
-
-                                            var doc = new XDocument(new XElement(_EventName));
-                                            var root = doc.Root;
-                                            foreach (string val in _EventValues.Keys)
-                                                root.Add(new System.Xml.Linq.XAttribute(val, _EventValues[val]));
-
-                                            int _EventID = _ret.GetMaxID(_PersonIdentifier);
-
-                                            logxGenericLogElement _newElement = new logxGenericLogElement()
-                                            {
-                                                PersonIdentifier = _PersonIdentifier,                                                
-                                                Item = _ItemName,
-                                                EventID = _EventID,
-                                                EventName = _EventName,
-                                                TimeStamp = _TimeStamp,
-                                                EventDataXML = doc.ToString()
-                                            };
-
-                                            _ret.AddEvent(_newElement);
- 
-                                        }
-
+                                    using (StreamReader spssFileStream = new StreamReader(Path.Combine(_tmp, outerInputZipEntry.FileName)))
+                                    {
+                                        SpssLib.DataReader.SpssReader spssDataset = new SpssLib.DataReader.SpssReader(spssFileStream.BaseStream);
+                                        ReadSPSSFile(dt1970, _ret, spssDataset);
                                     }
-                                } 
+
+                                    try
+                                    {
+                                        System.IO.File.Delete(Path.Combine(_tmp, outerInputZipEntry.FileName));
+                                    }
+                                    catch (Exception _ex)
+                                    {
+                                        Console.WriteLine("Error deleting temp file. Details: " + Environment.NewLine + _ex.Message.ToString());
+                                    }
+                                }
                             }
                         }
                     }
@@ -263,15 +167,136 @@ namespace LogDataTransformer_TIMSSeT19_V01
                     }
                 }
 
+                foreach (string savfilename in _listOfSPSSFiles)
+                {
+                    using (StreamReader spssFileStream = new StreamReader(savfilename))
+                    {
+                        SpssLib.DataReader.SpssReader spssDataset = new SpssLib.DataReader.SpssReader(spssFileStream.BaseStream);
+                        ReadSPSSFile(dt1970, _ret, spssDataset);
+                    }
+                }
+
                 logXContainer.ExportLogXContainerData(ParsedCommandLineArguments, _ret);
             }
-
             catch (Exception _ex)
             {
                 Console.WriteLine("Error transforming log data. Details: " + Environment.NewLine + _ex.Message.ToString());
             }
         }
- 
+
+        private static void ReadSPSSFile(DateTime dt1970, logXContainer _ret, SpssReader spssDataset)
+        {
+            foreach (var record in spssDataset.Records)
+            {
+
+                string _PersonIdentifier = "";
+                string _EventName = "";
+                string _ItemName = "";
+                Dictionary<string, string> _EventValues = new Dictionary<string, string>();
+
+                foreach (var variable in spssDataset.Variables)
+                {
+
+                    if (variable.Name == "idstud")
+                    {
+                        _PersonIdentifier = GetValueFromSPSS(record, variable);
+                    }
+                    else if (variable.Name == "eventname")
+                    {
+                        _EventName = GetValueFromSPSS(record, variable).Replace(":", "");
+                    }
+                    else if (variable.Name == "information")
+                    {
+                        if (record.GetValue(variable) != null)
+                        {
+                            string _valueString = GetValueFromSPSS(record, variable);
+                            if (_valueString.StartsWith("{"))
+                            {
+                                using (JsonDocument document = JsonDocument.Parse(_valueString))
+                                {
+                                    foreach (JsonProperty property in document.RootElement.EnumerateObject())
+                                    {
+                                        if (property.Value.ValueKind.ToString() == "Object")
+                                        {
+                                            foreach (JsonProperty innerProperty in property.Value.EnumerateObject())
+                                                _EventValues.Add("information_" + property.Name + "_" + innerProperty.Name, innerProperty.Value.ToString());
+                                        }
+                                        else
+                                        {
+                                            _EventValues.Add("information_" + property.Name, property.Value.ToString());
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                _EventValues.Add("information", _valueString);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (record.GetValue(variable) != null)
+                        {
+
+                            _EventValues.Add(variable.Name, GetValueFromSPSS(record, variable));
+                        }
+                    }
+                }
+
+                DateTime _TimeStamp = DateTime.MinValue;
+                if (_EventValues.ContainsKey("timeunixsec"))
+                {
+                    _TimeStamp = dt1970.AddSeconds(long.Parse(_EventValues["timeunixsec"]));
+                }
+                else if (_EventValues.ContainsKey("TimeUnixSec"))
+                {
+                    _TimeStamp = dt1970.AddSeconds(long.Parse(_EventValues["TimeUnixSec"]));
+                }
+
+                if (_EventValues.ContainsKey("timemilisec"))
+                {
+                    _TimeStamp = _TimeStamp.AddMilliseconds(long.Parse(_EventValues["timemilisec"]));
+                }
+                else if (_EventValues.ContainsKey("TimeMilisec"))
+                {
+                    _TimeStamp = _TimeStamp.AddMilliseconds(long.Parse(_EventValues["TimeMilisec"]));
+                }
+
+                _ItemName = "";
+                if (_EventValues.ContainsKey("BlockName"))
+                {
+                    _ItemName = _EventValues["BlockName"].Replace("[", "").Replace("]", "");
+                }
+
+                if (_ItemName == "")
+                    _ItemName = "empty";
+
+                if (_EventName == "")
+                    _EventName = "empty";
+
+
+                var doc = new XDocument(new XElement(_EventName));
+                var root = doc.Root;
+                foreach (string val in _EventValues.Keys)
+                    root.Add(new System.Xml.Linq.XAttribute(val, _EventValues[val]));
+
+                int _EventID = _ret.GetMaxID(_PersonIdentifier);
+
+                logxGenericLogElement _newElement = new logxGenericLogElement()
+                {
+                    PersonIdentifier = _PersonIdentifier,
+                    Item = _ItemName,
+                    EventID = _EventID,
+                    EventName = _EventName,
+                    TimeStamp = _TimeStamp,
+                    EventDataXML = doc.ToString()
+                };
+
+                _ret.AddEvent(_newElement);
+
+            }
+        }
 
         public static string GetValueFromSPSS(Record record, Variable variable)
         {
