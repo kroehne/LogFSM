@@ -61,6 +61,9 @@ namespace LogDataTransformer_TIMSSeT19_V01
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("language"))
                     _language = ParsedCommandLineArguments.ParameterDictionary["language"];
 
+                bool _anonymize = false;
+                if (ParsedCommandLineArguments.Flags.Contains("ANONYMIZE"))
+                    _anonymize = true;
 
                 DateTime dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, 0);
                 XmlSerializer logSerializer = new XmlSerializer(typeof(log_pisa_bq_2015_to_2018));
@@ -146,7 +149,7 @@ namespace LogDataTransformer_TIMSSeT19_V01
                                     using (StreamReader spssFileStream = new StreamReader(Path.Combine(_tmp, outerInputZipEntry.FileName)))
                                     {
                                         SpssLib.DataReader.SpssReader spssDataset = new SpssLib.DataReader.SpssReader(spssFileStream.BaseStream);
-                                        ReadSPSSFile(dt1970, _ret, spssDataset);
+                                        ReadSPSSFile(dt1970, _ret, spssDataset, _anonymize);
                                     }
 
                                     try
@@ -172,7 +175,7 @@ namespace LogDataTransformer_TIMSSeT19_V01
                     using (StreamReader spssFileStream = new StreamReader(savfilename))
                     {
                         SpssLib.DataReader.SpssReader spssDataset = new SpssLib.DataReader.SpssReader(spssFileStream.BaseStream);
-                        ReadSPSSFile(dt1970, _ret, spssDataset);
+                        ReadSPSSFile(dt1970, _ret, spssDataset, _anonymize);
                     }
                 }
 
@@ -184,7 +187,7 @@ namespace LogDataTransformer_TIMSSeT19_V01
             }
         }
 
-        private static void ReadSPSSFile(DateTime dt1970, logXContainer _ret, SpssReader spssDataset)
+        private static void ReadSPSSFile(DateTime dt1970, logXContainer _ret, SpssReader spssDataset, bool _anonymize)
         {
             foreach (var record in spssDataset.Records)
             {
@@ -275,14 +278,19 @@ namespace LogDataTransformer_TIMSSeT19_V01
                 if (_EventName == "")
                     _EventName = "empty";
 
-
+                if (_anonymize)
+                {
+                    if (_EventValues.ContainsKey("information") && _EventName == "Response")                       
+                        _EventValues["information"] = Regex.Replace(_EventValues["information"], "[A-Za-zåøöäüß]", "x");                     
+                }
+                 
                 var doc = new XDocument(new XElement(_EventName));
                 var root = doc.Root;
                 foreach (string val in _EventValues.Keys)
                     root.Add(new System.Xml.Linq.XAttribute(val, _EventValues[val]));
 
                 int _EventID = _ret.GetMaxID(_PersonIdentifier);
-
+                 
                 logxGenericLogElement _newElement = new logxGenericLogElement()
                 {
                     PersonIdentifier = _PersonIdentifier,
