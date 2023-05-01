@@ -281,7 +281,7 @@ namespace LogDataTransformer_TIMSSeT19_V01
                 if (_anonymize)
                 {
                     if (_EventValues.ContainsKey("information") && _EventName == "Response")                       
-                        _EventValues["information"] = Regex.Replace(_EventValues["information"], "[A-Za-zåøöäüß]", "x");                     
+                        _EventValues["information"] = Regex.Replace(_EventValues["information"], "[A-Za-zåøæöäüß]", "x");                     
                 }
                  
                 var doc = new XDocument(new XElement(_EventName));
