@@ -1,7 +1,7 @@
 Package: LogFSM
 Type: Package
 Title: Analyzing Log Data from Educational Assessments using Finite-State Machines (LogFSM)
-Version: 0.4.5.30
+Version: 0.4.5.31
 Author: Ulf Kroehne 
 Maintainer: Ulf Kroehne <ulf@kroehne.de>
 Description: Package developed to implement the method described in the following paper: Kroehne, U., & Goldhammer, F. (2018). How to conceptualize, represent, and analyze log data from technology-based assessments? A generic framework and an application to questionnaire items. Behaviormetrika, 45 (2), 527–563. https://doi.org/10.1007/s41237-018-0063-y.
@@ -29,6 +29,6 @@ Imports:
     DiagrammeR,
     kableExtra,
     testthat
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 VignetteBuilder: knitr
 BinaryFiles: 

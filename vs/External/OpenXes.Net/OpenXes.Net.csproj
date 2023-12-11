@@ -5,7 +5,7 @@
     <RootNamespace>OpenXesNet</RootNamespace>
     <Authors>Alvaro Martinez Romero</Authors>
     <Description>OpenXes implementation for .NET</Description>
-    <ReleaseVersion>1.0.1</ReleaseVersion>
+    <ReleaseVersion>0.2.0.1</ReleaseVersion>
     <PackOnBuild>false</PackOnBuild>
     <PackageId>openxesnet</PackageId>
     <Owners>Sabien</Owners>
@@ -52,6 +52,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Build.Packaging" Version="0.2.2" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
   </ItemGroup>
 </Project>

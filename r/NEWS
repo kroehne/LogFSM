@@ -1,6 +1,11 @@
 CHANGE-LOG
 ==========
 
+2023-12-11 0.4.5.31
+
+* Package updates (migration to dotnet core 7.0)
+* Build targets for arm
+
 2023-05-01 0.4.5.30
 
 * Added Flag "ANONYMIZE" for inputformat "timsst19zip01a"

@@ -40,7 +40,7 @@ namespace LogDataTransformer_IRTlibPlayer_V01
             string reply = _client.DownloadString(web);
             var _ret = JsonConvert.DeserializeObject<List<json_IRTLib_V01__TokenLis>>(reply);
 
-            Console.Write(" - Found " + _ret.Count + " sessions at '" + web);
+            Console.WriteLine(" - Found " + _ret.Count + " sessions at '" + web);
 
             return _ret; 
         }
@@ -94,7 +94,7 @@ namespace LogDataTransformer_IRTlibPlayer_V01
                         }
                         catch (System.Net.WebException _fnf)
                         {
-                            Console.WriteLine(" Error - " + _fnf.Status + "");
+                            Console.WriteLine(" Error - " + _fnf.Status + Environment.NewLine + _fnf.ToString());
                         }
                         catch (Exception _ex)
                         {
