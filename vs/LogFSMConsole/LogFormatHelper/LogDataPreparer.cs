@@ -34,7 +34,7 @@ namespace LogFSMConsole
 
         #region Flat and sparse log data table
 
-        public static void ReadLogDataFlatV01(string ZipFileName, string OutFileName, string[] Element, bool Verbose, int MaxNumberOfStudents, 
+        public static void ReadLogDataFlatV01(string ZipFileName, string OutFileName, string[] Element, bool Verbose, int MaxNumberOfStudents,
             CommandLineArguments ParsedCommandLineArguments)
         {
             Console.WriteLine("Module: Read log data from flat file prepared by LogFSM (format = 'dataflatv01a').");
@@ -48,7 +48,7 @@ namespace LogFSMConsole
                 Console.WriteLine("Data not in the expected flat file format. Check format and consider to provide an alternative value for the attribute 'datafiletype'.");
                 return;
             }
-            
+
             string _personIdentifierColumnName = "PersonIdentifier";
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("personidentifiercolumnname"))
                 _personIdentifierColumnName = ParsedCommandLineArguments.ParameterDictionary["personidentifiercolumnname"];
@@ -239,7 +239,24 @@ namespace LogFSMConsole
                                 }
 
                                 _lineCounter += 1;
-                                _inMemoryTempDataEvents.Add(e);
+
+                                // Check filters
+
+                                bool _include = true;
+                                if (ParsedCommandLineArguments.Elements.Length > 0)
+                                {
+                                    if (!ParsedCommandLineArguments.Elements.Contains<string>(e.Element))
+                                        _include = false;
+                                }
+
+                                if (ParsedCommandLineArguments.ExcludedElements.Length > 0)
+                                {
+                                    if (ParsedCommandLineArguments.ExcludedElements.Contains<string>(e.Element))
+                                        _include = false;
+                                }
+                                 
+                                if (_include)
+                                    _inMemoryTempDataEvents.Add(e);
                             }
                         }
                     }
