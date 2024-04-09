@@ -156,11 +156,28 @@ namespace LogDataTransformer_TAOPCI_V02
 
                                 }
 
-                                // create dictionary with class per hit
+                                // create dictionary with class per hit and
+                                // count number of hits per classes  
 
                                 Dictionary<string, string> _hitClass = new Dictionary<string, string>();
+                                Dictionary<string, int> _numberOfActivHitsPerClass = new Dictionary<string, int>();
+
                                 foreach (var i in _activeHits.Keys)
+                                {
                                     _hitClass.Add(i, _hitInfoDic["hitClass." + i]);
+                                    if (_activeHits[i])
+                                    {
+                                        if (!_numberOfActivHitsPerClass.ContainsKey(_hitInfoDic["hitClass." + i]))
+                                        {
+                                            _numberOfActivHitsPerClass.Add(_hitInfoDic["hitClass." + i], 1);
+                                        }
+                                        else
+                                        {
+                                            _numberOfActivHitsPerClass[_hitInfoDic["hitClass." + i]] += 1;
+                                        }
+                                    }
+                                }
+                                    
 
                                 // create a dictionary with first active hit for each class
 
@@ -169,15 +186,16 @@ namespace LogDataTransformer_TAOPCI_V02
                                 {
                                     _firstActiveHitPerClass.Add(i, _hitInfoDic["classFirstActiveHit." + i]);
                                 }
-
+                                 
                                 // deactive hits, if the hits are not the first active hit
 
                                 foreach (var k in _activeHits.Keys)
                                 {
                                     bool isActive = _activeHits[k];
                                     string belongsToClass = _hitClass[k];
+                                    bool isMultipleActive = _numberOfActivHitsPerClass[belongsToClass] > 1;
                                     bool istFirstHit = _firstActiveHitPerClass[belongsToClass] == k;
-                                    if (isActive && !istFirstHit)
+                                    if (isMultipleActive && isActive && !istFirstHit)
                                         _activeHits[k] = false;
                                 }
 
