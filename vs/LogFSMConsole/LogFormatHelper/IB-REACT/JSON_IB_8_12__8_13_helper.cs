@@ -1,14 +1,11 @@
 ﻿#region usings 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NPOI.SS.Formula.Eval;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Text.Json;
 using System.Xml;
 using System.Xml.Serialization;
 #endregion
@@ -133,7 +130,15 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                 logFragment = JsonConvert.DeserializeObject<ItemBuilder_React_Runtime_trace>(line, new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Ignore, MaxDepth = 512 });
                 _personIdentifier = logFragment.metaData.userId;
             }
-
+            else if (source == "TAOPCI_V02")
+            {
+                logFragment = new ItemBuilder_React_Runtime_trace();
+                var _fragment = JsonConvert.DeserializeObject<ItemBuilder_React_Runtime_trace_element>(line, new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Ignore, MaxDepth = 512 });
+                logFragment.logEntriesList = new ItemBuilder_React_Runtime_trace_element[] { _fragment };
+                logFragment.metaData = new metaData();
+                logFragment.metaData.loginTimestamp = DateTime.MinValue.ToString();
+                logFragment.metaData.sendTimestamp = DateTime.MinValue.ToString();
+            }            
             if (logFragment != null)
             {
                 foreach (var entry in logFragment.logEntriesList)
@@ -150,7 +155,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                     DateTime _loginTimestamp = DateTime.Parse(logFragment.metaData.loginTimestamp);
                     DateTime _sendTimestamp = DateTime.Parse(logFragment.metaData.sendTimestamp);
                      
-                    if (entry.Details.ContainsKey("indexPath"))
+                    if (entry.Details != null && entry.Details.ContainsKey("indexPath"))
                     {
                         string ret = entry.Details["indexPath"].ToString();
                         string[] parts = ret.Split("/", StringSplitOptions.RemoveEmptyEntries);
@@ -261,6 +266,11 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                     else if (entry.Type == "ItemSwitch")
                     {
                         #region ItemSwitch
+
+                        string _name = "";
+                        if (entry.Details != null && entry.Details.ContainsKey("name"))
+                            _name = entry.Details["item"]["name"].ToString();
+
                         ItemSwitch details = new ItemSwitch()
                         {
                             Element = _element,
@@ -274,8 +284,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaName = _pageAreaName,
                             Page = _page,
                             PageAreaType = _pageAreaType,
-
-                            name = entry.Details["item"]["name"].ToString(),
+                            name = _name,
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1788,6 +1797,9 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         if (entry.Details.ContainsKey("message"))
                             details.message = entry.Details["message"].ToString();
 
+                        if (entry.Details.ContainsKey("type"))
+                            details.type = entry.Details["type"].ToString();
+
                         _ret.Add(details);
                         #endregion
                     }
@@ -2663,6 +2675,16 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
     public class ItemBuilder_React_Runtime_trace
     {
         public metaData metaData { get; set; }
+        public ItemBuilder_React_Runtime_trace_element[] logEntriesList { get; set; }
+    }
+
+    public class ItemBuilder_React_Runtime_trace_collectionpciV02
+    {
+        public string _id { get; set; }
+        public int __v { get; set; }
+        
+        public string uuid { get; set; }
+        public string itemUrl { get; set; }
         public ItemBuilder_React_Runtime_trace_element[] logEntriesList { get; set; }
     }
 
@@ -3723,6 +3745,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
         [XmlAttribute] public string userDefIdPath { get; set; }
         [XmlAttribute] public string userDefId { get; set; }
         [XmlAttribute] public string message { get; set; }
+        [XmlAttribute] public string type { get; set; }
+
         public List<KeyValueDim> Data { get; set; }
 
         public override string GetType() => nameof(JavaScriptInjected);
@@ -3734,6 +3758,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
             result.Add(nameof(userDefIdPath), userDefIdPath);
             result.Add(nameof(userDefId), userDefId);
             result.Add(nameof(message), message);
+            result.Add(nameof(type), type);
             foreach (var entry in Data)
             {
                 foreach (var keyVal in entry.GetPropertyList())

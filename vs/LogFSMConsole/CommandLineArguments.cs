@@ -197,10 +197,15 @@ namespace LogFSMConsole
         public const string _CMDA_JOB_TRANSFORM_input_piiacr1txtv01a = "piaacr1txt01a";
 
         /// <summary>
-        /// TAO PCI 
+        /// TAO PCI Version 1
         /// </summary>
         public const string _CMDA_JOB_TRANSFORM_input_taopci01a = "taopci01a";
-         
+
+        /// <summary>
+        /// TAO PCI Version 2
+        /// </summary>
+        public const string _CMDA_JOB_TRANSFORM_input_taopci02a = "taopci02a";
+
         /// <summary>
         /// 
         /// </summary>

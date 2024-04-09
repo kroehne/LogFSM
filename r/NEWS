@@ -1,6 +1,10 @@
 CHANGE-LOG
 ==========
 
+2024-04-09 0.4.5.32
+
+* Update for TAO
+
 2023-12-11 0.4.5.31
 
 * Package updates (migration to dotnet core 7.0)
