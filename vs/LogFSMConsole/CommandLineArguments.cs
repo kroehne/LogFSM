@@ -180,6 +180,11 @@ namespace LogFSMConsole
         /// IRTlib (after 2020)
         /// </summary>
         public const string _CMDA_JOB_TRANSFORM_input_irtlib01a = "irtlibv01a";
+
+        /// <summary>
+        /// Alea.schule v1
+        /// </summary>
+        public const string _CMDA_JOB_TRANSFORM_input_alea01a = "aleav01a";
          
         /// <summary>
         /// ItemBuilder Firebase (tryout in 2022)

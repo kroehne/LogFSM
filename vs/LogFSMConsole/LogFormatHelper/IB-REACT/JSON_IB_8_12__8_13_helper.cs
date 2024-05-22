@@ -15,8 +15,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
     #region Reader
 
     public static class JSON_IB_8_12__8_13_helper
-    {
-
+    { 
         public static List<Log_IB_8_12__8_13> ParseTraceLogs(string line, double UTCOffset)
         {
             List<Log_IB_8_12__8_13> _ret = new List<Log_IB_8_12__8_13>();
@@ -64,7 +63,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
             string _test = "";
             string _task = "";
             int _tracId = -1;
- 
+
             if (source == "IRTlibPlayer_V01")
             {
                 try
@@ -82,7 +81,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                     _tracId = _trace.TraceID;
 
                     logFragment = JsonConvert.DeserializeObject<ItemBuilder_React_Runtime_trace>(_trace.Trace, new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Ignore, MaxDepth = 512 });
-  
+
                     if (_personIdentifier == "")
                         _personIdentifier = logFragment.metaData.userId;
                     if (_personIdentifier.Contains("\r"))
@@ -106,7 +105,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
             else if (source == "Firebase_V01")
             {
                 try
-                { 
+                {
                     var _trace = JsonConvert.DeserializeObject<LogDataTransformer_Firebase_V01.TraceDatePoint>(line);
                     if (_trace.trace == null)
                         return _ret;
@@ -138,7 +137,12 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                 logFragment.metaData = new metaData();
                 logFragment.metaData.loginTimestamp = DateTime.MinValue.ToString();
                 logFragment.metaData.sendTimestamp = DateTime.MinValue.ToString();
-            }            
+            }
+            else if (source == "Alea_V01")
+            {
+                logFragment = JsonConvert.DeserializeObject<ItemBuilder_React_Runtime_trace>(line);
+            }
+
             if (logFragment != null)
             {
                 foreach (var entry in logFragment.logEntriesList)
@@ -157,7 +161,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                      
                     if (entry.Details != null && entry.Details.ContainsKey("indexPath"))
                     {
-                        string ret = entry.Details["indexPath"].ToString();
+                        string ret = entry.Details["indexPath"].ToXmlSafeString();
                         string[] parts = ret.Split("/", StringSplitOptions.RemoveEmptyEntries);
                         _test = parts[0].Replace("test=", "");
 
@@ -185,7 +189,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                     } 
                     else if (_element == "")
                     {
-                        _element = "(plattform: " + _cbaVers + ")";
+                        _element = "(Platform)";
                     }
 
                     if (entry.Type == "TasksViewVisible")
@@ -215,16 +219,16 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             };
 
                             if (_s.Contains("AllowScoreDebugging"))
-                                details.AllowScoreDebugging = bool.Parse(_s["AllowScoreDebugging"].ToString());
+                                details.AllowScoreDebugging = bool.Parse(_s["AllowScoreDebugging"].ToXmlSafeString());
                             
                             if (_s.Contains("AllowFSMDebugging"))
-                                details.AllowFSMDebugging = bool.Parse(_s["AllowFSMDebugging"].ToString());
+                                details.AllowFSMDebugging = bool.Parse(_s["AllowFSMDebugging"].ToXmlSafeString());
 
                             if (_s.Contains("AllowTraceDebugging"))
-                                details.AllowTraceDebugging = bool.Parse(_s["AllowTraceDebugging"].ToString());
+                                details.AllowTraceDebugging = bool.Parse(_s["AllowTraceDebugging"].ToXmlSafeString());
 
                             if (_s.Contains("ShowTaskNavigationBars"))
-                                details.ShowTaskNavigationBars = bool.Parse(_s["ShowTaskNavigationBars"].ToString());
+                                details.ShowTaskNavigationBars = bool.Parse(_s["ShowTaskNavigationBars"].ToXmlSafeString());
 
                             _ret.Add(details);
                         }
@@ -250,10 +254,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            user = entry.Details.ContainsKey("Details") ? entry.Details["user"].ToString() : "",
-                            loginTimestamp = entry.Details["loginTimestamp"].ToString(),
-                            runtimeVersion = entry.Details["runtimeVersion"].ToString(),
-                            webClientUserAgent = entry.Details["webClientUserAgent"].ToString(),
+                            user = entry.Details.ContainsKey("Details") ? entry.Details["user"].ToXmlSafeString() : "",
+                            loginTimestamp = entry.Details["loginTimestamp"].ToXmlSafeString(),
+                            runtimeVersion = entry.Details["runtimeVersion"].ToXmlSafeString(),
+                            webClientUserAgent = entry.Details["webClientUserAgent"].ToXmlSafeString(),
 
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
@@ -269,7 +273,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                         string _name = "";
                         if (entry.Details != null && entry.Details.ContainsKey("name"))
-                            _name = entry.Details["item"]["name"].ToString();
+                            _name = entry.Details["item"]["name"].ToXmlSafeString();
 
                         ItemSwitch details = new ItemSwitch()
                         {
@@ -298,7 +302,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         #region TaskSwitch
 
                         if (entry.Details.ContainsKey("oldItem"))
-                            _element = entry.Details["oldItem"].ToString();
+                            _element = entry.Details["oldItem"].ToXmlSafeString();
 
                         TaskSwitch details = new TaskSwitch()
                         {
@@ -320,48 +324,48 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         if (entry.Details.ContainsKey("newTask"))
-                            details.newTask = entry.Details["newTask"].ToString();
+                            details.newTask = entry.Details["newTask"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("newItem"))
-                            details.newItem = entry.Details["newItem"].ToString();
+                            details.newItem = entry.Details["newItem"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("newTest"))
-                            details.newTest = entry.Details["newTest"].ToString();
+                            details.newTest = entry.Details["newTest"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("oldTask"))
-                            details.oldTask = entry.Details["oldTask"].ToString();
+                            details.oldTask = entry.Details["oldTask"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("oldItem"))
-                            details.oldItem = entry.Details["oldItem"].ToString();
+                            details.oldItem = entry.Details["oldItem"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("oldTest"))
-                            details.oldTest = entry.Details["oldTest"].ToString();
+                            details.oldTest = entry.Details["oldTest"].ToXmlSafeString();
 
                         if (entry.Details.ContainsKey("taskResult"))
                         {
                             JObject taskResult = (entry.Details["taskResult"] as JObject);
 
                             if (taskResult.ContainsKey("hitsAccumulated"))
-                                details.hitsAccumulated = long.Parse(entry.Details["taskResult"]["hitsAccumulated"].ToString());
+                                details.hitsAccumulated = long.Parse(entry.Details["taskResult"]["hitsAccumulated"].ToXmlSafeString());
                             if (taskResult.ContainsKey("hitsCount"))
-                                details.hitsCount = long.Parse(entry.Details["taskResult"]["hitsCount"].ToString());
+                                details.hitsCount = long.Parse(entry.Details["taskResult"]["hitsCount"].ToXmlSafeString());
                             if (taskResult.ContainsKey("missesAccumulated"))
-                                details.missesAccumulated = long.Parse(entry.Details["taskResult"]["missesAccumulated"].ToString());
+                                details.missesAccumulated = long.Parse(entry.Details["taskResult"]["missesAccumulated"].ToXmlSafeString());
                             if (taskResult.ContainsKey("missesCount"))
-                                details.missesCount = long.Parse(entry.Details["taskResult"]["missesCount"].ToString());
+                                details.missesCount = long.Parse(entry.Details["taskResult"]["missesCount"].ToXmlSafeString());
                             if (taskResult.ContainsKey("classMaxWeighed"))
-                                details.classMaxWeighed = double.Parse(entry.Details["taskResult"]["classMaxWeighed"].ToString());
+                                details.classMaxWeighed = double.Parse(entry.Details["taskResult"]["classMaxWeighed"].ToXmlSafeString());
                             if (taskResult.ContainsKey("classMaxName"))
-                                details.classMaxName = entry.Details["taskResult"]["classMaxName"].ToString();
+                                details.classMaxName = entry.Details["taskResult"]["classMaxName"].ToXmlSafeString();
                             if (taskResult.ContainsKey("totalResult"))
-                                details.totalResult = double.Parse(entry.Details["taskResult"]["totalResult"].ToString());
+                                details.totalResult = double.Parse(entry.Details["taskResult"]["totalResult"].ToXmlSafeString());
                             if (taskResult.ContainsKey("nbUserInteractions"))
-                                details.nbUserInteractions = long.Parse(entry.Details["taskResult"]["nbUserInteractions"].ToString());
+                                details.nbUserInteractions = long.Parse(entry.Details["taskResult"]["nbUserInteractions"].ToXmlSafeString());
                             if (taskResult.ContainsKey("nbUserInteractionsTotal"))
-                                details.nbUserInteractionsTotal = long.Parse(entry.Details["taskResult"]["nbUserInteractionsTotal"].ToString());
+                                details.nbUserInteractionsTotal = long.Parse(entry.Details["taskResult"]["nbUserInteractionsTotal"].ToXmlSafeString());
                             if (taskResult.ContainsKey("firstReactionTime"))
-                                details.firstReactionTime = double.Parse(entry.Details["taskResult"]["firstReactionTime"].ToString());
+                                details.firstReactionTime = double.Parse(entry.Details["taskResult"]["firstReactionTime"].ToXmlSafeString());
                             if (taskResult.ContainsKey("firstReactionTimeTotal"))
-                                details.firstReactionTimeTotal = double.Parse(entry.Details["taskResult"]["firstReactionTimeTotal"].ToString());
+                                details.firstReactionTimeTotal = double.Parse(entry.Details["taskResult"]["firstReactionTimeTotal"].ToXmlSafeString());
                             if (taskResult.ContainsKey("taskExecutionTime"))
-                                details.taskExecutionTime = double.Parse(entry.Details["taskResult"]["taskExecutionTime"].ToString());
+                                details.taskExecutionTime = double.Parse(entry.Details["taskResult"]["taskExecutionTime"].ToXmlSafeString());
                             if (taskResult.ContainsKey("taskExecutionTimeTotal"))
-                                details.taskExecutionTimeTotal = double.Parse(entry.Details["taskResult"]["taskExecutionTimeTotal"].ToString());
+                                details.taskExecutionTimeTotal = double.Parse(entry.Details["taskResult"]["taskExecutionTimeTotal"].ToXmlSafeString());
 
                             // extract scoring
 
@@ -377,16 +381,16 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                                     if (_parts[0].EndsWith("Text"))
                                     {
-                                        taskResultDict[_parts[1]].Text = pair.Value.ToString();
+                                        taskResultDict[_parts[1]].Text = pair.Value.ToXmlSafeString();
                                     }
                                     else if (_parts[0].EndsWith("Weighed"))
                                     {
-                                        taskResultDict[_parts[1]].Weight = double.Parse(pair.Value.ToString());
+                                        taskResultDict[_parts[1]].Weight = double.Parse(pair.Value.ToXmlSafeString());
                                     }
                                     else
                                     {
                                         taskResultDict[_parts[1]].Typ = _parts[0];
-                                        taskResultDict[_parts[1]].Value = pair.Value.ToString();
+                                        taskResultDict[_parts[1]].Value = pair.Value.ToXmlSafeString();
                                     }
                                 }
                             }
@@ -414,9 +418,9 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            newPageAreaType = entry.Details["pageAreaType"].ToString(),
-                            newPageAreaName = entry.Details["pageAreaName"].ToString(),
-                            newPageName = entry.Details["newPageName"].ToString(),
+                            newPageAreaType = entry.Details["pageAreaType"].ToXmlSafeString(),
+                            newPageAreaName = entry.Details["pageAreaName"].ToXmlSafeString(),
+                            newPageName = entry.Details["newPageName"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -442,8 +446,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            newPageName = entry.Details["newPageName"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            newPageName = entry.Details["newPageName"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -451,10 +455,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         if (entry.Details.ContainsKey("tab"))
-                            details.tab = entry.Details["tab"].ToString();
+                            details.tab = entry.Details["tab"].ToXmlSafeString();
 
                         if (entry.Details.ContainsKey("historyMove"))
-                            details.historyMove = entry.Details["historyMove"].ToString();
+                            details.historyMove = entry.Details["historyMove"].ToXmlSafeString();
 
                         _ret.Add(details);
                         #endregion
@@ -475,9 +479,9 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaName = _pageAreaName,
                             Page = _page,
                             PageAreaType = _pageAreaType,
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            userDefId = entry.Details["userDefId"].ToString(),
-                            oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            userDefId = entry.Details["userDefId"].ToXmlSafeString(),
+                            oldSelected = bool.Parse(entry.Details["oldSelected"].ToXmlSafeString()),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -485,7 +489,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         if (entry.Details.ContainsKey("subtype"))
-                            details.subtype = entry.Details["subtype"].ToString();
+                            details.subtype = entry.Details["subtype"].ToXmlSafeString();
 
                         RetrievedEventDetials(entry, details, check);
                          
@@ -509,8 +513,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            oldSelected = bool.Parse(entry.Details["oldSelected"].ToXmlSafeString()),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -539,8 +543,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            oldSelected = bool.Parse(entry.Details["oldSelected"].ToXmlSafeString()),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -569,8 +573,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            oldSelected = bool.Parse(entry.Details["oldSelected"].ToXmlSafeString()),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -599,7 +603,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -628,7 +632,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -657,7 +661,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -686,7 +690,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -715,7 +719,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -744,9 +748,9 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            oldSelected = int.Parse(entry.Details["oldSelected"].ToString()),
-                            newSelected = int.Parse(entry.Details["newSelected"].ToString()),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            oldSelected = int.Parse(entry.Details["oldSelected"].ToXmlSafeString()),
+                            newSelected = int.Parse(entry.Details["newSelected"].ToXmlSafeString()),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -754,9 +758,9 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         if (entry.Details.ContainsKey("oldSelectedUserDefId"))
-                            details.oldSelectedUserDefId = entry.Details["oldSelectedUserDefId"].ToString();
+                            details.oldSelectedUserDefId = entry.Details["oldSelectedUserDefId"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("newSelectedUserDefId"))
-                            details.newSelectedUserDefId = entry.Details["newSelectedUserDefId"].ToString();
+                            details.newSelectedUserDefId = entry.Details["newSelectedUserDefId"].ToXmlSafeString();
 
                         RetrievedEventDetials(entry, details, check);
                          
@@ -780,9 +784,9 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            row = int.Parse(entry.Details["row"].ToString()),
-                            column = int.Parse(entry.Details["column"].ToString()),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            row = int.Parse(entry.Details["row"].ToXmlSafeString()),
+                            column = int.Parse(entry.Details["column"].ToXmlSafeString()),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -790,11 +794,11 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         if (entry.Details.ContainsKey("tableUserDefIdPath"))
-                            details.tableUserDefIdPath = entry.Details["tableUserDefIdPath"].ToString();
+                            details.tableUserDefIdPath = entry.Details["tableUserDefIdPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("tableUserDefId"))
-                            details.tableUserDefId = entry.Details["tableUserDefId"].ToString();
+                            details.tableUserDefId = entry.Details["tableUserDefId"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("oldSelected"))
-                            details.oldSelected = bool.Parse(entry.Details["oldSelected"].ToString());
+                            details.oldSelected = bool.Parse(entry.Details["oldSelected"].ToXmlSafeString());
 
                         RetrievedEventDetials(entry, details, check);
 
@@ -818,12 +822,12 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            row = int.Parse(entry.Details["row"].ToString()),
-                            column = int.Parse(entry.Details["column"].ToString()),
-                            cellType = entry.Details["cellType"].ToString(),
-                            oldValue = entry.Details["oldValue"].ToString(),
-                            newValue = entry.Details["newValue"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            row = int.Parse(entry.Details["row"].ToXmlSafeString()),
+                            column = int.Parse(entry.Details["column"].ToXmlSafeString()),
+                            cellType = entry.Details["cellType"].ToXmlSafeString(),
+                            oldValue = entry.Details["oldValue"].ToXmlSafeString(),
+                            newValue = entry.Details["newValue"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -831,15 +835,15 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                        if (entry.Details.ContainsKey("tableUserDefIdPath"))
-                            details.tableUserDefIdPath = entry.Details["tableUserDefIdPath"].ToString();
+                            details.tableUserDefIdPath = entry.Details["tableUserDefIdPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("tableUserDefId"))
-                            details.tableUserDefId = entry.Details["tableUserDefId"].ToString();
+                            details.tableUserDefId = entry.Details["tableUserDefId"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("oldEvaluatedValue"))
-                            details.oldEvaluatedValue = double.Parse(entry.Details["oldEvaluatedValue"].ToString());
+                            details.oldEvaluatedValue = double.Parse(entry.Details["oldEvaluatedValue"].ToXmlSafeString());
                         if (entry.Details.ContainsKey("newEvaluatedValue"))
-                            details.newEvaluatedValue = double.Parse(entry.Details["newEvaluatedValue"].ToString());
+                            details.newEvaluatedValue = double.Parse(entry.Details["newEvaluatedValue"].ToXmlSafeString());
                         if (entry.Details.ContainsKey("errorInFormula"))
-                            details.errorInFormula = entry.Details["errorInFormula"].ToString();
+                            details.errorInFormula = entry.Details["errorInFormula"].ToXmlSafeString();
 
                         RetrievedEventDetials(entry, details, check);
 
@@ -863,9 +867,9 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            tab = entry.Details["tab"].ToString(),
-                            page = entry.Details["page"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            tab = entry.Details["tab"].ToXmlSafeString(),
+                            page = entry.Details["page"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -894,7 +898,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -923,8 +927,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            oldSelected = bool.Parse(entry.Details["oldSelected"].ToXmlSafeString()),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -953,7 +957,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(), 
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(), 
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -961,7 +965,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         if (entry.Details.ContainsKey("currentTextValue"))
-                            details.currentTextValue = entry.Details["currentTextValue"].ToString();
+                            details.currentTextValue = entry.Details["currentTextValue"].ToXmlSafeString();
 
                         RetrievedEventDetials(entry, details, check);
 
@@ -984,7 +988,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             PageAreaName = _pageAreaName,
                             Page = _page,
                             PageAreaType = _pageAreaType,
-                            indexPath = entry.Details["indexPath"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -992,15 +996,15 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
                          
                         if (entry.Details.ContainsKey("validationPattern"))
-                            details.validationPattern = entry.Details["validationPattern"].ToString();
+                            details.validationPattern = entry.Details["validationPattern"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("invalidTextValue"))
-                            details.invalidTextValue = entry.Details["invalidTextValue"].ToString();
+                            details.invalidTextValue = entry.Details["invalidTextValue"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("oldTextValue"))
-                            details.oldTextValue = entry.Details["oldTextValue"].ToString();
+                            details.oldTextValue = entry.Details["oldTextValue"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("newTextValue"))
-                            details.newTextValue = entry.Details["newTextValue"].ToString();
+                            details.newTextValue = entry.Details["newTextValue"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("origin"))
-                            details.origin = entry.Details["origin"].ToString();
+                            details.origin = entry.Details["origin"].ToXmlSafeString();
 
                         RetrievedEventDetials(entry, details, check);
                          
@@ -1024,8 +1028,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            currentTextValue = entry.Details["currentTextValue"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            currentTextValue = entry.Details["currentTextValue"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1054,10 +1058,10 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            oldTextValue = entry.Details["oldTextValue"].ToString(),
-                            newTextValue = entry.Details["newTextValue"].ToString(),
-                            origin = entry.Details["origin"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            oldTextValue = entry.Details["oldTextValue"].ToXmlSafeString(),
+                            newTextValue = entry.Details["newTextValue"].ToXmlSafeString(),
+                            origin = entry.Details["origin"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1065,9 +1069,9 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         if (entry.Details.ContainsKey("validationPattern"))
-                            details.validationPattern = entry.Details["validationPattern"].ToString();
+                            details.validationPattern = entry.Details["validationPattern"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("invalidTextValue"))
-                            details.invalidTextValue = entry.Details["invalidTextValue"].ToString();
+                            details.invalidTextValue = entry.Details["invalidTextValue"].ToXmlSafeString();
 
                         RetrievedEventDetials(entry, details, check);
 
@@ -1092,7 +1096,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1129,7 +1133,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(), 
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(), 
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1159,7 +1163,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(), 
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(), 
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1189,8 +1193,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            displayType = entry.Details["displayType"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            displayType = entry.Details["displayType"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1219,7 +1223,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1247,8 +1251,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            oldSelected = bool.Parse(entry.Details["oldSelected"].ToXmlSafeString()),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1277,8 +1281,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            oldSelected = bool.Parse(entry.Details["oldSelected"].ToString()),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            oldSelected = bool.Parse(entry.Details["oldSelected"].ToXmlSafeString()),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1307,7 +1311,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1315,17 +1319,17 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
                          
                         if (entry.Details.ContainsKey("clientX"))
-                            details.clientX = long.Parse(entry.Details["clientX"].ToString());
+                            details.clientX = long.Parse(entry.Details["clientX"].ToXmlSafeString());
                         if (entry.Details.ContainsKey("clientY"))
-                            details.clientY = long.Parse(entry.Details["clientY"].ToString());
+                            details.clientY = long.Parse(entry.Details["clientY"].ToXmlSafeString());
                         if (entry.Details.ContainsKey("pageX"))
-                            details.pageX = long.Parse(entry.Details["pageX"].ToString());
+                            details.pageX = long.Parse(entry.Details["pageX"].ToXmlSafeString());
                         if (entry.Details.ContainsKey("pageY"))
-                            details.pageY = long.Parse(entry.Details["pageY"].ToString());
+                            details.pageY = long.Parse(entry.Details["pageY"].ToXmlSafeString());
                         if (entry.Details.ContainsKey("screenX"))
-                            details.screenX = long.Parse(entry.Details["screenX"].ToString());
+                            details.screenX = long.Parse(entry.Details["screenX"].ToXmlSafeString());
                         if (entry.Details.ContainsKey("screenY"))
-                            details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                            details.screenY = long.Parse(entry.Details["screenY"].ToXmlSafeString());
 
                         _ret.Add(details);
                         #endregion
@@ -1347,8 +1351,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            userDefId = entry.Details["userDefId"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            userDefId = entry.Details["userDefId"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1357,11 +1361,11 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
                         if (entry.Details.ContainsKey("oldSelections"))
                         {
-                            details.oldSelections = JsonConvert.DeserializeObject<List<RichTextHighlightFragment>>(entry.Details["oldSelections"].ToString());
+                            details.oldSelections = JsonConvert.DeserializeObject<List<RichTextHighlightFragment>>(entry.Details["oldSelections"].ToXmlSafeString());
                         }
                         if (entry.Details.ContainsKey("newSelections"))
                         {
-                            details.newSelections = JsonConvert.DeserializeObject<List<RichTextHighlightFragment>>(entry.Details["newSelections"].ToString());
+                            details.newSelections = JsonConvert.DeserializeObject<List<RichTextHighlightFragment>>(entry.Details["newSelections"].ToXmlSafeString());
                         }
 
                         _ret.Add(details);
@@ -1386,7 +1390,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                                 Page = _page,
                                 PageAreaType = _pageAreaType,
 
-                                indexPath = entry.Details["indexPath"].ToString(),
+                                indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                                 CbaVers = _cbaVers,
                                 SessionId = _sessionId,
                                 LoginTimestamp = _loginTimestamp,
@@ -1394,29 +1398,29 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             };
 
                             if (entry.Details.ContainsKey("maxPlay"))
-                                details.maxPlay = int.Parse(entry.Details["maxPlay"].ToString());
+                                details.maxPlay = int.Parse(entry.Details["maxPlay"].ToXmlSafeString());
                             if (entry.Details.ContainsKey("currentPlayNo"))
-                                details.currentPlayNo = int.Parse(entry.Details["currentPlayNo"].ToString());
+                                details.currentPlayNo = int.Parse(entry.Details["currentPlayNo"].ToXmlSafeString());
                             if (entry.Details.ContainsKey("automaticStart"))
-                                details.automaticStart = bool.Parse(entry.Details["automaticStart"].ToString());
+                                details.automaticStart = bool.Parse(entry.Details["automaticStart"].ToXmlSafeString());
                             if (entry.Details.ContainsKey("hideControls"))
-                                details.hideControls = bool.Parse(entry.Details["hideControls"].ToString());
+                                details.hideControls = bool.Parse(entry.Details["hideControls"].ToXmlSafeString());
                             if (entry.Details.ContainsKey("volumeLevel"))
-                                details.volumeLevel = double.Parse(entry.Details["volumeLevel"].ToString());
+                                details.volumeLevel = double.Parse(entry.Details["volumeLevel"].ToXmlSafeString());
                             if (entry.Details.ContainsKey("operation"))
-                                details.operation = entry.Details["operation"].ToString();
+                                details.operation = entry.Details["operation"].ToXmlSafeString();
                             if (entry.Details.ContainsKey("userDefId"))
-                                details.userDefId = entry.Details["userDefId"].ToString();
+                                details.userDefId = entry.Details["userDefId"].ToXmlSafeString();
                             if (entry.Details.ContainsKey("userDefIdPath"))
-                                details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
+                                details.userDefIdPath = entry.Details["userDefIdPath"].ToXmlSafeString();
                             if (entry.Details.ContainsKey("isStatemachineTriggered"))
-                                details.isStatemachineTriggered = bool.Parse(entry.Details["isStatemachineTriggered"].ToString());
+                                details.isStatemachineTriggered = bool.Parse(entry.Details["isStatemachineTriggered"].ToXmlSafeString());
 
                             _ret.Add(details);
                         }
                         catch
                         {
-                            Console.WriteLine("AudioPlayer -- Attribute Error: " + entry.Details.ToString());
+                            Console.WriteLine("AudioPlayer -- Attribute Error: " + entry.Details.ToXmlSafeString());
                         }
 
                         #endregion
@@ -1440,7 +1444,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                                 Page = _page,
                                 PageAreaType = _pageAreaType,
 
-                                indexPath = entry.Details["indexPath"].ToString(),
+                                indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                                 CbaVers = _cbaVers,
                                 SessionId = _sessionId,
                                 LoginTimestamp = _loginTimestamp,
@@ -1450,32 +1454,32 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             /* TODO: The following attributes should not be missing*/
 
                             if (entry.Details.ContainsKey("maxPlay"))
-                                details.maxPlay = int.Parse(entry.Details["maxPlay"].ToString());
+                                details.maxPlay = int.Parse(entry.Details["maxPlay"].ToXmlSafeString());
                             if (entry.Details.ContainsKey("currentPlayNo"))
-                                details.currentPlayNo = int.Parse(entry.Details["currentPlayNo"].ToString());
+                                details.currentPlayNo = int.Parse(entry.Details["currentPlayNo"].ToXmlSafeString());
                             if (entry.Details.ContainsKey("automaticStart"))
-                                details.automaticStart = bool.Parse(entry.Details["automaticStart"].ToString());
+                                details.automaticStart = bool.Parse(entry.Details["automaticStart"].ToXmlSafeString());
                             if (entry.Details.ContainsKey("hideControls"))
-                                details.hideControls = bool.Parse(entry.Details["hideControls"].ToString());
+                                details.hideControls = bool.Parse(entry.Details["hideControls"].ToXmlSafeString());
                             if (entry.Details.ContainsKey("volumeLevel"))
-                                details.volumeLevel = double.Parse(entry.Details["volumeLevel"].ToString());
+                                details.volumeLevel = double.Parse(entry.Details["volumeLevel"].ToXmlSafeString());
                             if (entry.Details.ContainsKey("operation"))
-                                details.operation = entry.Details["operation"].ToString();
+                                details.operation = entry.Details["operation"].ToXmlSafeString();
 
                             /* END-TODO*/
 
                             if (entry.Details.ContainsKey("userDefId"))
-                                details.userDefId = entry.Details["userDefId"].ToString();
+                                details.userDefId = entry.Details["userDefId"].ToXmlSafeString();
                             if (entry.Details.ContainsKey("userDefIdPath"))
-                                details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
+                                details.userDefIdPath = entry.Details["userDefIdPath"].ToXmlSafeString();
                             if (entry.Details.ContainsKey("isStatemachineTriggered"))
-                                details.isStatemachineTriggered = bool.Parse(entry.Details["isStatemachineTriggered"].ToString());
+                                details.isStatemachineTriggered = bool.Parse(entry.Details["isStatemachineTriggered"].ToXmlSafeString());
 
                             _ret.Add(details);
                         }
                         catch
                         {
-                            Console.WriteLine("VideoPlayer -- Attribute Error: " + entry.Details.ToString());
+                            Console.WriteLine("VideoPlayer -- Attribute Error: " + entry.Details.ToXmlSafeString());
                         }
                         #endregion
                     }
@@ -1496,7 +1500,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1504,19 +1508,19 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         if (entry.Details.ContainsKey("userDefId"))
-                            details.userDefId = entry.Details["userDefId"].ToString();
+                            details.userDefId = entry.Details["userDefId"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("userDefIdPath"))
-                            details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
+                            details.userDefIdPath = entry.Details["userDefIdPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("userDefIdPath"))
-                            details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
+                            details.userDefIdPath = entry.Details["userDefIdPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("orientation"))
-                            details.orientation = entry.Details["orientation"].ToString();
+                            details.orientation = entry.Details["orientation"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("horizontalScroll"))
-                            details.horizontalScroll = entry.Details["horizontalScroll"].ToString();
+                            details.horizontalScroll = entry.Details["horizontalScroll"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("verticalScroll"))
-                            details.verticalScroll = entry.Details["verticalScroll"].ToString();
+                            details.verticalScroll = entry.Details["verticalScroll"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("direction"))
-                            details.direction = entry.Details["direction"].ToString();
+                            details.direction = entry.Details["direction"].ToXmlSafeString();
 
                         _ret.Add(details);
                         #endregion
@@ -1541,7 +1545,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1549,19 +1553,19 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         if (entry.Details.ContainsKey("userDefId"))
-                            details.userDefId = entry.Details["userDefId"].ToString();
+                            details.userDefId = entry.Details["userDefId"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("userDefIdPath"))
-                            details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
+                            details.userDefIdPath = entry.Details["userDefIdPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("userDefIdPath"))
-                            details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
+                            details.userDefIdPath = entry.Details["userDefIdPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("orientation"))
-                            details.orientation = entry.Details["orientation"].ToString();
+                            details.orientation = entry.Details["orientation"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("horizontalScroll"))
-                            details.horizontalScroll = entry.Details["horizontalScroll"].ToString();
+                            details.horizontalScroll = entry.Details["horizontalScroll"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("verticalScroll"))
-                            details.verticalScroll = entry.Details["verticalScroll"].ToString();
+                            details.verticalScroll = entry.Details["verticalScroll"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("direction"))
-                            details.direction = entry.Details["direction"].ToString();
+                            details.direction = entry.Details["direction"].ToXmlSafeString();
 
                         _ret.Add(details);
                         #endregion
@@ -1584,9 +1588,9 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            orientation = entry.Details["orientation"].ToString(),
-                            position = double.Parse(entry.Details["position"].ToString()),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            orientation = entry.Details["orientation"].ToXmlSafeString(),
+                            position = double.Parse(entry.Details["position"].ToXmlSafeString()),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1594,9 +1598,9 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         if (entry.Details.ContainsKey("userDefId"))
-                            details.userDefId = entry.Details["userDefId"].ToString();
+                            details.userDefId = entry.Details["userDefId"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("userDefIdPath"))
-                            details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
+                            details.userDefIdPath = entry.Details["userDefIdPath"].ToXmlSafeString();
 
                         _ret.Add(details);
                         #endregion
@@ -1609,9 +1613,9 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         {
                             string ret = "";
                             if (entry.Details.ContainsKey("senderIndexPath"))
-                                ret = entry.Details["senderIndexPath"].ToString();
+                                ret = entry.Details["senderIndexPath"].ToXmlSafeString();
                             else
-                                ret = entry.Details["receiverIndexPath"].ToString();
+                                ret = entry.Details["receiverIndexPath"].ToXmlSafeString();
 
                             string[] parts = ret.Split("/", StringSplitOptions.RemoveEmptyEntries);
                             _test = parts[0].Replace("test=", "");
@@ -1642,15 +1646,15 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            senderIndexPath = entry.Details["senderIndexPath"].ToString(),
-                            senderUserDefIdPath = entry.Details["senderUserDefIdPath"].ToString(),
-                            senderUserDefId = entry.Details["senderUserDefId"].ToString(),
-                            receiverIndexPath = entry.Details["receiverIndexPath"].ToString(),
-                            receiverUserDefIdPath = entry.Details["receiverUserDefIdPath"].ToString(),
-                            receiverUserDefId = entry.Details["receiverUserDefId"].ToString(),
-                            sendingType = entry.Details["sendingType"].ToString(),
-                            receivingType = entry.Details["receivingType"].ToString(),
-                            operation = entry.Details["operation"].ToString(),
+                            senderIndexPath = entry.Details["senderIndexPath"].ToXmlSafeString(),
+                            senderUserDefIdPath = entry.Details["senderUserDefIdPath"].ToXmlSafeString(),
+                            senderUserDefId = entry.Details["senderUserDefId"].ToXmlSafeString(),
+                            receiverIndexPath = entry.Details["receiverIndexPath"].ToXmlSafeString(),
+                            receiverUserDefIdPath = entry.Details["receiverUserDefIdPath"].ToXmlSafeString(),
+                            receiverUserDefId = entry.Details["receiverUserDefId"].ToXmlSafeString(),
+                            sendingType = entry.Details["sendingType"].ToXmlSafeString(),
+                            receivingType = entry.Details["receivingType"].ToXmlSafeString(),
+                            operation = entry.Details["operation"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1677,9 +1681,9 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
-                            oldTextValue = entry.Details["oldTextValue"].ToString(),
-                            newTextValue = entry.Details["newTextValue"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            oldTextValue = entry.Details["oldTextValue"].ToXmlSafeString(),
+                            newTextValue = entry.Details["newTextValue"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1687,9 +1691,9 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         if (entry.Details.ContainsKey("userDefIdPath"))
-                            details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
+                            details.userDefIdPath = entry.Details["userDefIdPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("userDefId"))
-                            details.userDefIdPath = entry.Details["userDefId"].ToString();
+                            details.userDefIdPath = entry.Details["userDefId"].ToXmlSafeString();
 
                         _ret.Add(details);
                         #endregion
@@ -1711,7 +1715,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            index = int.Parse(entry.Details["index"].ToString()),
+                            index = int.Parse(entry.Details["index"].ToXmlSafeString()),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1719,17 +1723,17 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         if (entry.Details.ContainsKey("clientX"))
-                            details.clientX = long.Parse(entry.Details["clientX"].ToString());
+                            details.clientX = long.Parse(entry.Details["clientX"].ToXmlSafeString());
                         if (entry.Details.ContainsKey("clientY"))
-                            details.clientY = long.Parse(entry.Details["clientY"].ToString());
+                            details.clientY = long.Parse(entry.Details["clientY"].ToXmlSafeString());
                         if (entry.Details.ContainsKey("pageX"))
-                            details.pageX = long.Parse(entry.Details["pageX"].ToString());
+                            details.pageX = long.Parse(entry.Details["pageX"].ToXmlSafeString());
                         if (entry.Details.ContainsKey("pageY"))
-                            details.pageY = long.Parse(entry.Details["pageY"].ToString());
+                            details.pageY = long.Parse(entry.Details["pageY"].ToXmlSafeString());
                         if (entry.Details.ContainsKey("screenX"))
-                            details.screenX = long.Parse(entry.Details["screenX"].ToString());
+                            details.screenX = long.Parse(entry.Details["screenX"].ToXmlSafeString());
                         if (entry.Details.ContainsKey("screenY"))
-                            details.screenY = long.Parse(entry.Details["screenY"].ToString());
+                            details.screenY = long.Parse(entry.Details["screenY"].ToXmlSafeString());
 
                         _ret.Add(details);
                         #endregion
@@ -1751,8 +1755,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            navigationType = entry.Details["navigationType"].ToString(),
-                            navigationTarget = entry.Details["navigationTarget"].ToString(),
+                            navigationType = entry.Details["navigationType"].ToXmlSafeString(),
+                            navigationTarget = entry.Details["navigationTarget"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1781,7 +1785,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            origin = entry.Details["origin"].ToString(),
+                            origin = entry.Details["origin"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1789,16 +1793,16 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         if (entry.Details.ContainsKey("userDefIdPath"))
-                            details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
+                            details.userDefIdPath = entry.Details["userDefIdPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("indexPath"))
-                            details.indexPath = entry.Details["indexPath"].ToString();
+                            details.indexPath = entry.Details["indexPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("userDefId"))
-                            details.userDefId = entry.Details["userDefId"].ToString();
+                            details.userDefId = entry.Details["userDefId"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("message"))
-                            details.message = entry.Details["message"].ToString();
+                            details.message = entry.Details["message"].ToXmlSafeString();
 
                         if (entry.Details.ContainsKey("type"))
-                            details.type = entry.Details["type"].ToString();
+                            details.type = entry.Details["type"].ToXmlSafeString();
 
                         _ret.Add(details);
                         #endregion
@@ -1820,8 +1824,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            actionType = entry.Details["actionType"].ToString(),
-                            details = entry.Details["details"].ToString(),
+                            actionType = entry.Details["actionType"].ToXmlSafeString(),
+                            details = entry.Details["details"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1855,32 +1859,32 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         if (entry.Details.ContainsKey("userDefIdPath"))
-                            details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
+                            details.userDefIdPath = entry.Details["userDefIdPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("indexPath"))
-                            details.indexPath = entry.Details["indexPath"].ToString();
+                            details.indexPath = entry.Details["indexPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("userDefId"))
-                            details.userDefId = entry.Details["userDefId"].ToString();
+                            details.userDefId = entry.Details["userDefId"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("triggerType"))
-                            details.triggerType = entry.Details["triggerType"].ToString();
+                            details.triggerType = entry.Details["triggerType"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("triggerIndexPath"))
-                            details.triggerIndexPath = entry.Details["triggerIndexPath"].ToString();
+                            details.triggerIndexPath = entry.Details["triggerIndexPath"].ToXmlSafeString();
 
                         if (entry.Details.ContainsKey("triggerUserDefIdPath"))
-                            details.triggerUserDefIdPath = entry.Details["triggerUserDefIdPath"].ToString();
+                            details.triggerUserDefIdPath = entry.Details["triggerUserDefIdPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("triggerUserDefId"))
-                            details.triggerUserDefId = entry.Details["triggerUserDefId"].ToString();
+                            details.triggerUserDefId = entry.Details["triggerUserDefId"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("operation"))
-                            details.operation = entry.Details["operation"].ToString();
+                            details.operation = entry.Details["operation"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("contentIndexPath"))
-                            details.contentIndexPath = entry.Details["contentIndexPath"].ToString();
+                            details.contentIndexPath = entry.Details["contentIndexPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("contentUserDefIdPath"))
-                            details.contentUserDefIdPath = entry.Details["contentUserDefIdPath"].ToString();
+                            details.contentUserDefIdPath = entry.Details["contentUserDefIdPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("contentUserDefId"))
-                            details.contentUserDefId = entry.Details["contentUserDefId"].ToString();
+                            details.contentUserDefId = entry.Details["contentUserDefId"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("content"))
-                            details.content = entry.Details["content"].ToString();
+                            details.content = entry.Details["content"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("isPerformed"))
-                            details.isPerformed = entry.Details["isPerformed"].ToString();
+                            details.isPerformed = entry.Details["isPerformed"].ToXmlSafeString();
                          
                         RetrievedEventDetials(entry, details, check);
 
@@ -1911,32 +1915,32 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         if (entry.Details.ContainsKey("userDefIdPath"))
-                            details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
+                            details.userDefIdPath = entry.Details["userDefIdPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("indexPath"))
-                            details.indexPath = entry.Details["indexPath"].ToString();
+                            details.indexPath = entry.Details["indexPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("userDefId"))
-                            details.userDefId = entry.Details["userDefId"].ToString();
+                            details.userDefId = entry.Details["userDefId"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("triggerType"))
-                            details.triggerType = entry.Details["triggerType"].ToString();
+                            details.triggerType = entry.Details["triggerType"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("triggerIndexPath"))
-                            details.triggerIndexPath = entry.Details["triggerIndexPath"].ToString();
+                            details.triggerIndexPath = entry.Details["triggerIndexPath"].ToXmlSafeString();
 
                         if (entry.Details.ContainsKey("triggerUserDefIdPath"))
-                            details.triggerUserDefIdPath = entry.Details["triggerUserDefIdPath"].ToString();
+                            details.triggerUserDefIdPath = entry.Details["triggerUserDefIdPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("triggerUserDefId"))
-                            details.triggerUserDefId = entry.Details["triggerUserDefId"].ToString();
+                            details.triggerUserDefId = entry.Details["triggerUserDefId"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("operation"))
-                            details.operation = entry.Details["operation"].ToString();
+                            details.operation = entry.Details["operation"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("ownerIndexPath"))
-                            details.ownerIndexPath = entry.Details["ownerIndexPath"].ToString();
+                            details.ownerIndexPath = entry.Details["ownerIndexPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("ownerUserDefIdPath"))
-                            details.ownerUserDefIdPath = entry.Details["ownerUserDefIdPath"].ToString();
+                            details.ownerUserDefIdPath = entry.Details["ownerUserDefIdPath"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("ownerUserDefId"))
-                            details.ownerUserDefId = entry.Details["ownerUserDefId"].ToString();
+                            details.ownerUserDefId = entry.Details["ownerUserDefId"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("pageName"))
-                            details.pageName = entry.Details["pageName"].ToString();
+                            details.pageName = entry.Details["pageName"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("pageUrl"))
-                            details.pageUrl = entry.Details["pageUrl"].ToString();
+                            details.pageUrl = entry.Details["pageUrl"].ToXmlSafeString();
 
                         RetrievedEventDetials(entry, details, check);
 
@@ -1967,8 +1971,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            type = entry.Details["type"].ToString(),
-                            alternateStateDuration = double.Parse(entry.Details["alternateStateDuration"].ToString()),
+                            type = entry.Details["type"].ToXmlSafeString(),
+                            alternateStateDuration = double.Parse(entry.Details["alternateStateDuration"].ToXmlSafeString()),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -1995,7 +1999,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            text = entry.Details["text"].ToString(),
+                            text = entry.Details["text"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -2022,7 +2026,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            text = entry.Details["text"].ToString(),
+                            text = entry.Details["text"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -2055,7 +2059,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             SendTimestamp = _sendTimestamp
                         };
 
-                        details.snapShot = entry.Details.ToString();
+                        details.snapShot = entry.Details.ToXmlSafeString();
 
                         _ret.Add(details);
                         #endregion 
@@ -2064,9 +2068,43 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                     {
                         Console.WriteLine("Not implemented: " + entry.Type);
                     }
-                    else if (entry.Type == "Rectangle") // TODO: Implement with example data
+                    else if (entry.Type == "Rectangle")  
                     {
-                        Console.WriteLine("Not implemented: " + entry.Type);
+                        #region Rectangle
+                        Rectangle details = new Rectangle()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
+                        };
+
+                        if (entry.Details.ContainsKey("clientX"))
+                            details.clientX = long.Parse(entry.Details["clientX"].ToXmlSafeString());
+                        if (entry.Details.ContainsKey("clientY"))
+                            details.clientY = long.Parse(entry.Details["clientY"].ToXmlSafeString());
+                        if (entry.Details.ContainsKey("pageX"))
+                            details.pageX = long.Parse(entry.Details["pageX"].ToXmlSafeString());
+                        if (entry.Details.ContainsKey("pageY"))
+                            details.pageY = long.Parse(entry.Details["pageY"].ToXmlSafeString());
+                        if (entry.Details.ContainsKey("screenX"))
+                            details.screenX = long.Parse(entry.Details["screenX"].ToXmlSafeString());
+                        if (entry.Details.ContainsKey("screenY"))
+                            details.screenY = long.Parse(entry.Details["screenY"].ToXmlSafeString());
+
+                        _ret.Add(details);
+                        #endregion
                     }
                     else if (entry.Type == "ApplicationFullScreen")
                     {
@@ -2085,8 +2123,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            type = entry.Details["type"].ToString(),
-                            alternateStateDuration = double.Parse(entry.Details["alternateStateDuration"].ToString()),
+                            type = entry.Details["type"].ToXmlSafeString(),
+                            alternateStateDuration = double.Parse(entry.Details["alternateStateDuration"].ToXmlSafeString()),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -2113,7 +2151,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            type = entry.Details["type"].ToString(), 
+                            type = entry.Details["type"].ToXmlSafeString(), 
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -2140,7 +2178,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(), 
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(), 
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -2168,20 +2206,20 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
                             SendTimestamp = _sendTimestamp
                         };                         
                         if (entry.Details.ContainsKey("operation"))
-                            details.operation = entry.Details["operation"].ToString();
+                            details.operation = entry.Details["operation"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("nodeName"))
-                            details.nodeName = entry.Details["nodeName"].ToString();
+                            details.nodeName = entry.Details["nodeName"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("nodeType"))
-                            details.nodeType = entry.Details["nodeType"].ToString();
+                            details.nodeType = entry.Details["nodeType"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("nodePathId"))
-                            details.nodePathId = entry.Details["nodePathId"].ToString(); 
+                            details.nodePathId = entry.Details["nodePathId"].ToXmlSafeString(); 
 
                         RetrievedEventDetials(entry, details, check);
 
@@ -2205,7 +2243,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -2213,21 +2251,21 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
                           
                         if (entry.Details.ContainsKey("operation"))
-                            details.operation = entry.Details["operation"].ToString();
+                            details.operation = entry.Details["operation"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("oldValue"))
-                            details.oldValue = entry.Details["oldValue"].ToString();
+                            details.oldValue = entry.Details["oldValue"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("newValue"))
-                            details.newValue = entry.Details["newValue"].ToString();
+                            details.newValue = entry.Details["newValue"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("columnName"))
-                            details.columnName = entry.Details["columnName"].ToString(); 
+                            details.columnName = entry.Details["columnName"].ToXmlSafeString(); 
                         if (entry.Details.ContainsKey("nodeName"))
-                            details.nodeName = entry.Details["nodeName"].ToString();
+                            details.nodeName = entry.Details["nodeName"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("nodeType"))
-                            details.nodeType = entry.Details["nodeType"].ToString();
+                            details.nodeType = entry.Details["nodeType"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("nodePathId"))
-                            details.nodePathId = entry.Details["nodePathId"].ToString();
+                            details.nodePathId = entry.Details["nodePathId"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("triggeredEvent"))
-                            details.triggeredEvent = entry.Details["triggeredEvent"].ToString();
+                            details.triggeredEvent = entry.Details["triggeredEvent"].ToXmlSafeString();
                          
                         RetrievedEventDetials(entry, details, check);
 
@@ -2251,7 +2289,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -2259,7 +2297,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
                           
                         if (entry.Details.ContainsKey("sortDirection"))
-                            details.sortDirection = entry.Details["sortDirection"].ToString(); 
+                            details.sortDirection = entry.Details["sortDirection"].ToXmlSafeString(); 
 
                         RetrievedEventDetials(entry, details, check);
 
@@ -2283,7 +2321,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -2312,7 +2350,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -2320,13 +2358,13 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         if (entry.Details.ContainsKey("newSelected"))
-                            details.newSelected = entry.Details["newSelected"].ToString();
+                            details.newSelected = entry.Details["newSelected"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("newSelectedUserDefId"))
-                            details.newSelectedUserDefId = entry.Details["newSelectedUserDefId"].ToString();
+                            details.newSelectedUserDefId = entry.Details["newSelectedUserDefId"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("oldSelected"))
-                            details.oldSelected = entry.Details["oldSelected"].ToString();
+                            details.oldSelected = entry.Details["oldSelected"].ToXmlSafeString();
                         if (entry.Details.ContainsKey("oldSelectedUserDefId"))
-                            details.oldSelectedUserDefId = entry.Details["oldSelectedUserDefId"].ToString();
+                            details.oldSelectedUserDefId = entry.Details["oldSelectedUserDefId"].ToXmlSafeString();
 
                         RetrievedEventDetials(entry, details, check);
 
@@ -2351,7 +2389,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                             Page = _page,
                             PageAreaType = _pageAreaType,
 
-                            indexPath = entry.Details["indexPath"].ToString(),
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
                             CbaVers = _cbaVers,
                             SessionId = _sessionId,
                             LoginTimestamp = _loginTimestamp,
@@ -2359,7 +2397,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         };
 
                         if (entry.Details.ContainsKey("newValue"))
-                            details.newValue = entry.Details["newValue"].ToString();
+                            details.newValue = entry.Details["newValue"].ToXmlSafeString();
                         else
                             details.newValue = "";
 
@@ -2382,24 +2420,24 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
         private static void RetrievedEventDetials(ItemBuilder_React_Runtime_trace_element entry, VisualEventBase details, bool check)
         {
             if (entry.Details.ContainsKey("userDefIdPath"))
-                details.userDefIdPath = entry.Details["userDefIdPath"].ToString();
+                details.userDefIdPath = entry.Details["userDefIdPath"].ToXmlSafeString();
             if (entry.Details.ContainsKey("userDefId"))
-                details.userDefId = entry.Details["userDefId"].ToString();
+                details.userDefId = entry.Details["userDefId"].ToXmlSafeString();
             else
                 details.userDefId = "";
 
             if (entry.Details.ContainsKey("clientX"))
-                details.clientX = double.Parse(entry.Details["clientX"].ToString());
+                details.clientX = double.Parse(entry.Details["clientX"].ToXmlSafeString());
             if (entry.Details.ContainsKey("clientY"))
-                details.clientY = double.Parse(entry.Details["clientY"].ToString());
+                details.clientY = double.Parse(entry.Details["clientY"].ToXmlSafeString());
             if (entry.Details.ContainsKey("pageX"))
-                details.pageX = double.Parse(entry.Details["pageX"].ToString());
+                details.pageX = double.Parse(entry.Details["pageX"].ToXmlSafeString());
             if (entry.Details.ContainsKey("pageY"))
-                details.pageY = double.Parse(entry.Details["pageY"].ToString());
+                details.pageY = double.Parse(entry.Details["pageY"].ToXmlSafeString());
             if (entry.Details.ContainsKey("screenX"))
-                details.screenX = double.Parse(entry.Details["screenX"].ToString());
+                details.screenX = double.Parse(entry.Details["screenX"].ToXmlSafeString());
             if (entry.Details.ContainsKey("screenY"))
-                details.screenY = double.Parse(entry.Details["screenY"].ToString());
+                details.screenY = double.Parse(entry.Details["screenY"].ToXmlSafeString());
               
             if (check)
             {
@@ -3372,6 +3410,11 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
         }
     }
 
+    public class Rectangle: VisualEventBase
+    { 
+        public override string GetType() => nameof(Rectangle);       
+    }
+
     public class NavigationButton : VisualEventBase
     {
         [XmlAttribute] public string navigationType { get; set; } = "";
@@ -3911,4 +3954,58 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
     }
 
     #endregion
+
+
+    public static class XmlExtensions
+    {
+        /// <summary>
+        /// Converts an object to a string and replaces characters that are not allowed in XML.
+        /// </summary>
+        /// <param name="obj">The object to convert and sanitize.</param>
+        /// <returns>A sanitized string suitable for XML content.</returns>
+        public static string ToXmlSafeString(this object obj)
+        {
+            if (obj == null)
+                return string.Empty;
+
+            // Convert the object to a string
+            string str = obj.ToString();
+
+            // StringBuilder to hold the sanitized string
+            StringBuilder sb = new StringBuilder();
+
+            // Iterate through each character in the string
+            foreach (char c in str)
+            {
+                if (IsValidXmlChar(c))
+                {
+                    sb.Append(c);
+                }
+                else
+                {
+                    // Optionally replace invalid character with a valid one or remove it
+                    // Here, we simply remove it
+                    // To replace, you could use something like: sb.Append(' ');
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Determines if a character is valid in XML.
+        /// </summary>
+        /// <param name="ch">The character to check.</param>
+        /// <returns>true if the character is valid; otherwise, false.</returns>
+        private static bool IsValidXmlChar(char ch)
+        {
+            // Reference: https://www.w3.org/TR/xml/#charsets
+            // This checks if the character is valid according to XML 1.0 specification.
+            return
+                (ch == 0x9 /* == '\t' == 9   */) || (ch == 0xA /* == '\n' == 10  */) || (ch == 0xD /* == '\r' == 13  */) ||
+                (ch >= 0x20 && ch <= 0xD7FF) ||
+                (ch >= 0xE000 && ch <= 0xFFFD) ||
+                (ch >= 0x10000 && ch <= 0x10FFFF);
+        }
+    }
 }

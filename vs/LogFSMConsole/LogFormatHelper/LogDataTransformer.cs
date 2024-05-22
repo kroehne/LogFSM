@@ -37,6 +37,14 @@ namespace LogFSMConsole
 
                 LogDataTransformer_IRTlibPlayer_V01.LogDataTransformer_IRTLIB_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
             }
+            else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_alea01a)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                Console.WriteLine("Module: Transform 'Alea 01A' (Raw files provided by the alea.schule assessment platform).");
+                Console.ResetColor(); 
+                LogDataTransformer_IRTlibPlayer_V01.LogDataTransformer_ALEA_Module_V01.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
+            }
+            
             else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_ibfirebase01a)
             {
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
@@ -144,6 +152,7 @@ namespace LogFSMConsole
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_ibsdraw01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_nepsrawv01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_irtlib01a + "', '" +
+                    CommandLineArguments._CMDA_JOB_TRANSFORM_input_alea01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_ibfirebase01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_taopci01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_taopci02a + "', '" +

@@ -207,6 +207,7 @@ namespace LogDataTransformer_IRTlibPlayer_V01
 
                     foreach (string zfilename in listOfZipFiles)
                     {
+                         
                         if (ParsedCommandLineArguments.MaxNumberOfCases > 0 && _ret.GetNumberOfPersons >= ParsedCommandLineArguments.MaxNumberOfCases)
                         {
                             if (ParsedCommandLineArguments.Verbose)
@@ -478,7 +479,10 @@ namespace LogDataTransformer_IRTlibPlayer_V01
                                                                         }
                                                                     }
                                                                 }
-                                                                catch { }
+                                                                catch (Exception _ex)
+                                                                {
+                                                                    Console.WriteLine(_ex.ToString());
+                                                                }
                                                             }
 
                                                             _ret.AddResults(g);

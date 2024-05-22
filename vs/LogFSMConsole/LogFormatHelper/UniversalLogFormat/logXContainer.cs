@@ -393,6 +393,10 @@ namespace LogFSM_LogX2019
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputstringattributenotexpected"))
                 _attributeNotExpected = ParsedCommandLineArguments.ParameterDictionary["outputstringattributenotdefined"];
 
+            bool _skipRootTable = false;
+            if (ParsedCommandLineArguments.Flags.Contains("SKIPROOT"))
+                _skipRootTable = true;
+
             bool _includeFlatAndSparseLogDataTable = false;
             if (ParsedCommandLineArguments.Flags.Contains("INCLUDEFLAT"))
                 _includeFlatAndSparseLogDataTable = true;
@@ -428,7 +432,11 @@ namespace LogFSM_LogX2019
                 #region Log Data
 
                 foreach (string _id in logDataTables.Keys)
-                { 
+                {
+
+                    if (_skipRootTable && _id == "Log")
+                        continue;
+
                     var _varlist = new List<StataVariable>();
                     _varlist.Add(new StataVariable() { Name = "Line", VarType = StataVariable.StataVarType.Long, DisplayFormat = @"%12.0g", Description = CodebookDictionary.GetColumnNameDescription("Line", _language) });
 
@@ -848,6 +856,10 @@ namespace LogFSM_LogX2019
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputstringattributenotexpected"))
                 _attributeNotExpected = ParsedCommandLineArguments.ParameterDictionary["outputstringattributenotdefined"];
 
+            bool _skipRootTable = false;
+            if (ParsedCommandLineArguments.Flags.Contains("SKIPROOT"))
+                _skipRootTable = true;
+
             bool _includeFlatAndSparseLogDataTable = false;
             if (ParsedCommandLineArguments.Flags.Contains("INCLUDEFLAT"))
                 _includeFlatAndSparseLogDataTable = true;
@@ -876,6 +888,9 @@ namespace LogFSM_LogX2019
 
                 foreach (string _id in logDataTables.Keys)
                 {
+                    if (_skipRootTable && _id == "Log")
+                        continue;
+
                     var _varlist = new List<SpssLib.SpssDataset.Variable>();
                     _varlist.Add(new SpssLib.SpssDataset.Variable("Line") { Label = CodebookDictionary.GetColumnNameDescription("Line", _language) });
 
@@ -1253,6 +1268,10 @@ namespace LogFSM_LogX2019
             if (ParsedCommandLineArguments.Flags.Contains("INCLUDEFLAT"))
                 _includeFlatAndSparseLogDataTable = true;
 
+            bool _skipRootTable = false;
+            if (ParsedCommandLineArguments.Flags.Contains("SKIPROOT"))
+                _skipRootTable = true;
+
             bool _skipResultTable = false;
             if (ParsedCommandLineArguments.Flags.Contains("SKIPRESULTS"))
                 _skipResultTable = true;
@@ -1277,6 +1296,9 @@ namespace LogFSM_LogX2019
 
                 foreach (string _id in logDataTables.Keys)
                 {
+                    if (_skipRootTable && _id == "Log")
+                        continue;
+
                     string _tmpfile = GetTempFileName("csv");
 
                     using (StreamWriter writer = new StreamWriter(new FileStream(_tmpfile, FileMode.OpenOrCreate), Encoding.UTF8))
@@ -1398,8 +1420,6 @@ namespace LogFSM_LogX2019
                 }
 
                 #endregion 
-                
-                 
                  
                 #region Result Data
 
@@ -1471,8 +1491,7 @@ namespace LogFSM_LogX2019
                 }
 
                 #endregion
-
-                
+                 
                 zip.UseZip64WhenSaving = Zip64Option.Always;
                 zip.Save(filename);
             }
@@ -1554,6 +1573,10 @@ namespace LogFSM_LogX2019
             if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("outputstringattributenotexpected"))
                 _attributeNotExpected = ParsedCommandLineArguments.ParameterDictionary["outputstringattributenotdefined"];
 
+            bool _skipRootTable = false;
+            if (ParsedCommandLineArguments.Flags.Contains("SKIPROOT"))
+                _skipRootTable = true;
+
             bool _includeFlatAndSparseLogDataTable = false;
             if (ParsedCommandLineArguments.Flags.Contains("INCLUDEFLAT"))
                 _includeFlatAndSparseLogDataTable = true;
@@ -1576,6 +1599,9 @@ namespace LogFSM_LogX2019
 
                 foreach (string _id in logDataTables.Keys)
                 {
+                    if (_skipRootTable && _id == "Log")
+                        continue;
+
                     _sheetIndex.Add(_id, _id);
                     if (_id.Length > 29)
                     {

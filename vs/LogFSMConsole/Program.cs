@@ -31,7 +31,7 @@ namespace LogFSMConsole
             _watch.Start();
  
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-             
+ 
             string[] _assemblyFullName = Assembly.GetExecutingAssembly().FullName.Split(',');
             CommandLineArguments _parsedCommandLineArguments = new CommandLineArguments(args, _assemblyFullName[0], _assemblyFullName[1].Split('=')[1]);
 
