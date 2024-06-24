@@ -28,6 +28,11 @@ namespace LogDataTransformer_TAOPCI_V02
                 if (ParsedCommandLineArguments.Flags.Contains("EXTRACTSCORINGFROMSNAPSHOTS"))
                     _extractScoringFromSnapshots = true;
 
+                bool _extractVariablesFromSnapshots = false;
+                if (ParsedCommandLineArguments.Flags.Contains("EXTRACTVARIABLESFROMSNAPSHOT"))
+                    _extractVariablesFromSnapshots = true;
+                
+
                 bool _relativeTimesAreSeconds = false;
                 if (ParsedCommandLineArguments.Flags.Contains("RELATIVETIMESARESECONDS"))
                     _relativeTimesAreSeconds = true;
@@ -91,7 +96,7 @@ namespace LogDataTransformer_TAOPCI_V02
 
                 #region Snapshot Data
 
-                if (_extractScoringFromSnapshots)
+                if (_extractScoringFromSnapshots || _extractVariablesFromSnapshots)
                 {
                     List<string> _listOfResulSnapshotFiles = new List<string>();
                     foreach (string inFolder in ParsedCommandLineArguments.Transform_InputFolders)
@@ -110,110 +115,140 @@ namespace LogDataTransformer_TAOPCI_V02
                             var _json = File.ReadAllText(jsonFile);
                             var _person = Path.GetFileNameWithoutExtension(jsonFile).Split(new string[] { "--" }, StringSplitOptions.None)[0];
                             var _item = Path.GetFileNameWithoutExtension(jsonFile).Split(new string[] { "--" }, StringSplitOptions.None)[1].Replace(".json", "").ReplaceCharacters(new List<char> { (char)61477, '=' }, '_');
-                            var _results = new Dictionary<string, object>();
+                          
 
-                            Dictionary<string, string> _hitInfoDic = new Dictionary<string, string>();
-                            var _jObj = FindTaskResults(JObject.Parse(_json));
-                            if (_jObj != null)
+                            if (_extractScoringFromSnapshots)
                             {
-                                var _taskresults = _jObj.FirstOrDefault().FirstOrDefault();
-                                var _listOfHitInfos = _taskresults.ToList();
-                                foreach (var _hitInfo in _listOfHitInfos)
+                                var _results = new Dictionary<string, object>();
+
+                                Dictionary<string, string> _hitInfoDic = new Dictionary<string, string>();
+                                var _jObj = FindTaskResults(JObject.Parse(_json));
+                                if (_jObj != null)
                                 {
-                                    if (_hitInfo.Type == JTokenType.Property)
+                                    var _taskresults = _jObj.FirstOrDefault().FirstOrDefault();
+                                    var _listOfHitInfos = _taskresults.ToList();
+                                    foreach (var _hitInfo in _listOfHitInfos)
                                     {
-                                        var prop = (JProperty)_hitInfo;
-                                        string key = prop.Name;
-                                        string value = prop.Value.ToString();
-                                        _hitInfoDic.Add(key, value);
-                                    }
-                                }
-
-                                // extract list of classes and
-                                // create dictionary with active/not active per hit
-
-                                Dictionary<string, bool> _activeHits = new Dictionary<string, bool>();
-                                Dictionary<string, string> _resultTexts = new Dictionary<string, string>();
-                                List<string> _classes = new List<string>();
-
-                                foreach (var i in _hitInfoDic.Keys)
-                                {
-                                    if (i.StartsWith("hit."))
-                                    {
-                                        _activeHits.Add(i.Replace("hit.", ""), bool.Parse(_hitInfoDic[i]));
-                                    }
-
-                                    if (i.StartsWith("hitClass."))
-                                    {
-                                        if (!_classes.Contains(_hitInfoDic[i]))
-                                            _classes.Add(_hitInfoDic[i]);
-                                    }
-                                    if (i.StartsWith("hitText."))
-                                    {
-                                        _resultTexts.Add(i.Replace("hitText.", ""), _hitInfoDic[i]);
-
-                                    }
-
-                                }
-
-                                // create dictionary with class per hit and
-                                // count number of hits per classes  
-
-                                Dictionary<string, string> _hitClass = new Dictionary<string, string>();
-                                Dictionary<string, int> _numberOfActivHitsPerClass = new Dictionary<string, int>();
-
-                                foreach (var i in _activeHits.Keys)
-                                {
-                                    _hitClass.Add(i, _hitInfoDic["hitClass." + i]);
-                                    if (_activeHits[i])
-                                    {
-                                        if (!_numberOfActivHitsPerClass.ContainsKey(_hitInfoDic["hitClass." + i]))
+                                        if (_hitInfo.Type == JTokenType.Property)
                                         {
-                                            _numberOfActivHitsPerClass.Add(_hitInfoDic["hitClass." + i], 1);
-                                        }
-                                        else
-                                        {
-                                            _numberOfActivHitsPerClass[_hitInfoDic["hitClass." + i]] += 1;
+                                            var prop = (JProperty)_hitInfo;
+                                            string key = prop.Name;
+                                            string value = prop.Value.ToString();
+                                            _hitInfoDic.Add(key, value);
                                         }
                                     }
-                                }
+
+                                    // extract list of classes and
+                                    // create dictionary with active/not active per hit
+
+                                    Dictionary<string, bool> _activeHits = new Dictionary<string, bool>();
+                                    Dictionary<string, string> _resultTexts = new Dictionary<string, string>();
+                                    List<string> _classes = new List<string>();
+
+                                    foreach (var i in _hitInfoDic.Keys)
+                                    {
+                                        if (i.StartsWith("hit."))
+                                        {
+                                            _activeHits.Add(i.Replace("hit.", ""), bool.Parse(_hitInfoDic[i]));
+                                        }
+
+                                        if (i.StartsWith("hitClass."))
+                                        {
+                                            if (!_classes.Contains(_hitInfoDic[i]))
+                                                _classes.Add(_hitInfoDic[i]);
+                                        }
+                                        if (i.StartsWith("hitText."))
+                                        {
+                                            _resultTexts.Add(i.Replace("hitText.", ""), _hitInfoDic[i]);
+
+                                        }
+
+                                    }
+
+                                    // create dictionary with class per hit and
+                                    // count number of hits per classes  
+
+                                    Dictionary<string, string> _hitClass = new Dictionary<string, string>();
+                                    Dictionary<string, int> _numberOfActivHitsPerClass = new Dictionary<string, int>();
+
+                                    foreach (var i in _activeHits.Keys)
+                                    {
+                                        _hitClass.Add(i, _hitInfoDic["hitClass." + i]);
+                                        if (_activeHits[i])
+                                        {
+                                            if (!_numberOfActivHitsPerClass.ContainsKey(_hitInfoDic["hitClass." + i]))
+                                            {
+                                                _numberOfActivHitsPerClass.Add(_hitInfoDic["hitClass." + i], 1);
+                                            }
+                                            else
+                                            {
+                                                _numberOfActivHitsPerClass[_hitInfoDic["hitClass." + i]] += 1;
+                                            }
+                                        }
+                                    }
                                     
 
-                                // create a dictionary with first active hit for each class
+                                    // create a dictionary with first active hit for each class
 
-                                Dictionary<string, string> _firstActiveHitPerClass = new Dictionary<string, string>();
-                                foreach (var i in _classes)
-                                {
-                                    _firstActiveHitPerClass.Add(i, _hitInfoDic["classFirstActiveHit." + i]);
-                                }
-                                 
-                                // deactive hits, if the hits are not the first active hit
-
-                                foreach (var k in _activeHits.Keys)
-                                {
-                                    bool isActive = _activeHits[k];
-                                    string belongsToClass = _hitClass[k];
-                                    bool isMultipleActive = _numberOfActivHitsPerClass[belongsToClass] > 1;
-                                    bool istFirstHit = _firstActiveHitPerClass[belongsToClass] == k;
-                                    if (isMultipleActive && isActive && !istFirstHit)
-                                        _activeHits[k] = false;
-                                }
-
-                                foreach (var k in _activeHits.Keys)
-                                {
-                                    if (_activeHits[k])
+                                    Dictionary<string, string> _firstActiveHitPerClass = new Dictionary<string, string>();
+                                    foreach (var i in _classes)
                                     {
-                                        _results.Add(_item + "_" + _hitClass[k] + ".hit", k);
-                                        _results.Add(_item + "_" + _hitClass[k] + ".hitText", _resultTexts[k]);
+                                        _firstActiveHitPerClass.Add(i, _hitInfoDic["classFirstActiveHit." + i]);
+                                    }
+                                 
+                                    // deactive hits, if the hits are not the first active hit
+
+                                    foreach (var k in _activeHits.Keys)
+                                    {
+                                        bool isActive = _activeHits[k];
+                                        string belongsToClass = _hitClass[k];
+                                        bool isMultipleActive = _numberOfActivHitsPerClass[belongsToClass] > 1;
+                                        bool istFirstHit = _firstActiveHitPerClass[belongsToClass] == k;
+                                        if (isMultipleActive && isActive && !istFirstHit)
+                                            _activeHits[k] = false;
                                     }
 
+                                    foreach (var k in _activeHits.Keys)
+                                    {
+                                        if (_activeHits[k])
+                                        {
+                                            _results.Add(_item + "_" + _hitClass[k] + ".hit", k);
+                                            _results.Add(_item + "_" + _hitClass[k] + ".hitText", _resultTexts[k]);
+                                        }
+
+                                    }
+
+                                    if (_results.Count > 0)
+                                        _ret.AddResults(new logxGenericResultElement() { PersonIdentifier = _person, Results = _results });
+
                                 }
-
-                                if (_results.Count > 0)
-                                    _ret.AddResults(new logxGenericResultElement() { PersonIdentifier = _person, Results = _results });
-
                             }
+                            if (_extractVariablesFromSnapshots)
+                            {
+                                var _results = new Dictionary<string, object>();
 
+                                var _jObj = FindVariables(JObject.Parse(_json));
+                                if (_jObj != null)
+                                {
+                                    var _variablelist = _jObj.FirstOrDefault().FirstOrDefault();
+                                    var _listOfVariableValues = _variablelist.ToList();
+                                    foreach (var _variable in _listOfVariableValues)
+                                    {
+                                        if (_variable.Type == JTokenType.Property)
+                                        {
+                                            var prop = (JProperty)_variable;
+                                            string key = prop.Name;
+                                            var obj = JObject.Parse(prop.Value.ToString());                                            
+                                            string value = obj["value"].ToString();
+                                            _results.Add(_item + "_" + key, value);
+
+                                        }
+                                    }
+
+                                    if (_results.Count > 0)
+                                        _ret.AddResults(new logxGenericResultElement() { PersonIdentifier = _person, Results = _results });
+                                }
+                            }
                         }
                         catch (Exception _ex)
                         {
@@ -368,6 +403,40 @@ namespace LogDataTransformer_TAOPCI_V02
                 }
             }
              
+            return null;
+        }
+
+        public static JToken FindVariables(JToken token)
+        {
+            if (token.Type == JTokenType.Object)
+            {
+                var jsonObject = (JObject)token;
+                if (jsonObject.ContainsKey("variables"))
+                {
+                    return jsonObject["variables"];
+                }
+
+                foreach (var property in jsonObject.Properties())
+                {
+                    var result = FindVariables(property.Value);
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+            }
+            else if (token.Type == JTokenType.Array)
+            {
+                foreach (var item in (JArray)token)
+                {
+                    var result = FindVariables(item);
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+            }
+
             return null;
         }
     }
