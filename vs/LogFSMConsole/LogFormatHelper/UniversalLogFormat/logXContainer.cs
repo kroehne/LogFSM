@@ -194,20 +194,21 @@ namespace LogFSM_LogX2019
 
         }
 
-        public void AddEvent(logxGenericLogElement element, string[] Elements, string[] ExcludedElements)
+        public void AddEvent(logxGenericLogElement element, string[] Elements, string[] Events, string[] ExcludedElements, string[] ExcludedEvents)
         {
-            if (ExcludedElements.Length == 0 && Elements.Length == 0)
-            {
+            bool _add = true;
+            if (Elements.Length != 0 && !Elements.Contains<string>(element.Item))
+                _add = false;
+            else if (Events.Length != 0 && !Events.Contains<string>(element.EventName))
+                _add = false;
+            else if (ExcludedElements.Length != 0 && ExcludedElements.Contains<string>(element.Item))
+                _add = false;
+            else if (ExcludedEvents.Length != 0 && ExcludedEvents.Contains<string>(element.EventName))
+                _add = false;
+
+            if (_add) 
                 AddEvent(element);
-            }
-            else if (Elements.Contains(element.Item))
-            {
-                AddEvent(element);
-            }
-            else if (!ExcludedElements.Contains(element.Item))
-            {
-                AddEvent(element);
-            }
+           
         }
 
         public void AddEvent(logxGenericLogElement element)

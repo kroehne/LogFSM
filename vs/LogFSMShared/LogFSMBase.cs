@@ -819,12 +819,20 @@ namespace LogFSMShared
         { 
             if (EventIndex > 0)
             {
-                // Compute time in state
+                // Compute time in state 
 
-                if (Data[EventIndex - 1].GetEventValue("StateBefore_1") == Data[EventIndex - 1].GetEventValue("StateAfter_1"))
-                    Data[EventIndex].TimeInState = Data[EventIndex - 1].TimeInState + Data[EventIndex].TimeDifferencePrevious;
-                else
-                    Data[EventIndex].TimeInState  =  TimeSpan.Zero;
+                int _m = 1;
+                while (Data[EventIndex - 1].EventValues.ContainsKey("StateBefore_" + _m) && Data[EventIndex - 1].EventValues.ContainsKey("StateAfter_" + _m))
+                {
+                    if (!Data[EventIndex - 1].EventValues.ContainsKey("TimeInState_" + _m))
+                        Data[EventIndex - 1].AddEventValue("TimeInState_" + _m, "0");
+
+                    if (Data[EventIndex - 1].EventValues["StateBefore_" + _m] == Data[EventIndex - 1].EventValues["StateAfter_" + _m])
+                        Data[EventIndex].AddEventValue("TimeInState_" + _m, (Data[EventIndex].TimeDifferencePrevious.TotalMilliseconds + double.Parse(Data[EventIndex - 1].EventValues["TimeInState_" + _m])).ToString());
+                    else
+                        Data[EventIndex].AddEventValue("TimeInState_" + _m, TimeSpan.Zero.TotalMilliseconds.ToString());
+                    _m++;
+                }
 
                 // Carry values of variables forward
 

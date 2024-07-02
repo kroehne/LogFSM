@@ -29,7 +29,7 @@ namespace LogFSMConsole
         {
             Stopwatch _watch = new Stopwatch();
             _watch.Start();
- 
+
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
  
             string[] _assemblyFullName = Assembly.GetExecutingAssembly().FullName.Split(',');
@@ -785,8 +785,10 @@ namespace LogFSMConsole
                     _columnMapper.Add("StateBefore_" + i, _columnMapper.Keys.Count);
                     _columnMapper.Add("StateAfter_" + i, _columnMapper.Keys.Count);
                     _columnMapper.Add("Result_" + i, _columnMapper.Keys.Count);
+                    _columnMapper.Add("TimeInState_" + i, _columnMapper.Keys.Count);
                 }
 
+                
                 _columnMapper.Add("TimeDifference", _columnMapper.Keys.Count);
 
                 foreach (var k in _keys)
@@ -898,6 +900,7 @@ namespace LogFSMConsole
 
                         string _StateBefore = e.EventValues["StateBefore_" + i];
                         string _StateAfter = e.EventValues["StateAfter_" + i];
+                        
                         if (!_VisitedStateNames.ContainsKey(_currentPersonIdentifier))
                             _VisitedStateNames.Add(_currentPersonIdentifier, new List<string>());
 
