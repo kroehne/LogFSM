@@ -33,7 +33,7 @@ namespace LogFSM_LogX2019
 {
     public class logXContainer
     {
-         
+
         public bool PersonIdentifierIsNumber { get; set; }
         public string PersonIdentifierName { get; set; }
 
@@ -43,7 +43,7 @@ namespace LogFSM_LogX2019
 
         public bool flagShortenResultDataNames = false;
         public bool ContainsResultData { get; set; }
-        public Dictionary<string,logxResultDataRow> resultDataTable { get; set; }
+        public Dictionary<string, logxResultDataRow> resultDataTable { get; set; }
         public Dictionary<string, string> resultDataTableColnames { get; set; }
 
         #endregion
@@ -62,15 +62,15 @@ namespace LogFSM_LogX2019
         public Dictionary<string, List<logxLogDataRow>> logDataTables { get; set; }
         public Dictionary<string, List<string>> logDataTableColnames { get; set; }
 
-        public Dictionary<string, Dictionary<string,int>> uniqueValues = new Dictionary<string, Dictionary<string,int>>();
+        public Dictionary<string, Dictionary<string, int>> uniqueValues = new Dictionary<string, Dictionary<string, int>>();
         public Dictionary<string, Dictionary<int, string>> uniqueValuesLookup = new Dictionary<string, Dictionary<int, string>>();
 
         public List<string> ExportErrors = new List<string>();
 
         public logxCodebookDictionary CodebookDictionary { get; set; }
-         
+
         private Dictionary<string, int> maxEventIDByPerson = new Dictionary<string, int>();
-         
+
         #endregion
 
         public logXContainer()
@@ -116,12 +116,12 @@ namespace LogFSM_LogX2019
         }
 
         public void AddResults(logxGenericResultElement element)
-        { 
+        {
             ContainsResultData = true;
- 
+
             if (CondordanceTable.Count != 0)
             {
-                 if (!CondordanceTable.ContainsKey(element.PersonIdentifier))
+                if (!CondordanceTable.ContainsKey(element.PersonIdentifier))
                     return;
                 else
                     element.PersonIdentifier = CondordanceTable[element.PersonIdentifier];
@@ -146,12 +146,12 @@ namespace LogFSM_LogX2019
 
             if (!resultDataTable.ContainsKey(element.PersonIdentifier))
                 resultDataTable.Add(element.PersonIdentifier, new logxResultDataRow() { AttributValues = new List<Tuple<int, int>>(), PersonIdentifier = _personIdentifier });
-              
+
             foreach (var _name in element.Results.Keys)
             {
                 if (!resultDataTableColnames.ContainsKey(_name))
                 {
-                    List<string> _shortnames = resultDataTableColnames.Values.ToList<string>();                    
+                    List<string> _shortnames = resultDataTableColnames.Values.ToList<string>();
                     if (flagShortenResultDataNames && _name.Length > 25)
                     {
                         string _shortname = _name.Substring(0, 25);
@@ -163,23 +163,23 @@ namespace LogFSM_LogX2019
                     }
                     else
                     {
-                        resultDataTableColnames.Add(_name, _name);  
+                        resultDataTableColnames.Add(_name, _name);
                     }
                 }
 
                 string _value = "";
-                if (element.Results[_name]!= null)
+                if (element.Results[_name] != null)
                     _value = element.Results[_name].ToString();
 
                 AddValueToResultDataTable(_name, _value, resultDataTable[element.PersonIdentifier]);
-            } 
+            }
         }
 
         private void AddValueToResultDataTable(string name, string value, logxResultDataRow row)
         {
             string path = "Results";
             if (!uniqueValues.ContainsKey(name))
-                uniqueValues.Add(name, new Dictionary<string,int>());
+                uniqueValues.Add(name, new Dictionary<string, int>());
 
             if (!uniqueValues[name].ContainsKey(value))
                 uniqueValues[name].Add(value, uniqueValues[name].Count);
@@ -187,13 +187,29 @@ namespace LogFSM_LogX2019
             if (!logDataTableColnames.ContainsKey(path))
                 logDataTableColnames.Add(path, new List<string>());
 
-            if (!logDataTableColnames[path].Contains(name)) 
+            if (!logDataTableColnames[path].Contains(name))
                 logDataTableColnames[path].Add(name);
 
             row.AttributValues.Add(new Tuple<int, int>(logDataTableColnames[path].IndexOf(name), uniqueValues[name][value]));
 
         }
-         
+
+        public void AddEvent(logxGenericLogElement element, string[] Elements, string[] ExcludedElements)
+        {
+            if (ExcludedElements.Length == 0 && Elements.Length == 0)
+            {
+                AddEvent(element);
+            }
+            else if (Elements.Contains(element.Item))
+            {
+                AddEvent(element);
+            }
+            else if (!ExcludedElements.Contains(element.Item))
+            {
+                AddEvent(element);
+            }
+        }
+
         public void AddEvent(logxGenericLogElement element)
         {
             if (CondordanceTable.Count != 0)

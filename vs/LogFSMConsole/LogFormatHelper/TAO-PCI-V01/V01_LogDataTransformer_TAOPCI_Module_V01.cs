@@ -151,11 +151,14 @@ namespace LogDataTransformer_TAOPCI_V01
                                                             var _line = JsonConvert.SerializeObject(logFragment);
                                                             
                                                             List<LogDataTransformer_IB_REACT_8_12__8_13.Log_IB_8_12__8_13> _log = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.ParseLogElements(_line, "TAOPCI_V01", _checkEventAttrbibutes, "");
- 
-                                                            // TODO: Add flag to extract full name (project.task) vs. short name (project)
 
+                                                            // TODO: Add flag to extract full name (project.task) vs. short name (project)
+                                                           
                                                             foreach (var _l in _log)
                                                             {
+                                                                if (_l.Element.Trim() == "")
+                                                                    _l.Element = "(Platform)";
+
                                                                 var g = new logxGenericLogElement()
                                                                 {
                                                                     Item = _l.Element,
@@ -168,7 +171,7 @@ namespace LogDataTransformer_TAOPCI_V01
                                                                 try
                                                                 {
                                                                     g.EventDataXML = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.XmlSerializeToString(_l);
-                                                                    _ret.AddEvent(g);
+                                                                    _ret.AddEvent(g, ParsedCommandLineArguments.Elements, ParsedCommandLineArguments.ExcludedElements);
                                                                 }
                                                                 catch (Exception _innerex)
                                                                 {

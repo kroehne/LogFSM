@@ -80,10 +80,7 @@ namespace LogFSMShared
             }
 
         }
-
          
-         
-
         private static bool guardVariableIs(string _sourceValue, string _targetValue, string _operator)
         {
             if (_operator == "id")
@@ -277,14 +274,14 @@ namespace LogFSMShared
                                     }
                                 }
 
-                                string _sourceValue = Data[EventIndex].GetEventValue(_sourceAttributeName);
+                                string _sourceValue = Data[EventIndex].GetEventValue(_sourceAttributeName);                               
                                 string _targetValue = Data[_targetEventIndex].GetEventValue(_targetAttributeName);
                                 if (_guardParameters.Length > 1 && _guardParameters.Length <= 4)
                                 {
                                     if (!guardVariableIs(_sourceValue, _targetValue, _operator))
                                         _guardIsTrue = false;
                                 }
-
+                                 
                                 #endregion
                             }
                             else if (_g.ToLower().Trim().StartsWith("variableis") || _g.ToLower().Trim().StartsWith("compareattribute"))
@@ -817,17 +814,23 @@ namespace LogFSMShared
 
 
         }
-
-
+         
         public void UpdateVariables(List<EventData> Data, int EventIndex)
-        {
-            // Carry values of variables forward
-
+        { 
             if (EventIndex > 0)
             {
+                // Compute time in state
+
+                if (Data[EventIndex - 1].GetEventValue("StateBefore_1") == Data[EventIndex - 1].GetEventValue("StateAfter_1"))
+                    Data[EventIndex].TimeInState = Data[EventIndex - 1].TimeInState + Data[EventIndex].TimeDifferencePrevious;
+                else
+                    Data[EventIndex].TimeInState  =  TimeSpan.Zero;
+
+                // Carry values of variables forward
+
                 foreach (string v in varNames)
-                    Data[EventIndex].AddEventValue(v, Data[EventIndex - 1].GetEventValue(v));
-            }
+                    Data[EventIndex].AddEventValue(v, Data[EventIndex - 1].GetEventValue(v));                 
+            }            
 
         }
 

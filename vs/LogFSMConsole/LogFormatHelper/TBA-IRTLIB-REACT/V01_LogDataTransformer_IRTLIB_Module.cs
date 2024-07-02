@@ -11,6 +11,7 @@ using Ionic.Zip;
 using LogFSM_LogX2019;
 using LogFSMConsole;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Crypto.Operators;
 using StataLib;
 # endregion
 
@@ -128,7 +129,7 @@ namespace LogDataTransformer_IRTlibPlayer_V01
                 double _utcoffset = 0;
                 if (ParsedCommandLineArguments.ParameterDictionary.ContainsKey("utcoffset"))
                     _utcoffset = double.Parse(ParsedCommandLineArguments.ParameterDictionary["utcoffset"]);
-
+                 
                 // Create logXContainer 
 
                 logXContainer _ret = new LogFSM_LogX2019.logXContainer()
@@ -286,7 +287,7 @@ namespace LogDataTransformer_IRTlibPlayer_V01
 
                                                                 foreach (var _l in _log)
                                                                 {
-                                                                    if (_l.EventName == "")
+                                                                    if (_l.Element.Trim() == "")
                                                                         _l.Element = "(Platform)";
 
                                                                     //TODO: FLAG: _l.PersonIdentifier = _l.SessionId
@@ -299,11 +300,11 @@ namespace LogDataTransformer_IRTlibPlayer_V01
                                                                         PersonIdentifier = _l.PersonIdentifier,
                                                                         TimeStamp = _l.TimeStamp
                                                                     };
-
+                                                                      
                                                                     try
                                                                     {
                                                                         g.EventDataXML = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.XmlSerializeToString(_l);
-                                                                        _ret.AddEvent(g);
+                                                                        _ret.AddEvent(g, ParsedCommandLineArguments.Elements, ParsedCommandLineArguments.ExcludedElements);
                                                                     }
                                                                     catch (Exception _innerex)
                                                                     {
@@ -503,9 +504,13 @@ namespace LogDataTransformer_IRTlibPlayer_V01
 
                                                                     // TODO: Read Person Identifier from Data (not from file name)
                                                                     _l.PersonIdentifier = _sessionFileName;
+
+                                                                    if (_l.Element.Trim() == "")
+                                                                        _l.Element = "(Platform)";
+
                                                                     //if (_allowFileRename)
                                                                     //    _l.PersonIdentifier = _sessionFileName;
-
+                                                                     
                                                                     var g = new logxGenericLogElement()
                                                                     {
                                                                         Item = _l.Element,
@@ -516,7 +521,11 @@ namespace LogDataTransformer_IRTlibPlayer_V01
                                                                     };
 
                                                                     g.EventDataXML = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.XmlSerializeToString(_l);
-                                                                    _ret.AddEvent(g);
+
+                                                                    _ret.AddEvent(g, ParsedCommandLineArguments.Elements, ParsedCommandLineArguments.ExcludedElements);
+
+                                                                    
+
                                                                 }
 
                                                             }

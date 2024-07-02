@@ -160,7 +160,7 @@ namespace LogDataTransformer_IRTlibPlayer_V01
                                                 try
                                                 {
                                                     g.EventDataXML = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.XmlSerializeToString(_l);
-                                                    _ret.AddEvent(g);
+                                                    _ret.AddEvent(g, ParsedCommandLineArguments.Elements, ParsedCommandLineArguments.ExcludedElements);
                                                 }
                                                 catch (Exception _innerex)
                                                 {

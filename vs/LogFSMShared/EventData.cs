@@ -22,6 +22,8 @@ namespace LogFSMShared
         public TimeSpan RelativeTime { get; set; }
 
         public TimeSpan TimeDifferencePrevious { get; set; }
+        
+        public TimeSpan TimeInState { get; set; }
 
         public Dictionary<string, string> EventValues { get; set; }
 
@@ -44,9 +46,10 @@ namespace LogFSMShared
             else if (Name.ToLower() == "timestamp")
                 return TimeStamp.ToString(); // TODO: Define format
             else if (Name.ToLower() == "relativetime")
-                return RelativeTime.ToString(); ; // TODO: Define format
-
-            return "";
+                return RelativeTime.ToString();   // TODO: Define format
+            else if (Name.ToLower() == "timeinstate")
+                return TimeInState.TotalMilliseconds.ToString();   // TODO: Define format
+            return Name;
         }
 
         public EventData()

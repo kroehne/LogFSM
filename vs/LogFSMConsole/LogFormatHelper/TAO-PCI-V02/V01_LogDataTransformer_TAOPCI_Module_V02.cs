@@ -332,6 +332,9 @@ namespace LogDataTransformer_TAOPCI_V02
 
                             foreach (var _l in _log)
                             {
+                                if (_l.Element.Trim() == "")
+                                    _l.Element = "(Platform)";
+
                                 var g = new logxGenericLogElement()
                                 {
                                     Item = _l.Element,
@@ -344,7 +347,7 @@ namespace LogDataTransformer_TAOPCI_V02
                                 try
                                 {
                                     g.EventDataXML = LogDataTransformer_IB_REACT_8_12__8_13.JSON_IB_8_12__8_13_helper.XmlSerializeToString(_l);
-                                    _ret.AddEvent(g);
+                                    _ret.AddEvent(g, ParsedCommandLineArguments.Elements, ParsedCommandLineArguments.ExcludedElements);
                                 }
                                 catch (Exception _innerex)
                                 {
