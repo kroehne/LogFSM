@@ -181,7 +181,17 @@ namespace LogFSMConsole
                                            
                                         File.Delete(Path.Combine(_tmpPath, _personIdentifier + ".json"));                                        
                                     }
-                                    _inMemoryTempDataEvents.Sort((x, y) => x.TimeStamp.CompareTo(y.TimeStamp));
+
+                                    if (ParsedCommandLineArguments.RelativeTime)
+                                    {
+                                        _inMemoryTempDataEvents = EventDataListExtension.SortByRelativeTime(_inMemoryTempDataEvents, sort);
+                                        _inMemoryTempDataEvents.ComputeTimedifferencePreviousWithRelativeTimes();
+                                    }
+                                    else
+                                    {
+                                        _inMemoryTempDataEvents = EventDataListExtension.SortByTimeStamp(_inMemoryTempDataEvents, sort);
+                                        _inMemoryTempDataEvents.ComputeTimedifferencePrevious();
+                                    }                                    
 
                                     outputZipFile.AddEntry(_personIdentifier + ".json", JsonConvert.SerializeObject(_inMemoryTempDataEvents, Newtonsoft.Json.Formatting.Indented));
                                     _inMemoryTempDataEvents = new List<EventData>();

@@ -1,6 +1,9 @@
 CHANGE-LOG
 ==========
 
+2024-07-24 0.4.5.34
+
+* Bugfixing (sorting of events in PrepareLogData failed for the first case)
 
 2024-07-02 0.4.5.33
 
