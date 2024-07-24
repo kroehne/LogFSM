@@ -8,7 +8,7 @@
 #' ```zipfilename``` (for ZIP archives with multiple data files).
 #'
 #' For more details about the workflow, see the vignette *LogFSM Workflows (Overview)*:
-#' \code{vignette("Workflow", package = "LogFSM")}
+#' \code{vignette("Workflows", package = "LogFSM")}
 #'
 #' For more details about the syntax, see the vignette *LogFSM Syntax (Input)*:
 #' \code{vignette("Syntax", package = "LogFSM")}

@@ -83,7 +83,7 @@ should be provided as argument \code{datafilename} (for single files) or as argu
 }
 \details{
 For more details about the workflow, see the vignette \emph{LogFSM Workflows (Overview)}:
-\code{vignette("Workflow", package = "LogFSM")}
+\code{vignette("Workflows", package = "LogFSM")}
 
 For more details about the syntax, see the vignette \emph{LogFSM Syntax (Input)}:
 \code{vignette("Syntax", package = "LogFSM")}

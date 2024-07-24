@@ -71,7 +71,7 @@ If data are provided as  \code{nepszip01a}, the following columns are expected:
 }
 
 For more details about the workflow see the vignette \emph{LogFSM Workflows (Overview)}:
-\code{vignette("Workflow", package = "LogFSM")}
+\code{vignette("Workflows", package = "LogFSM")}
 
 Additional formats (under development)
 \itemize{

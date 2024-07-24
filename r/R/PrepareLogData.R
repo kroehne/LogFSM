@@ -22,7 +22,7 @@
 #' - ```TimeStamp``` or ```RelativeTime```: Timestamp (Absolut time stamps are expected. For relative times, use the flag ```RELATIVETIME```. This default can be overwritten by providing an additional argument 'ColumnNameTimeStamp,' which specifies the name of the column that contains the timestamp.
 #'
 #' For more details about the workflow see the vignette *LogFSM Workflows (Overview)*:
-#' \code{vignette("Workflow", package = "LogFSM")}
+#' \code{vignette("Workflows", package = "LogFSM")}
 #'
 #' Additional formats (under development)
 #' *  ```pisabqzip01a``` / ```pisabqzip01b``` / ```pisabqzip01c``` / ```pisacazip01a```
