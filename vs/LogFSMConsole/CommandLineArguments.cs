@@ -162,10 +162,18 @@ namespace LogFSMConsole
         public const string _CMDA_JOB_TRANSFORM_input_format = "inputformat";
 
 
+        /// <summary>
+        /// Output folder
+        /// </summary>
+        public const string _CMDA_JOB_TRANSFORM_output_folder = "outputfolder";
+
+
+        
+
         #endregion
 
         #region Input File Formats (Constants) 
-         
+
         /// <summary>
         /// IBSD
         /// </summary>
@@ -207,9 +215,14 @@ namespace LogFSMConsole
         public const string _CMDA_JOB_TRANSFORM_input_taopci01a = "taopci01a";
 
         /// <summary>
-        /// TAO PCI Version 2
+        /// TAO PCI Version 2 (backup)
         /// </summary>
         public const string _CMDA_JOB_TRANSFORM_input_taopci02a = "taopci02a";
+
+        /// <summary>
+        /// TAO PCI Version 2 (tao)
+        /// </summary>
+        public const string _CMDA_JOB_TRANSFORM_input_taopci02b = "taopci02b";
 
         /// <summary>
         /// 
@@ -311,6 +324,12 @@ namespace LogFSMConsole
         /// Input format. 
         /// </summary>
         public string Transform_InputFormat = "";
+
+        /// <summary>
+        /// Output folder. 
+        /// </summary>
+        public string Transform_OutputFolder = "";
+        
 
         /// <summary>
         /// Create universal log format, format zipped stata files
@@ -961,10 +980,11 @@ namespace LogFSMConsole
             this.Transform_ConcordanceTable = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_concordance_table, "");
 
             this.Transform_InputFormat = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_input_format, "");
+            this.Transform_OutputFolder = GetParameterOrDefault(_CMDA_JOB_TRANSFORM_output_folder, "");
 
-        #endregion
-             
-    }
+            #endregion
+
+        }
 
         private void PrepareComandLineArguments(string[] args)
         {

@@ -830,7 +830,7 @@ namespace LogFSMShared
                     if (Data[EventIndex - 1].EventValues["StateBefore_" + _m] == Data[EventIndex - 1].EventValues["StateAfter_" + _m])
                         Data[EventIndex].AddEventValue("TimeInState_" + _m, (Data[EventIndex].TimeDifferencePrevious.TotalMilliseconds + double.Parse(Data[EventIndex - 1].EventValues["TimeInState_" + _m])).ToString());
                     else
-                        Data[EventIndex].AddEventValue("TimeInState_" + _m, TimeSpan.Zero.TotalMilliseconds.ToString());
+                        Data[EventIndex].AddEventValue("TimeInState_" + _m, Data[EventIndex].TimeDifferencePrevious.TotalMilliseconds.ToString());
                     _m++;
                 }
 

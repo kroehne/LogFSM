@@ -91,7 +91,15 @@ namespace LogFSMConsole
                 Console.WriteLine("Module: Transform 'TAOPCI 02A' (CSV files exported from TAO using https://github.com/DIPFtba/fastib2pci and external data storage).");
                 Console.ResetColor();
 
-                LogDataTransformer_TAOPCI_V02.LogDataTransformer_TAOPCI_Module_V02.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
+                LogDataTransformer_TAOPCI_V02a.LogDataTransformer_TAOPCI_Module_V02.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
+            }
+            else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_taopci02b)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                Console.WriteLine("Module: Transform 'TAOPCI 02B' (JSON files exported from TAO using https://github.com/DIPFtba/fastib2pci and internal data storage).");
+                Console.ResetColor();
+
+                LogDataTransformer_TAOPCI_V02b.LogDataTransformer_TAOPCI_Module_V02.ProcessLogFilesOnly(Watch, ParsedCommandLineArguments);
             }
             else if (ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01a ||
                 ParsedCommandLineArguments.Transform_InputFormat == CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01b)
@@ -156,6 +164,7 @@ namespace LogFSMConsole
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_ibfirebase01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_taopci01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_taopci02a + "', '" +
+                    CommandLineArguments._CMDA_JOB_TRANSFORM_input_taopci02b + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_timsst19zip01a + "', '" +
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisa2012zip01a + "', '" + 
                     CommandLineArguments._CMDA_JOB_TRANSFORM_input_pisabqzip01a + "', '" +

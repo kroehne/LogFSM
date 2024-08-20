@@ -16,7 +16,7 @@ using NPOI.HPSF;
 using Stateless.Graph;
 #endregion
 
-namespace LogDataTransformer_TAOPCI_V02
+namespace LogDataTransformer_TAOPCI_V02a
 {
     public class LogDataTransformer_TAOPCI_Module_V02
     {

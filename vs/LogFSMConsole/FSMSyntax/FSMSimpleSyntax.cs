@@ -385,7 +385,10 @@ namespace LogFSM
                 //           ^ _digitSeparator  ^ _commandSeparator  ^ _stateSeparator  ^ _triggerSepartor  ^ _operatorSeparator   ^ _guardSeparator
                 // COUNTER   COMMAND              STATE-LIST-1         STATE-LIST-2       TRIGGER             OPERATOR              GUARD
 
-                char[] chars = input.ToCharArray();
+
+                input = input.TrimStart().TrimEnd();
+
+                char[] chars = input.ToCharArray(); 
 
                 #region Digit-Separator 
                 int _counter = 1;
