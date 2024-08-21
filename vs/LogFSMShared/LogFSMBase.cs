@@ -756,7 +756,7 @@ namespace LogFSMShared
                                             break;
                                         }
 
-                                        if (_conditionIsValid && _EventIndexRangeEnd+1 < Data.Count)
+                                        if (_conditionIsValid && _EventIndexRangeEnd + 2 < Data.Count)
                                         {
                                             _EventIndexRangeEnd++;
                                         }
