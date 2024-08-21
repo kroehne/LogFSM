@@ -274,18 +274,18 @@ namespace LogFSMShared
                                     }
                                 }
 
-                                string _sourceValue = Data[EventIndex].GetEventValue(_sourceAttributeName);                               
+                                string _sourceValue = Data[EventIndex].GetEventValue(_sourceAttributeName);
                                 string _targetValue = Data[_targetEventIndex].GetEventValue(_targetAttributeName);
                                 if (_guardParameters.Length > 1 && _guardParameters.Length <= 4)
                                 {
                                     if (!guardVariableIs(_sourceValue, _targetValue, _operator))
                                         _guardIsTrue = false;
                                 }
-                                 
+
                                 #endregion
                             }
                             else if (_g.ToLower().Trim().StartsWith("variableis") || _g.ToLower().Trim().StartsWith("compareattribute"))
-                            { 
+                            {
                                 // VariableIs / CompareAttribute
                                 // 1 = AttributeName
                                 // 2 = TargetValue
@@ -351,9 +351,9 @@ namespace LogFSMShared
                                 }
 
                                 #endregion
-                            } 
+                            }
                             else if (_g.ToLower().Trim().StartsWith("islasttrigger"))
-                            { 
+                            {
                                 #region GUARD: "IsLastTrigger"
                                 string[] _guardParameters = _g.Split('(', ')')[1].Split(',');
 
@@ -386,7 +386,7 @@ namespace LogFSMShared
                                             break;
                                         }
                                     }
-                                
+
                                     if (_rowIsTrue)
                                     {
                                         _guardIsTrue = false;
@@ -685,6 +685,147 @@ namespace LogFSMShared
                                 if (k == 0)
                                     _guardIsTrue = false;
 
+                                #endregion
+                            }
+                            else if (_g.ToLower().Trim().StartsWith("look_ahead_condition") || _g.ToLower().Trim().StartsWith("not_look_ahead_condition"))
+                            {
+                                #region GUARD: "look_ahead_condition" / "not_look_ahead_condition"
+
+                                /* 
+                                 *  The guard 'look_ahead_condition' is defined as follows. It evaluates if a trigger (<-- _triggerOfInterest) (e.g., EventName=Response)
+                                 *  is found in any / none of the following events, as long as the condition (<-- _conditionToInvestigate) (e.g., Page=SQ123) is met.
+                                 */
+
+                                bool _negation = _g.ToLower().Trim().StartsWith("not_look_ahead_condition");
+
+                                string[] _guardParameters = _g.Split('(', ')')[1].Split(',');
+
+                                var _triggerOfInterest = new Dictionary<string, string>();
+                                if (_guardParameters.Length > 1)
+                                {
+                                    string[] querySegmentsTrigger = _guardParameters[0].Split('&');
+                                    foreach (string segment in querySegmentsTrigger)
+                                    {
+                                        string[] _parts = segment.Split("=".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                                        if (_parts.Length > 1)
+                                        {
+                                            _triggerOfInterest.Add(_parts[0].Trim(), _parts[1].Trim());
+                                        }
+                                    }
+                                }
+
+                                var _conditionToBeInvestigated = new Dictionary<string, string>();
+                                string[] querySegmentsFilter = _guardParameters[1].Split('&');
+                                foreach (string segment in querySegmentsFilter)
+                                {
+                                    string[] _parts = segment.Split("=".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                                    if (_parts.Length > 1)
+                                    {
+                                        _conditionToBeInvestigated.Add(_parts[0].Trim(), _parts[1].Trim());
+                                    }
+                                }
+                                  
+                                // Step 1: For how many rows is the condition valid?
+                                //         EventIndex ... _EventIndexRangeEnd
+
+                                bool _conditionIsValid = true;
+                                int _EventIndexRangeEnd = EventIndex;
+                                while (_conditionIsValid)
+                                {
+                                    foreach (var _key in _conditionToBeInvestigated.Keys)
+                                    {
+                                        if (_key == "EventName")
+                                        {
+                                            if (Data[_EventIndexRangeEnd + 1].EventName != _conditionToBeInvestigated[_key])
+                                            {
+                                                _conditionIsValid = false;
+                                                break;
+                                            }
+                                        }
+                                        else if (_key == "Element")
+                                        {
+                                            if (Data[_EventIndexRangeEnd + 1].Element != _conditionToBeInvestigated[_key])
+                                            {
+                                                _conditionIsValid = false;
+                                                break;
+                                            }
+                                        }
+                                        else if (Data[_EventIndexRangeEnd + 1].EventValues[_key] != _conditionToBeInvestigated[_key])
+                                        {
+                                            _conditionIsValid = false;
+                                            break;
+                                        }
+
+                                        if (_conditionIsValid && _EventIndexRangeEnd < Data.Count)
+                                        {
+                                            _EventIndexRangeEnd++;
+                                        }
+                                        else
+                                        {
+                                            _conditionIsValid = false;
+                                        }
+
+                                    }
+                                }
+
+                                // Step 2: Check if the condition is fullfilled in any (or none, when _negation is true) of the rows in the range  EventIndex  ... _EventIndexRangeEnd.
+
+                                if (_EventIndexRangeEnd > EventIndex + 1)
+                                {
+                                    bool _foundCondition = false;
+
+                                    for (int k = EventIndex + 1; k < _EventIndexRangeEnd; k++)
+                                    {
+                                        bool _isTrueForThisRow = true;
+                                        foreach (var _key in _triggerOfInterest.Keys)
+                                        {
+                                            if (_key == "EventName")
+                                            {
+                                                if (Data[k].EventName != _triggerOfInterest[_key])
+                                                {
+                                                    _isTrueForThisRow = false;
+                                                    break;
+                                                }
+                                            }
+                                            else if (_key == "Element")
+                                            {
+                                                if (Data[k].Element != _triggerOfInterest[_key])
+                                                {
+                                                    _isTrueForThisRow = false;
+                                                    break;
+                                                }
+                                            }
+                                            else if (Data[k].EventValues[_key] != _triggerOfInterest[_key])
+                                            {
+                                                _isTrueForThisRow = false;
+                                                break;
+                                            }
+                                        }
+
+                                        if (_isTrueForThisRow)
+                                        {
+                                            _foundCondition = true;
+                                            break;
+                                        }
+                                    }
+
+                                    if (!_foundCondition && !_negation)
+                                    {
+                                        _guardIsTrue = false;
+                                    }
+                                    else if (_foundCondition && _negation)
+                                    {
+                                        _guardIsTrue = false;
+                                    }
+
+                                }
+                                else
+                                {
+                                    // condition not met for the current event.
+
+                                    _guardIsTrue = false;
+                                }  
+                                 
                                 #endregion
                             }
                             else
