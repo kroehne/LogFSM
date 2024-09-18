@@ -71,32 +71,76 @@ namespace LogDataTransformer_TAOPCI_V02b
 
                     foreach (var jsonFile in allJsonFilenames)
                     {
-                        var _json = File.ReadAllText(jsonFile);
-                        var _obj = JObject.Parse(_json);
+                        try
+                        {
+                            #region Extract 
 
-                        Dictionary<string, string> __jsonDataForLogin = new Dictionary<string, string>();
+                            var _json = File.ReadAllText(jsonFile);
+                            var _obj = JObject.Parse(_json);
 
-                        string __login = "";
+                            Dictionary<string, string> __jsonDataForLogin = new Dictionary<string, string>();
 
-                        var responseNodes = ExtractResponseNodes(_obj);
-                         
-                        if (_obj.ContainsKey("raw_data"))
-                        { 
-                            foreach (var raw_data_items in _obj["raw_data"])
-                            { 
-                                if (raw_data_items.GetType() == typeof(JProperty))
+                            string __login = "";
+
+                            var responseNodes = ExtractResponseNodes(_obj);
+
+                            if (_obj.ContainsKey("raw_data"))
+                            {
+                                foreach (var raw_data_items in _obj["raw_data"])
                                 {
-                                    if (raw_data_items.Path == "raw_data.login")
+                                    if (raw_data_items.GetType() == typeof(JProperty))
                                     {
-                                        __login = (raw_data_items as JProperty).Value.ToString();
-                                    }
-                                    else if (raw_data_items.Path == "raw_data.items")
-                                    {   
-                                        foreach (var items in raw_data_items.Children())
+                                        if (raw_data_items.Path == "raw_data.login")
                                         {
-                                            foreach (var item in items.Children())
+                                            __login = (raw_data_items as JProperty).Value.ToString();
+                                        }
+                                        else if (raw_data_items.Path == "raw_data.items")
+                                        {
+                                            foreach (var items in raw_data_items.Children())
                                             {
-                                                foreach (var prop in item.Children())
+                                                foreach (var item in items.Children())
+                                                {
+                                                    foreach (var prop in item.Children())
+                                                    {
+                                                        foreach (var p in prop.Children())
+                                                        {
+                                                            if (p.GetType() == typeof(JProperty))
+                                                            {
+                                                                if ((p as JProperty).Name == "responses")
+                                                                {
+                                                                    string __value = (p as JProperty).Value["RESPONSE"]["value"].ToString();
+                                                                    __jsonDataForLogin.Add(p.Path + ".RESPONSE.value", __value);
+
+                                                                }
+                                                                else if ((p as JProperty).Name == "state")
+                                                                {
+
+                                                                    if ((p as JProperty).Contains("RESPONSE")){
+                                                                        string __state = (p as JProperty).Value["RESPONSE"]["state"].ToString();
+                                                                        __jsonDataForLogin.Add(p.Path + ".RESPONSE.state", __state);
+
+                                                                        string __response = (p as JProperty).Value["RESPONSE"]["response"].ToString();
+                                                                        __jsonDataForLogin.Add(p.Path + ".RESPONSE.response", __response);
+                                                                    }
+
+                                                                   
+                                                                }
+                                                            }
+
+                                                        }
+
+                                                    }
+
+
+                                                }
+
+                                            }
+                                        }
+                                        else if (raw_data_items.Path == "raw_data.rawItems")
+                                        {
+                                            foreach (var items in raw_data_items.Children())
+                                            {
+                                                foreach (var prop in items.Children())
                                                 {
                                                     foreach (var p in prop.Children())
                                                     {
@@ -104,139 +148,113 @@ namespace LogDataTransformer_TAOPCI_V02b
                                                         {
                                                             if ((p as JProperty).Name == "responses")
                                                             {
-                                                                string __value = (p as JProperty).Value["RESPONSE"]["value"].ToString();
-                                                                __jsonDataForLogin.Add(p.Path + ".RESPONSE.value", __value);
+                                                                foreach (var r in p.Children())
+                                                                {
+                                                                    foreach (var x in r)
+                                                                    {
+                                                                        string __value = x["RESPONSE"]["value"].ToString();
+                                                                        __jsonDataForLogin.Add(p.Path + ".RESPONSE.value", __value);
 
+                                                                    }
+                                                                }
                                                             }
                                                             else if ((p as JProperty).Name == "state")
                                                             {
-                                                                string __state = (p as JProperty).Value["RESPONSE"]["state"].ToString();
-                                                                __jsonDataForLogin.Add(p.Path + ".RESPONSE.state", __state);
-
-
-                                                                string __response = (p as JProperty).Value["RESPONSE"]["response"].ToString();
-                                                                __jsonDataForLogin.Add(p.Path + ".RESPONSE.response", __response);
-                                                            }
-                                                        } 
-                                                         
-                                                    }
-
-                                                }
-
-                                                
-                                            }
-
-                                        }
-                                    }
-                                    else if (raw_data_items.Path == "raw_data.rawItems")
-                                    {
-                                        foreach (var items in raw_data_items.Children())
-                                        {
-                                            foreach(var prop in items.Children())
-                                            {                                                
-                                                foreach (var p in prop.Children())
-                                                {
-                                                    if (p.GetType() == typeof(JProperty))
-                                                    {
-                                                        if ((p as JProperty).Name == "responses")
-                                                        {
-                                                            foreach (var r in p.Children())
-                                                            {
-                                                                foreach (var x in r)
+                                                                foreach (var r in p.Children())
                                                                 {
-                                                                    string __value = x["RESPONSE"]["value"].ToString();
-                                                                    __jsonDataForLogin.Add(p.Path + ".RESPONSE.value", __value);
-
-                                                                }
-                                                            }
-                                                        }
-                                                        else if ((p as JProperty).Name == "state")
-                                                        {
-                                                            foreach (var r in p.Children())
-                                                            {
-                                                                foreach (var x in r)
-                                                                {
-                                                                    if ((x as JProperty).Name == "RESPONSE")
+                                                                    foreach (var x in r)
                                                                     {
-                                                                        string __value = ((x as JProperty).Value as JToken)["state"].ToString();
-                                                                        __jsonDataForLogin.Add(p.Path + ".RESPONSE.state", __value);
+                                                                        if ((x as JProperty).Name == "RESPONSE")
+                                                                        {
+                                                                            string __value = ((x as JProperty).Value as JToken)["state"].ToString();
+                                                                            __jsonDataForLogin.Add(p.Path + ".RESPONSE.state", __value);
+
+                                                                        }
 
                                                                     }
-
                                                                 }
                                                             }
-                                                        }
-                                                        else if ((p as JProperty).Name == "rawResponses")
-                                                        {
-                                                            foreach (var r in p.Children())
+                                                            else if ((p as JProperty).Name == "rawResponses")
                                                             {
-                                                                foreach (var x in r)
+                                                                foreach (var r in p.Children())
                                                                 {
-                                                                    string __value = x["value"].ToString();
-                                                               
-                                                                    if (__value.Contains("uuid"))
+                                                                    foreach (var x in r)
                                                                     {
-                                                                        __jsonDataForLogin.Add(x.Path + ".value", __value);
+                                                                        string __value = x["value"].ToString();
+
+                                                                        if (__value.Contains("uuid"))
+                                                                        {
+                                                                            __jsonDataForLogin.Add(x.Path + ".value", __value);
+                                                                        }
                                                                     }
                                                                 }
                                                             }
                                                         }
-                                                    }
-                                                     
-                                                }
 
+                                                    }
+
+                                                }
                                             }
                                         }
                                     }
-                                } 
+                                }
                             }
-                        }
-                               
 
-                        Console.WriteLine("File: " + jsonFile + " Login: " + __login);
-                       
-                        foreach (var k in __jsonDataForLogin.Keys)
+
+                            Console.WriteLine("File: " + jsonFile + " Login: " + __login);
+
+                            foreach (var k in __jsonDataForLogin.Keys)
+                            {
+                                string _uuid = ExtractUuid(__jsonDataForLogin[k]);
+
+                                if (_uuid == "")
+                                {
+                                    string _value = __jsonDataForLogin[k];
+                                }
+
+                                if (!uuidFile.ContainsKey(_uuid))
+                                    uuidFile.Add(_uuid, __login + "|" + jsonFile);
+
+                                string _content = "";
+
+                                if (__jsonDataForLogin[k].Contains("componentsState"))
+                                {
+                                    _content += " State";
+                                }
+                                if (__jsonDataForLogin[k].Contains(".hitText"))
+                                {
+                                    _content += " Scoring";
+                                }
+                                if (__jsonDataForLogin[k].Contains("entryId"))
+                                {
+                                    _content += " Traces";
+                                }
+
+                                string _line = Path.GetFileNameWithoutExtension(jsonFile) + "\t" + __login + "\t" + _uuid + "\t" + _content + "\t" + k;
+                                using (StreamWriter sw = new StreamWriter(Path.Combine(ParsedCommandLineArguments.Transform_OutputFolder, "overview.csv"), true))
+                                {
+                                    sw.WriteLine(_line);
+                                }
+
+                                Console.Write(" - " + k + " | " + _uuid + ": " + _content);
+                                Console.WriteLine();
+
+
+                            }
+                            #endregion
+                        }
+                        catch (Exception _ex)
                         {
-                            string _uuid = ExtractUuid(__jsonDataForLogin[k]);
-
-                            if (_uuid == "")
-                            {
-                                string _value = __jsonDataForLogin[k];
-                            }
-
-                            if (!uuidFile.ContainsKey(_uuid))
-                                uuidFile.Add(_uuid, __login + "|" + jsonFile);
-
-                            string _content = "";
-                          
-                            if (__jsonDataForLogin[k].Contains("componentsState"))
-                            {
-                                _content += " State";
-                            }
-                            if (__jsonDataForLogin[k].Contains(".hitText"))
-                            {
-                                _content += " Scoring"; 
-                            }
-                            if (__jsonDataForLogin[k].Contains("entryId"))
-                            {
-                                _content += " Traces";
-                            }
-
-                            string _line = Path.GetFileNameWithoutExtension(jsonFile) + "\t" + __login + "\t" + _uuid + "\t" + _content + "\t" + k;
-                            using (StreamWriter sw = new StreamWriter(Path.Combine(ParsedCommandLineArguments.Transform_OutputFolder, "overview.csv"), true))
-                            {
-                                sw.WriteLine(_line);
-                            }
-
-                            Console.Write(" - " + k + " | " + _uuid + ": " + _content);
-                            Console.WriteLine();
-
-
+                            Console.WriteLine(_ex.ToString());
                         }
 
+                     
                     }
+
+
+
                 }
- 
+
                 logXContainer _ret = new logXContainer() { PersonIdentifierIsNumber = _personIdentifierIsNumber, PersonIdentifierName = _personIdentifier, RelativeTimesAreSeconds = _relativeTimesAreSeconds };
                 _ret.LoadCodebookDictionary(ParsedCommandLineArguments.Transform_Dictionary);
                 logXContainer.ExportLogXContainerData(ParsedCommandLineArguments, _ret);
