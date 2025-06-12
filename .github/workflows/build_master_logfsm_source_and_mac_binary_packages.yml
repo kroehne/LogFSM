@@ -59,7 +59,7 @@ jobs:
       run: mkdir $GITHUB_WORKSPACE/r/inst/extdata/win-x64
 
     - name: 'Publish Windows Worker 2'
-      run: dotnet publish vs/LogFSMConsole/LogFSMConsole.csproj -c "Release LogFSM" -r win7-x64 --self-contained true -o "$GITHUB_WORKSPACE/r/inst/extdata/win-x64" -p:Version=$VERSION
+      run: dotnet publish vs/LogFSMConsole/LogFSMConsole.csproj -c "Release LogFSM" -r win-x64 --self-contained true -o "$GITHUB_WORKSPACE/r/inst/extdata/win-x64" -p:Version=$VERSION
 
     - name: 'Publish Mac Worker 1'
       run: mkdir $GITHUB_WORKSPACE/r/inst/extdata/osx-x64
@@ -77,7 +77,7 @@ jobs:
       run: dotnet publish vs/Tools/TransformToUniversalLogFormat/TransformToUniversalLogFormat.csproj -c "Release LogFSM" -r linux-x64 --self-contained true -o "$GITHUB_WORKSPACE/transform/linux" -p:Version=$VERSION
 
     - name: 'Publish Windows Transform'
-      run: dotnet publish vs/Tools/TransformToUniversalLogFormat/TransformToUniversalLogFormat.csproj -c "Release LogFSM" -r win7-x64 --self-contained true -o "$GITHUB_WORKSPACE/transform/win" -p:Version=$VERSION
+      run: dotnet publish vs/Tools/TransformToUniversalLogFormat/TransformToUniversalLogFormat.csproj -c "Release LogFSM" -r win-x64 --self-contained true -o "$GITHUB_WORKSPACE/transform/win" -p:Version=$VERSION
 
     - name: 'Publish Mac Transform (x64)'
       run: dotnet publish vs/Tools/TransformToUniversalLogFormat/TransformToUniversalLogFormat.csproj -c "Release LogFSM" -r osx-x64 --self-contained true -o "$GITHUB_WORKSPACE/transform/mac-x64" -p:Version=$VERSION
