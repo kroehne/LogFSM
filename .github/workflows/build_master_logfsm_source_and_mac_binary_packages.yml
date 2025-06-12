@@ -109,7 +109,7 @@ jobs:
     - name: Build R package (all worker)
       run: Rscript -e "pkgbuild::build(path='r/')"
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: ${{format('LogFSM_{0}.tar.gz', env.VERSION)}}
         path: ${{ github.workspace }}/${{format('LogFSM_{0}.tar.gz', env.VERSION)}}
