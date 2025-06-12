@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Xml;
 using System.Xml.Serialization;
 #endregion
@@ -2406,9 +2407,83 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
                         _ret.Add(details);
                         #endregion    
                     }
+                    else if (entry.Type == "CaretPositionChange")
+                    {
+                        #region CaretPositionChange 
+                        CaretPositionChange details = new CaretPositionChange()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
+
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
+                        };
+
+                        if (entry.Details.ContainsKey("position"))
+                            details.position = entry.Details["position"].ToXmlSafeString();
+                        else
+                            details.position = "";
+
+                        if (entry.Details.ContainsKey("componentType"))
+                            details.componentType = entry.Details["componentType"].ToXmlSafeString();
+                        else
+                            details.componentType = "";
+
+                        RetrievedEventDetials(entry, details, check);
+
+                        _ret.Add(details);
+                        #endregion    
+                    }
+                    else if (entry.Type == "FrozenComponentInteraction")
+                    {
+                        #region FrozenComponentInteraction 
+                        FrozenComponentInteraction details = new FrozenComponentInteraction()
+                        {
+                            Element = _element,
+                            EventID = int.Parse(entry.EntryId),
+                            EventName = entry.Type,
+                            PersonIdentifier = _personIdentifier,
+                            TimeStamp = DateTime.Parse(entry.Timestamp),
+                            TraceId = _tracId,
+                            Task = _task,
+                            Test = _test,
+                            PageAreaName = _pageAreaName,
+                            Page = _page,
+                            PageAreaType = _pageAreaType,
+
+                            indexPath = entry.Details["indexPath"].ToXmlSafeString(),
+                            CbaVers = _cbaVers,
+                            SessionId = _sessionId,
+                            LoginTimestamp = _loginTimestamp,
+                            SendTimestamp = _sendTimestamp
+                        };
+                         
+                        if (entry.Details.ContainsKey("componentType"))
+                            details.componentType = entry.Details["componentType"].ToXmlSafeString();
+                        else
+                            details.componentType = "";
+
+                        RetrievedEventDetials(entry, details, check);
+
+                        _ret.Add(details);
+                        #endregion    
+                    }
                     else
                     {
                         Console.WriteLine("Not implemented: " + entry.Type);
+                        Console.WriteLine(entry.Details.ToString());
                     }
                 }
             }
@@ -2489,6 +2564,105 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
         public static itemScore ParseItemScore(string itemscorejson, string task, string item, string personIdentifier)
         {
             itemScore _ret = new itemScore();
+
+            Dictionary<string, List<hitEntry>> _classResults = new Dictionary<string, List<hitEntry>>();
+
+            if (string.IsNullOrWhiteSpace(itemscorejson))
+                return _ret;
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true  
+            };
+
+            using var document = JsonDocument.Parse(itemscorejson);
+            var root = document.RootElement;
+
+            _ret.hitsAccumulated = root.TryGetProperty("hitsAccumulated", out var ha) ? ha.GetInt32() : -1;
+            _ret.hitsCount = root.TryGetProperty("hitsCount", out var hc) ? hc.GetInt32() : -1;
+            _ret.missesAccumulated = root.TryGetProperty("missesAccumulated", out var ma) ? ma.GetInt32() : -1;
+            _ret.missesCount = root.TryGetProperty("missesCount", out var mc) ? mc.GetInt32() : -1;
+            _ret.classMaxWeighed = root.TryGetProperty("classMaxWeighed", out var cmw) ? cmw.GetDouble() : -1;
+            _ret.classMaxName = root.TryGetProperty("classMaxName", out var cmn) ? cmn.GetString() ?? "" : "";
+            _ret.totalResult = root.TryGetProperty("totalResult", out var tr) ? tr.GetDouble() : -1;
+            _ret.nbUserInteractions = root.TryGetProperty("nbUserInteractions", out var nui) ? nui.GetInt32() : -1;
+            _ret.nbUserInteractionsTotal = root.TryGetProperty("nbUserInteractionsTotal", out var nuit) ? nuit.GetInt32() : -1;
+            _ret.firstReactionTimeTotal = root.TryGetProperty("firstReactionTimeTotal", out var frtt) ? frtt.GetInt64() : -1;
+            _ret.taskExecutionTime = root.TryGetProperty("taskExecutionTime", out var tet) ? tet.GetInt64() : -1;
+            _ret.taskExecutionTimeTotal = root.TryGetProperty("taskExecutionTimeTotal", out var tett) ? tett.GetInt64() : -1;
+
+            foreach (var property in root.EnumerateObject())
+            {
+                string key = property.Name;
+                string value = property.Value.ToString();
+
+                if (key.StartsWith("hit.") || key.StartsWith("miss."))
+                {
+                    bool isHit = key.StartsWith("hit.");
+                    string hitName = key.Substring(key.IndexOf('.') + 1);
+                    bool isTrue = property.Value.GetBoolean();
+
+                    if (!_ret.Hits.ContainsKey(hitName))
+                        _ret.Hits[hitName] = new hitEntry { Name = hitName };
+
+                    _ret.Hits[hitName].IsHit = isHit;
+                    _ret.Hits[hitName].IsTrue = isTrue;
+                }
+                else if (key.StartsWith("hitText.") || key.StartsWith("missText."))
+                {
+                    string hitName = key.Substring(key.IndexOf('.') + 1);
+                    if (!_ret.Hits.ContainsKey(hitName))
+                        _ret.Hits[hitName] = new hitEntry { Name = hitName };
+
+                    _ret.Hits[hitName].ResultText = value;
+                }
+                else if (key.StartsWith("hitWeighed.") || key.StartsWith("missWeighed."))
+                {
+                    string hitName = key.Substring(key.IndexOf('.') + 1);
+                    double weight = property.Value.GetDouble();
+
+                    if (!_ret.Hits.ContainsKey(hitName))
+                        _ret.Hits[hitName] = new hitEntry { Name = hitName };
+
+                    _ret.Hits[hitName].Weight = weight;
+                }
+                else if (key.StartsWith("hitClass.") || key.StartsWith("missClass."))
+                {
+                    string hitName = key.Substring(key.IndexOf('.') + 1);
+                    string className = value;
+
+                    if (!_ret.Hits.ContainsKey(hitName))
+                        _ret.Hits[hitName] = new hitEntry { Name = hitName };
+
+                    _ret.Hits[hitName].HitMissClass = className;
+
+                    if (!_classResults.ContainsKey(className))
+                        _classResults[className] = new List<hitEntry>();
+
+                    if (!_classResults[className].Any(x => x.Name == hitName))
+                        _classResults[className].Add(_ret.Hits[hitName]);
+                }
+                else if (key == "resultVariables")
+                {
+                    _ret.ResultVariables = System.Text.Json.JsonSerializer.Deserialize<List<itemScoreResultVariable>>(value, options);
+                }
+            }
+
+            foreach (var className in _classResults.Keys)
+            {
+                var activeHits = _classResults[className]
+                    .Where(hit => hit.IsTrue)
+                    .OrderBy(hit => hit.Weight)
+                    .ToList();
+
+                _ret.ClassResults[className] =
+                    activeHits.Count == 0 ? null :
+                    activeHits.Count == 1 ? activeHits[0] :
+                    (activeHits[0].Weight > activeHits[1].Weight ? activeHits[0] : null);
+            }
+
+            return _ret;
+            /*
 
             Dictionary<string, string> _rawDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(itemscorejson);
 
@@ -2699,6 +2873,7 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
             }
 
             return _ret;
+            */
         }
 
     }
@@ -2760,6 +2935,13 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
         public JObject result { get; set; }
     }
 
+    public class itemScoreResultVariable
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+        public string ValueHit { get; set; }
+        public string ValueLabel { get; set; }
+    }
     public class itemScore
     {
         public int hitsAccumulated { get; set; }
@@ -2778,6 +2960,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
         public Dictionary<string, hitEntry> ClassResults { get; set; }
 
+        public List<itemScoreResultVariable> ResultVariables { get; set; } 
+
         public itemScore()
         {
             // key: HitName
@@ -2785,6 +2969,8 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
 
             // key: ClassName
             ClassResults = new Dictionary<string, hitEntry>();
+
+            ResultVariables = new List<itemScoreResultVariable>();
         }
     }
 
@@ -3265,7 +3451,31 @@ namespace LogDataTransformer_IB_REACT_8_12__8_13
         }
     }
 
-
+    public class CaretPositionChange : VisualEventBase
+    {
+        [XmlAttribute] public string componentType { get; set; } = "";
+        [XmlAttribute] public string position { get; set; } = "";
+        public override string GetType() => nameof(CaretPositionChange);
+        public override Dictionary<string, string> GetPropertyList()
+        {
+            var result = base.GetPropertyList();
+            result.Add(nameof(componentType), componentType);
+            result.Add(nameof(position), position);
+            return result;
+        }
+    }
+    public class FrozenComponentInteraction : VisualEventBase
+    {
+        [XmlAttribute] public string componentType { get; set; } = ""; 
+        public override string GetType() => nameof(FrozenComponentInteraction);
+        public override Dictionary<string, string> GetPropertyList()
+        {
+            var result = base.GetPropertyList();
+            result.Add(nameof(componentType), componentType); 
+            return result;
+        }
+    }
+    
     public class TreeChildArea : VisualEventBase
     {
         [XmlAttribute] public string sortDirection { get; set; } = "";

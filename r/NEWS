@@ -1,6 +1,10 @@
 CHANGE-LOG
 ==========
 
+2025-07-24 0.4.5.35
+
+* Added CaretPositionChange and FrozenComponentInteraction
+
 2024-07-24 0.4.5.34
 
 * Bugfixing (sorting of events in PrepareLogData failed for the first case)
