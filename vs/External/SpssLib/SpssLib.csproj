@@ -1,25 +1,20 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <AssemblyName>SpssLib</AssemblyName>
-    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-    <RootNamespace>SpssLib</RootNamespace>
-    <Configurations>Debug;Release;Release TransformToUniversalLogForamt</Configurations>
-    <ReleaseVersion>0.2.0.1</ReleaseVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<AssemblyName>SpssLib</AssemblyName>
+		<RootNamespace>SpssLib</RootNamespace>
+		<Configurations>Debug;Release;Release TransformToUniversalLogForamt</Configurations>
+		<ReleaseVersion>0.2.0.1</ReleaseVersion>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
 
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <WarningLevel>4</WarningLevel>
-    <PlatformTarget>anycpu</PlatformTarget>
-  </PropertyGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
+	<ItemGroup>
+		<Folder Include="Properties\" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.6" />
+	</ItemGroup>
 
 </Project>
