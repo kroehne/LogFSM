@@ -15,7 +15,7 @@ LogFSM can only be used on 64-bit operating systems.
 To install the package, a R script is provided that can be sourced in the following way: 
 
 ```{r, eval=FALSE}
-source("http://logfsm.com/latest")
+source("https://logfsm.com/latest")
 ```
 
 This will trigger the download of the latest stable release from [github](https://github.com/kroehne/LogFSM/releases) and install the required dependencies using the [remotes](https://cran.r-project.org/package=remotes) package.  
